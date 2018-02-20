@@ -1,0 +1,9 @@
+---
+Name: csp-routes
+After:
+  - 'framework/*'
+  - 'cms/*'
+---
+Director:
+  rules:
+    'csp': 'NSWDPC\CSP\ReportingEndpoint'

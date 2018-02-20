@@ -1,0 +1,12 @@
+---
+Name: csp_extensions
+After:
+  - 'framework/*'
+  - 'cms/*'
+---
+SiteTree:
+  extensions:
+    - NSWDPC\CSP\SiteTree
+Controller:
+  extensions:
+    - NSWDPC\CSP\ControllerExtension
