@@ -1,15 +1,24 @@
 <?php
-namespace NSWDPC\CSP;
+namespace NSWDPC\Utilities\ContentSecurityPolicy;
+use CspRule;
+use CspViolationReport;
+use ModelAdmin;
+
 /**
- * Admin for managing Content Security Policy and Vuilation Reports
+ * Admin for managing Content Security Policy and Violation Reports
  * @author james.ellis@dpc.nsw.gov.au
  */
-class ModelAdmin extends \ModelAdmin {
-	private static $url_segment = 'content-security-policy';
-	private static $menu_title = 'CSP';
-	private static $managed_models = array(
-		'ContentSecurityPolicy',
-		'CspViolationReport',
-	);
+class CspModelAdmin extends ModelAdmin {
+  private static $url_segment = 'content-security-policy';
+  private static $menu_title = 'CSP';
+  /**
+   * Menu icon for Left and Main CMS
+   * @var string
+   */
+  private static $menu_icon = '/framework/admin/images/menu-icons/16x16/gears.png';
+  private static $managed_models = [
+    CspRule::class,
+    CspViolationReport::class
+  ];
 
 }

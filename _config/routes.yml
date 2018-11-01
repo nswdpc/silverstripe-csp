@@ -6,4 +6,4 @@ After:
 ---
 Director:
   rules:
-    'csp': 'NSWDPC\CSP\ReportingEndpoint'
+    'csp': 'NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint'

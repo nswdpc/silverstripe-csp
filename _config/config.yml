@@ -4,9 +4,21 @@ After:
   - 'framework/*'
   - 'cms/*'
 ---
+CspRule:
+  run_in_admin: false
+  blacklisted_controllers:
+    - TimedNoticeController
 SiteTree:
   extensions:
-    - NSWDPC\CSP\SiteTree
+    - NSWDPC\Utilities\ContentSecurityPolicy\SiteTree
 Controller:
   extensions:
-    - NSWDPC\CSP\ControllerExtension
+    - NSWDPC\Utilities\ContentSecurityPolicy\ControllerExtension
+---
+Name: csp_rule_dynamiccache_headers
+Only:
+  ModuleExists: dynamiccache
+---
+# When dynamiccache module is installed, update the headers to allow caching CSP related headers
+DynamicCache:
+  cacheHeaders: '/^((X\-)|(Content\-Type)|(Cache\-Control)|(Etag)|(Expires)|(Last\-Modified)|(Location)|(Content\-Security\-Policy)|(Content\-Security\-Policy\-Report\-Only)|(Report\-To))/i'
