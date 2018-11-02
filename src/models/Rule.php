@@ -90,7 +90,7 @@ class CspRule extends DataObject {
     $fields->dataFieldByName('AlternateReportURI')->setDescription('If not set, the default /csp/vN/report/ path will be used');
 
     // display policy
-    $policy = $this->getPolicy(1, true);
+    $policy = $this->HeaderValues(1, true);
     if($policy) {
       $fields->addFieldsToTab(
         'Root.Main',
@@ -99,12 +99,24 @@ class CspRule extends DataObject {
             'EnabledRulesPolicy',
             'Policy (enabled rules)'
           ),
-          LiteralField::create('PolicyEnabledRules', '<p><pre>' . $policy . '</pre></p>')
+          LiteralField::create(
+            'PolicyEnabledRules',
+            '<p><pre><code>'
+              . $policy['header'] . ": \n"
+              . $policy['policy_string']
+              . '</code></pre></p>'
+          ),
+          LiteralField::create(
+            'PolicyEnabledReportTo',
+            '<p><pre><code>'
+              . 'Report-To: ' . json_encode($policy['reporting'], JSON_UNESCAPED_SLASHES)
+              . '</code></pre></p>'
+          )
         ]
       );
     }
 
-    $policy = $this->getPolicy(null, true);
+    $policy = $this->HeaderValues(null, true);
     if($policy) {
       $fields->addFieldsToTab(
         'Root.Main',
@@ -113,7 +125,19 @@ class CspRule extends DataObject {
             'AllRulesPolicy',
             'Policy (all rules)'
           ),
-          LiteralField::create('PolicyAllRules', '<p><pre>' . $policy . '</pre></p>')
+          LiteralField::create(
+            'PolicyAllRules',
+            '<p><pre><code>'
+              . $policy['header'] . ": \n"
+              . $policy['policy_string']
+              . '</code></pre></p>'
+          ),
+          LiteralField::create(
+            'PolicyAllReportTo',
+            '<p><pre><code>'
+              . 'Report-To: ' . json_encode($policy['reporting'], JSON_UNESCAPED_SLASHES)
+              . '</code></pre></p>'
+          )
         ]
       );
     }
@@ -154,9 +178,9 @@ class CspRule extends DataObject {
    * Header values
    * @returns array
    */
-  public function HeaderValues() {
+  public function HeaderValues($enabled = 1, $pretty = false) {
 
-    $policy_string = trim($this->getPolicy());
+    $policy_string = trim($this->getPolicy($enabled, $pretty));
     if(!$policy_string) {
       return false;
     }
@@ -170,7 +194,6 @@ class CspRule extends DataObject {
 
       // Determine which reporting URI to use, external or internal
       if($this->AlternateReportURI) {
-        // TODO ensure URL is not funky e.g including ; characters
         $reporting_url = $this->AlternateReportURI;
       } else {
         $reporting_url = "/csp/v1/report/";
@@ -191,7 +214,7 @@ class CspRule extends DataObject {
        * The REQUIRED max-age member defines the endpoint group’s lifetime, as a non-negative integer number of seconds
        * https://wicg.github.io/reporting/#max-age-member
        */
-      $max_age = 10886400;// TODO configure
+      $max_age = abs($this->config()->get('max_age'));
 
       // 3 only gets Report-To
       $reporting = [
@@ -209,11 +232,11 @@ class CspRule extends DataObject {
       }
 
       // 1,2,3 use report-to so that UserAgents that support it can use this as they'll ignore report-uri
-      $report_to .= "; report-to csp-endpoint";
+      $report_to .= ";" . ($pretty ? "\n" : " ") . "report-to csp-endpoint";
 
       // only apply report_to if there is a URL and the
       if($reporting_url) {
-        $policy_string .= $report_to;
+        $policy_string .= ($pretty ? "\n" : "") . $report_to;
       }
     }
 

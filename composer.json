@@ -1,0 +1,19 @@
+{
+  "name": "nswdpc/silverstripe-csp",
+  "description": "SilverStripe Content Security Policy module",
+  "type": "silverstripe-module",
+  "keywords": ["silverstripe", "csp", "content security policy"],
+  "license": "BSD-3-Clause",
+  "authors": [
+    {
+      "name": "James Ellis"
+    }
+  ],
+  "require": {
+    "silverstripe/framework": "^3.6",
+    "symbiote/silverstripe-queuedjobs": "^3"
+  },
+  "extra": {
+    "installer-name": "silverstripe-csp"
+  }
+}

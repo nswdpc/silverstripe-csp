@@ -8,6 +8,7 @@ use ModelAdmin;
 use SS_Log;
 use SS_HTTPResponse;
 use Versioned;
+use LeftAndMain;
 
 /**
  * Provides an extension method so that the Controller can set the relevant CSP header
@@ -15,6 +16,25 @@ use Versioned;
  * @todo report-uri is deprecated, report-to is the new thang but browsers don't fully support report-to yet
  */
 class ControllerExtension extends Extension {
+
+  /**
+   * Check to see if the current Controller allows a CSP header
+   */
+  private function checkCanRun() {
+    $run_in_admin = Config::inst()->get( CspRule::class , 'run_in_admin');
+    $is_in_admin = $this->owner instanceof LeftAndMain;
+    $whitelisted_controllers = Config::inst()->get( CspRule::class, 'whitelisted_controllers');
+    if( !$run_in_admin && $is_in_admin ) {
+      //SS_Log::log( "Not running in admin:" . get_class($this->owner), SS_Log::DEBUG);
+      return false;
+    }
+
+    if( is_array($whitelisted_controllers) && in_array(get_class($this->owner), $whitelisted_controllers) ) {
+      //SS_Log::log( "Not running in whitelisted controller:" . get_class($this->owner), SS_Log::DEBUG);
+      return false;
+    }
+    return true;
+  }
 
   public function onAfterInit() {
 
@@ -28,12 +48,7 @@ class ControllerExtension extends Extension {
       return;
     }
 
-
-    $run_in_admin = Config::inst()->get( CspRule::class , 'run_in_admin');
-    $blacklisted_controllers = Config::inst()->get( CspRule::class, 'blacklisted_controllers');
-    if( (!$run_in_admin && $this->owner instanceof ModelAdmin)
-      || (is_array($blacklisted_controllers) && in_array(get_class($this->owner), $blacklisted_controllers)) ) {
-      //SS_Log::log( "Not running in:" . get_class($this->owner), SS_Log::DEBUG);
+    if(!$this->checkCanRun()) {
       return;
     }
 

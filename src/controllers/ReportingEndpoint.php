@@ -59,6 +59,10 @@ class ReportingEndpoint extends Controller {
   ];
 
   public function index(SS_HTTPRequest $request) {
+
+  }
+
+  private function returnHeader() {
     header("HTTP/1.1 204 No Content");
     exit;
   }
@@ -72,14 +76,12 @@ class ReportingEndpoint extends Controller {
     try {
 
       if(!$request->isPOST()) {
-        header("HTTP/1.1 204 No Content");
-        exit;
+        $this->returnHeader();
       }
 
       $post = file_get_contents("php://input");
       if(empty($post)) {
-        header("HTTP/1.1 204 No Content");
-        exit;
+        $this->returnHeader();
       }
       $post = json_decode($post, true);
       if(empty($post['csp-report'])) {
@@ -95,8 +97,7 @@ class ReportingEndpoint extends Controller {
       SS_Log::log("Failed: {$e->getMessage()}", SS_Log::NOTICE);
     }
 
-    header("HTTP/1.1 204 No Content");
-    exit;
+    $this->returnHeader();
 
   }
 }

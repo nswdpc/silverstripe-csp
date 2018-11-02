@@ -6,14 +6,18 @@ After:
 ---
 CspRule:
   run_in_admin: false
-  blacklisted_controllers:
+  max_age: 10886400
+  whitelisted_controllers:
     - TimedNoticeController
 SiteTree:
   extensions:
-    - NSWDPC\Utilities\ContentSecurityPolicy\SiteTree
+    - NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension
 Controller:
   extensions:
     - NSWDPC\Utilities\ContentSecurityPolicy\ControllerExtension
+# report removal job
+NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
+  older_than: 1
 ---
 Name: csp_rule_dynamiccache_headers
 Only:
