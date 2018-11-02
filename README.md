@@ -1,10 +1,12 @@
-# Content Security Policy
+# SilverStripe Content Security Policy module
 
 This module provides the ability to:
 
 + Create one or CSP records and make one of those the active record
 + Set a CSP record to be report only
 + Collect CSP Violation reports internally via a controller or via a specific URL
+
+> This module is under development and currently supports Silverstripe 3
 
 
 ## Instructions
