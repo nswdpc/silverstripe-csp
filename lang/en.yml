@@ -1,0 +1,13 @@
+en:
+  ContentSecurityPolicy:
+    ALTERNATE_REPORT_URI: 'If not set, the default /csp/vN/report/ path will be used'
+    REPORT_VIA_META_TAG: 'Reporting violations is not supported when using the meta tag delivery method'
+    SEND_VIOLATION_REPORTS: "'Report Only' is on -  it is wise to turn on sending violation reports"
+    USE_ON_PUBLISHED_SITE: 'When unchecked, this rule will be used on the draft site only'
+    USED_IN_MULTIPLE_RULES: 'This record is used in %d policies. Updating it will modify all linked policies'
+    ADD_SELF_VALUE: "Adds the 'self' value to this rule"
+    ADD_DATA_VALUE: "Adds the 'data:' value to this rule"
+    ADD_UNSAFE_INLINE_VALUE: "Adds the 'unsafe-inline' value to this rule"
+    SELECT_PREDEFINED_KEY: '...or select a pre-defined key'
+    PRUNE_REPORTS_JOBTITLE: 'Remove CSP violation reports older than %d hour'
+    REMOVED_COUNT_REPORTS: 'Removed %s reports(s)'

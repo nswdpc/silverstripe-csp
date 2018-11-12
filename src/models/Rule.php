@@ -85,9 +85,9 @@ class CspRule extends DataObject {
         'DeliveryMethod',
         'Delivery Method',
         [ 'Header' => 'Via an HTTP Header',  'MetaTag' => 'As a meta tag' ]
-        )->setDescription('Reporting violations is not supported when using the meta tag delivery method')
+        )->setDescription( _t('ContentSecurityPolicy.REPORT_VIA_META_TAG', 'Reporting violations is not supported when using the meta tag delivery method') )
     );
-    $fields->dataFieldByName('AlternateReportURI')->setDescription('If not set, the default /csp/vN/report/ path will be used');
+    $fields->dataFieldByName('AlternateReportURI')->setDescription( _t('ContentSecurityPolicy.ALTERNATE_REPORT_URI', 'If not set, the default /csp/vN/report/ path will be used') );
 
     // display policy
     $policy = $this->HeaderValues(1, true);
@@ -143,10 +143,10 @@ class CspRule extends DataObject {
     }
 
     if($this->ReportOnly == 1 && !$this->SendViolationReports) {
-      $fields->dataFieldByName('SendViolationReports')->setDescription("'Report Only' is on -  it is wise to turn on sending violation reports");
+      $fields->dataFieldByName('SendViolationReports')->setDescription( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS', '\'Report Only\' is on - it is wise to turn on sending violation reports') );
     }
 
-    $fields->dataFieldByName('IsLive')->setTitle('Use on published website')->setDescription('When unchecked, this rule will be used on the draft site.');
+    $fields->dataFieldByName('IsLive')->setTitle('Use on published website')->setDescription( _t('ContentSecurityPolicy.USE_ON_PUBLISHED_SITE', 'When unchecked, this rule will be used on the draft site only') );
 
     return $fields;
   }

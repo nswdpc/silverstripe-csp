@@ -85,15 +85,15 @@ class CspRuleItem extends DataObject {
   {
     $fields = parent::getCMSFields();
 
-    $fields->dataFieldByName('IncludeSelf')->setDescription("Adds the 'self' value to this rule");
-    $fields->dataFieldByName('AllowDataUri')->setDescription("Adds the 'data:' value to this rule");
-    $fields->dataFieldByName('UnsafeInline')->setDescription("Adds the 'unsafe-inline' value to this rule");
+    $fields->dataFieldByName('IncludeSelf')->setDescription( _t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this rule" ) );
+    $fields->dataFieldByName('AllowDataUri')->setDescription( _t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this rule" ) );
+    $fields->dataFieldByName('UnsafeInline')->setDescription( _t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this rule" ) );
 
     $rules = $this->Rules()->count();
     if($rules > 1) {
       $fields->addFieldToTab(
         'Root.Main',
-        LiteralField::create('MultipleRules', "<p class=\"message notice\">This record is used in {$rules} policies. Updating it will modify all linked policies</p>")
+        LiteralField::create('MultipleRules', "<p class=\"message notice\">" . sprintf(_t('ContentSecurityPolicy.USED_IN_MULTIPLE_RULES', 'This record is used in %d policies. Updating it will modify all linked policies'), $rules) . "</p>")
       );
     }
 
@@ -110,7 +110,7 @@ class CspRuleItem extends DataObject {
         TextField::create('Key','Key'),
         DropdownField::create(
           'KeySelection',
-          '...or select a pre-defined key',
+          _t('ContentSecurityPolicy.SELECT_PREDEFINED_KEY', '...or select a pre-defined key'),
           $select_keys
         )->setEmptyString('')
       ),

@@ -25,7 +25,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob {
   }
 
   public function getTitle() {
-    return sprintf(_t('ContentSecurityPolicy.PruneReportsJobTitle', 'Remove CSP violation reports older than %d hour'), $this->older_than);
+    return sprintf(_t('ContentSecurityPolicy.PRUNE_REPORTS_JOBTITLE', 'Remove CSP violation reports older than %d hour'), $this->older_than);
   }
 
   public function getRecordCount() {
@@ -57,7 +57,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob {
 
     $removed = $pre_count - $post_count;
     $removed_string = ($removed . '/' . $pre_count);
-    $message = sprintf( _t('ContentSecurityPolicy.RemovedCountReports', 'Removed %s reports(s)'), $removed_string );
+    $message = sprintf( _t('ContentSecurityPolicy.REMOVED_COUNT_REPORTS', 'Removed %s reports(s)'), $removed_string );
     //SS_Log::log($message, SS_Log::DEBUG);
     $this->addMessage($message);
 
