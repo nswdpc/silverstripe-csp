@@ -50,7 +50,7 @@ class CspRule extends DataObject {
     'ReportOnly.Nice' => 'Report Only',
     'SendViolationReports.Nice' => 'Report Violations',
     'Enabled.Nice' => 'Default',
-    'IsLive.Nice' => 'Default',
+    'IsLive.Nice' => 'Use on published site',
     'RuleItems.Count' => 'Rule count'
   ];
 

@@ -27,7 +27,7 @@ class CspRuleItem extends DataObject {
    * @var array
    */
   private static $summary_fields = [
-    'Key' => 'Key',
+    'Key' => 'Directive',
     'Value' => 'Value',
     'Enabled.Nice' =>'Enabled',
     'Rules.Count' => 'Rules',
@@ -48,21 +48,38 @@ class CspRuleItem extends DataObject {
     return $this->Key;
   }
 
+  /**
+   * The text here is taken from: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+   */
   public function possibleKeys() {
-    return [
-      'default-src',
-      'base-uri',
-      'frame-src',
-      'connect-src',
-      'font-src',
-      'form-action',
-      'frame-ancestors',
-      'img-src',
-      'object-src',
-      'script-src',
-      'style-src',
-      'upgrade-insecure-requests'
+    $keys = [
+      'default-src' => 'the fallback for all directives',
+      'base-uri' => 'restricts the URLs which can be used in a document\'s <base> element',
+      'frame-src' => 'specifies valid sources for nested browsing contexts loading using elements such as <frame> and <iframe>',
+      'connect-src' => 'restricts the URLs which can be loaded using script interfaces (Restricted APIs: <a ping>, Fetch,  XHR, WebSocket, EventSource)',
+      'font-src' => 'specifies valid sources for fonts loaded using @font-face',
+      'form-action' => 'restricts the URLs which can be used as the target of a form submissions from a given context',
+      'frame-src' => 'specifies valid sources for nested browsing contexts loading using elements such as <frame> and <iframe>',
+      'frame-ancestors' => 'specifies valid parents that may embed a page using <frame>, <iframe>, <object>, <embed>, or <applet>',
+      'img-src' => 'specifies valid sources of images and favicons',
+      'media-src' => 'specifies valid sources for loading media using the <audio> and <video> elements',
+      'object-src' => 'specifies valid sources for the <object>, <embed>, and <applet> elements',
+      'script-src' => 'Specifies valid sources for JavaScript',
+      'style-src' => 'specifies valid sources for sources for stylesheets',
+      'upgrade-insecure-requests' => 'instructs user agents to treat all of a site\'s insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS)',
+      'worker-src' => 'specifies valid sources for Worker, SharedWorker, or ServiceWorker scripts',
+      'prefetch-src' => 'Specifies valid sources to be prefetched or prerendered',
+      'webrtc-src' => 'specifies valid sources for WebRTC connections',
+      'manifest-src' => 'specifies valid sources of application manifest files',
+      'plugin-types' => 'restricts the set of plugins that can be embedded into a document by limiting the types of resources which can be loaded',
+      'sandbox' => 'enables a sandbox for the requested resource similar to the <iframe> sandbox attribute',
+      'block-all-mixed-content' => 'prevents loading any assets using HTTP when the page is loaded using HTTPS',
+      'require-sri-for' => 'requires the use of SRI for scripts or styles on the page'
     ];
+
+    ksort($keys);
+
+    return $keys;
   }
 
   /**
@@ -74,7 +91,12 @@ class CspRuleItem extends DataObject {
     if(!$this->Key && $this->KeySelection) {
       $this->Key = $this->KeySelection;
     }
-    $this->Value = trim(rtrim($this->Value, ";"));
+
+    if($this->Key == 'upgrade-insecure-requests') {
+      $this->Value = '';
+    } else {
+      $this->Value = trim(rtrim($this->Value, ";"));
+    }
   }
 
   /**
@@ -84,6 +106,12 @@ class CspRuleItem extends DataObject {
   public function getCMSFields()
   {
     $fields = parent::getCMSFields();
+
+    $fields->addFieldToTab(
+      'Root.Main',
+      LiteralField::create('DirectiveHelper', '<p class="message notice">Prior to adding a directive, you should consult the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy">Content Security Policy MDN documentation</a><p>'),
+      'Key'
+    );
 
     $fields->dataFieldByName('IncludeSelf')->setDescription( _t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this rule" ) );
     $fields->dataFieldByName('AllowDataUri')->setDescription( _t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this rule" ) );
@@ -99,23 +127,25 @@ class CspRuleItem extends DataObject {
 
     $keys = $this->possibleKeys();
     $select_keys = [];
-    foreach($keys as $key) {
-      $select_keys[ $key ] = $key;
+    foreach($keys as $key => $value) {
+      $select_keys[ $key ] = $key . " - " . $value;
     }
     $fields->removeByName(array(
       'Key'
     ));
     $fields->addFieldToTab('Root.Main',
       CompositeField::create(
-        TextField::create('Key','Key'),
+        TextField::create('Key','Enter a directive'),
         DropdownField::create(
           'KeySelection',
-          _t('ContentSecurityPolicy.SELECT_PREDEFINED_KEY', '...or select a pre-defined key'),
+          _t('ContentSecurityPolicy.SELECT_PREDEFINED_DIRECTIVE', '...or select a pre-defined directive'),
           $select_keys
         )->setEmptyString('')
       ),
       'Value'
     );
+
+    $fields->dataFieldByName('Value')->setDescription('Note that some directives can contain no values');
 
     return $fields;
   }

@@ -8,6 +8,6 @@ en:
     ADD_SELF_VALUE: "Adds the 'self' value to this rule"
     ADD_DATA_VALUE: "Adds the 'data:' value to this rule"
     ADD_UNSAFE_INLINE_VALUE: "Adds the 'unsafe-inline' value to this rule"
-    SELECT_PREDEFINED_KEY: '...or select a pre-defined key'
+    SELECT_PREDEFINED_DIRECTIVE: '...or select a pre-defined directive'
     PRUNE_REPORTS_JOBTITLE: 'Remove CSP violation reports older than %d hour'
     REMOVED_COUNT_REPORTS: 'Removed %s reports(s)'
