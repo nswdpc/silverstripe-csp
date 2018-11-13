@@ -10,7 +10,7 @@ use CspViolationReport;
 /*
  * Reporting endpoint used to collect violations
  * Note that this *could* collect LOTS of reportsm, in production it would be wiser + better to use a service like report-uri
- * You can use this reporting endpoint to assist with rule creation on staging/draft sites - it's best to get your rule working prior to rolling it out to production.
+ * You can use this reporting endpoint to assist with policy/directive creation on staging/draft sites - it's best to get your policy working prior to rolling it out to production.
 
  * @author james.ellis@dpc.nsw.gov.au
  * The following JSON report is POSTed to this controller using the Content-Type application/csp-report

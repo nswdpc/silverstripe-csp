@@ -4,7 +4,7 @@ After:
   - 'framework/*'
   - 'cms/*'
 ---
-CspRule:
+CspPolicy:
   run_in_admin: false
   max_age: 10886400
   whitelisted_controllers:
@@ -19,7 +19,7 @@ Controller:
 NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
   older_than: 1
 ---
-Name: csp_rule_dynamiccache_headers
+Name: csp_policy_dynamiccache_headers
 Only:
   ModuleExists: dynamiccache
 ---

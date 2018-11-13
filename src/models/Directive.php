@@ -1,12 +1,12 @@
 <?php
 /**
- * A Content Security Policy rule item, can be used by multiple {@link CspRule}
+ * A Content Security Policy directive, can be used by multiple {@link CspPolicy}
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspRuleItem extends DataObject {
+class CspDirective extends DataObject {
 
-  private static $singular_name = 'Rule item';
-  private static $plural_name = 'Rule items';
+  private static $singular_name = 'Directive';
+  private static $plural_name = 'Directives';
 
   /**
    * Database fields
@@ -30,7 +30,7 @@ class CspRuleItem extends DataObject {
     'Key' => 'Directive',
     'Value' => 'Value',
     'Enabled.Nice' =>'Enabled',
-    'Rules.Count' => 'Rules',
+    'Policies.Count' => 'Policies',
     'IncludeSelf.Nice' =>'Include \'self\'',
     'UnsafeInline.Nice' =>'Unsafe Inline',
     'AllowDataUri.Nice' =>'Allow Data URI',
@@ -41,7 +41,7 @@ class CspRuleItem extends DataObject {
    * @var array
    */
   private static $belongs_many_many = [
-    'Rules' => CspRule::class,
+    'Policies' => CspPolicy::class,
   ];
 
   public function getTitle() {
@@ -113,15 +113,15 @@ class CspRuleItem extends DataObject {
       'Key'
     );
 
-    $fields->dataFieldByName('IncludeSelf')->setDescription( _t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this rule" ) );
-    $fields->dataFieldByName('AllowDataUri')->setDescription( _t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this rule" ) );
-    $fields->dataFieldByName('UnsafeInline')->setDescription( _t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this rule" ) );
+    $fields->dataFieldByName('IncludeSelf')->setDescription( _t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this directive" ) );
+    $fields->dataFieldByName('AllowDataUri')->setDescription( _t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this directive" ) );
+    $fields->dataFieldByName('UnsafeInline')->setDescription( _t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive" ) );
 
-    $rules = $this->Rules()->count();
-    if($rules > 1) {
+    $policies = $this->Policies()->count();
+    if($policies > 1) {
       $fields->addFieldToTab(
         'Root.Main',
-        LiteralField::create('MultipleRules', "<p class=\"message notice\">" . sprintf(_t('ContentSecurityPolicy.USED_IN_MULTIPLE_RULES', 'This record is used in %d policies. Updating it will modify all linked policies'), $rules) . "</p>")
+        LiteralField::create('MultiplePolicies', "<p class=\"message notice\">" . sprintf(_t('ContentSecurityPolicy.USED_IN_MULTIPLE_POLICIES', 'This record is used in %d policies. Updating it will modify all linked policies'), $policies) . "</p>")
       );
     }
 

@@ -1,15 +1,15 @@
 <?php
 /**
- * A Content Security Policy rule record
+ * A Content Security Policy policy record
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspRule extends DataObject {
+class CspPolicy extends DataObject {
 
-  private static $singular_name = 'Rule';
-  private static $plural_name = 'Rules';
+  private static $singular_name = 'Policy';
+  private static $plural_name = 'Policies';
 
-  private static $run_in_modeladmin = false;// whether to set the rule in ModelAdmin and descendants of ModelAdmin
-  private static $blacklisted_controllers = [];// do not set rule when current controller is in this list of controllers
+  private static $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
+  private static $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
 
   /**
    * Database fields
@@ -51,7 +51,7 @@ class CspRule extends DataObject {
     'SendViolationReports.Nice' => 'Report Violations',
     'Enabled.Nice' => 'Default',
     'IsLive.Nice' => 'Use on published site',
-    'RuleItems.Count' => 'Rule count'
+    'Directives.Count' => 'Directive count'
   ];
 
   /**
@@ -59,7 +59,7 @@ class CspRule extends DataObject {
    * @var array
    */
   private static $many_many = [
-    'RuleItems' => CspRuleItem::class,
+    'Directives' => CspDirective::class,
   ];
 
   /**
@@ -69,7 +69,7 @@ class CspRule extends DataObject {
   private static $default_sort = 'Enabled DESC, Title ASC';
 
   public static function getDefaultRecord() {
-    return CspRule::get()->filter('Enabled', 1)->first();
+    return CspPolicy::get()->filter('Enabled', 1)->first();
   }
 
   /**
@@ -96,11 +96,11 @@ class CspRule extends DataObject {
         'Root.Main',
         [
           HeaderField::create(
-            'EnabledRulesPolicy',
-            'Policy (enabled rules)'
+            'EnabledDirectivePolicy',
+            'Policy (enabled directives)'
           ),
           LiteralField::create(
-            'PolicyEnabledRules',
+            'PolicyEnabledDirectives',
             '<p><pre><code>'
               . $policy['header'] . ": \n"
               . $policy['policy_string']
@@ -122,11 +122,11 @@ class CspRule extends DataObject {
         'Root.Main',
         [
           HeaderField::create(
-            'AllRulesPolicy',
-            'Policy (all rules)'
+            'AllDirectivePolicy',
+            'Policy (all directives)'
           ),
           LiteralField::create(
-            'PolicyAllRules',
+            'PolicyAllDirectives',
             '<p><pre><code>'
               . $policy['header'] . ": \n"
               . $policy['policy_string']
@@ -146,7 +146,7 @@ class CspRule extends DataObject {
       $fields->dataFieldByName('SendViolationReports')->setDescription( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS', '\'Report Only\' is on - it is wise to turn on sending violation reports') );
     }
 
-    $fields->dataFieldByName('IsLive')->setTitle('Use on published website')->setDescription( _t('ContentSecurityPolicy.USE_ON_PUBLISHED_SITE', 'When unchecked, this rule will be used on the draft site only') );
+    $fields->dataFieldByName('IsLive')->setTitle('Use on published website')->setDescription( _t('ContentSecurityPolicy.USE_ON_PUBLISHED_SITE', 'When unchecked, this policy will be used on the draft site only') );
 
     return $fields;
   }
@@ -155,7 +155,7 @@ class CspRule extends DataObject {
    * TODO: maybe enabled can trigger on draft sites when off ?
    */
   public function getPolicy($enabled = 1, $pretty = false) {
-    $items = $this->RuleItems();
+    $items = $this->Directives();
     if(!is_null($enabled)) {
       $items = $items->filter('Enabled', (bool)$enabled);
     }

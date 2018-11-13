@@ -1,6 +1,6 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
-use CspRule;
+use CspPolicy;
 use Extension;
 use Versioned;
 use Controller;
@@ -16,7 +16,7 @@ class SiteTreeExtension extends Extension {
    * Check to see if a meta tag can be returned
    */
   private function checkCanRun() {
-    $whitelisted_controllers = Config::inst()->get( CspRule::class, 'whitelisted_controllers');
+    $whitelisted_controllers = Config::inst()->get( CspPolicy::class, 'whitelisted_controllers');
     $controller = Controller::curr();
     if( is_array($whitelisted_controllers) && in_array(get_class($controller), $whitelisted_controllers) ) {
       //SS_Log::log( "Not running in whitelisted controller:" . get_class($this->owner), SS_Log::DEBUG);
@@ -31,7 +31,7 @@ class SiteTreeExtension extends Extension {
     }
 
     // get the default policy
-    $policy = CspRule::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'MetaTag'] )->first();
+    $policy = CspPolicy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'MetaTag'] )->first();
     if($stage == Versioned::get_live_stage()) {
       // live
       $policy = $policy->filter('IsLive', 1);

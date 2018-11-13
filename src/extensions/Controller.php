@@ -1,6 +1,6 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
-use CspRule;
+use CspPolicy;
 use Extension;
 use Director;
 use Config;
@@ -21,9 +21,9 @@ class ControllerExtension extends Extension {
    * Check to see if the current Controller allows a CSP header
    */
   private function checkCanRun() {
-    $run_in_admin = Config::inst()->get( CspRule::class , 'run_in_admin');
+    $run_in_admin = Config::inst()->get( CspPolicy::class , 'run_in_admin');
     $is_in_admin = $this->owner instanceof LeftAndMain;
-    $whitelisted_controllers = Config::inst()->get( CspRule::class, 'whitelisted_controllers');
+    $whitelisted_controllers = Config::inst()->get( CspPolicy::class, 'whitelisted_controllers');
     if( !$run_in_admin && $is_in_admin ) {
       //SS_Log::log( "Not running in admin:" . get_class($this->owner), SS_Log::DEBUG);
       return false;
@@ -60,7 +60,7 @@ class ControllerExtension extends Extension {
     $stage = Versioned::current_stage();
 
     // get the default policy
-    $policy = CspRule::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'Header'] );
+    $policy = CspPolicy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'Header'] );
     if($stage == Versioned::get_live_stage()) {
       // live
       $policy = $policy->filter('IsLive', 1);

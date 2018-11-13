@@ -1,6 +1,6 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
-use CspRule;
+use CspPolicy;
 use CspViolationReport;
 use ModelAdmin;
 
@@ -17,7 +17,7 @@ class CspModelAdmin extends ModelAdmin {
    */
   private static $menu_icon = '/framework/admin/images/menu-icons/16x16/gears.png';
   private static $managed_models = [
-    CspRule::class,
+    CspPolicy::class,
     CspViolationReport::class
   ];
 
