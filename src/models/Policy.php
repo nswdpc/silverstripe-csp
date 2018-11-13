@@ -1,9 +1,21 @@
 <?php
+namespace NSWDPC\Utilities\ContentSecurityPolicy;
+use Silverstripe\ORM\DataObject;
+use Silverstripe\Forms\LiteralField;
+use Silverstripe\Forms\CompositeField;
+use Silverstripe\Forms\Textfield;
+use Silverstripe\Forms\DropdownField;
+use Silverstripe\Forms\HeaderField;
+use Silverstripe\Forms\OptionsetField;
+
+
 /**
  * A Content Security Policy policy record
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspPolicy extends DataObject {
+class Policy extends DataObject {
+
+  private static $table_name = 'CspPolicy';
 
   private static $singular_name = 'Policy';
   private static $plural_name = 'Policies';
@@ -59,7 +71,7 @@ class CspPolicy extends DataObject {
    * @var array
    */
   private static $many_many = [
-    'Directives' => CspDirective::class,
+    'Directives' => Directive::class,
   ];
 
   /**
@@ -69,7 +81,7 @@ class CspPolicy extends DataObject {
   private static $default_sort = 'Enabled DESC, Title ASC';
 
   public static function getDefaultRecord() {
-    return CspPolicy::get()->filter('Enabled', 1)->first();
+    return Policy::get()->filter('Enabled', 1)->first();
   }
 
   /**

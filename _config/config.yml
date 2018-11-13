@@ -4,25 +4,17 @@ After:
   - 'framework/*'
   - 'cms/*'
 ---
-CspPolicy:
+NSWDPC\Utilities\ContentSecurityPolicy\CspPolicy:
   run_in_admin: false
   max_age: 10886400
   whitelisted_controllers:
     - TimedNoticeController
-SiteTree:
+SilverStripe\CMS\Model\SiteTree:
   extensions:
     - NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension
-Controller:
+SilverStripe\Control\Controller:
   extensions:
     - NSWDPC\Utilities\ContentSecurityPolicy\ControllerExtension
 # report removal job
 NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
   older_than: 1
----
-Name: csp_policy_dynamiccache_headers
-Only:
-  ModuleExists: dynamiccache
----
-# When dynamiccache module is installed, update the headers to allow caching CSP related headers
-DynamicCache:
-  cacheHeaders: '/^((X\-)|(Content\-Type)|(Cache\-Control)|(Etag)|(Expires)|(Last\-Modified)|(Location)|(Content\-Security\-Policy)|(Content\-Security\-Policy\-Report\-Only)|(Report\-To))/i'

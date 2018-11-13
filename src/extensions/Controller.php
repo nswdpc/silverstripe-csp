@@ -1,14 +1,13 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
-use CspPolicy;
-use Extension;
-use Director;
-use Config;
-use ModelAdmin;
-use SS_Log;
-use SS_HTTPResponse;
-use Versioned;
-use LeftAndMain;
+use Silverstripe\Core\Extension;
+use SilverStripe\Control\Director;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\Admin\ModelAdmin;
+// use SS_Log;
+use SilverStripe\Control\HTTPResponse;
+use SilverStripe\Versioned\Versioned;
+use SilverStripe\Admin\LeftAndMain;
 
 /**
  * Provides an extension method so that the Controller can set the relevant CSP header
@@ -21,9 +20,9 @@ class ControllerExtension extends Extension {
    * Check to see if the current Controller allows a CSP header
    */
   private function checkCanRun() {
-    $run_in_admin = Config::inst()->get( CspPolicy::class , 'run_in_admin');
+    $run_in_admin = Config::inst()->get( Policy::class , 'run_in_admin');
     $is_in_admin = $this->owner instanceof LeftAndMain;
-    $whitelisted_controllers = Config::inst()->get( CspPolicy::class, 'whitelisted_controllers');
+    $whitelisted_controllers = Config::inst()->get( Policy::class, 'whitelisted_controllers');
     if( !$run_in_admin && $is_in_admin ) {
       //SS_Log::log( "Not running in admin:" . get_class($this->owner), SS_Log::DEBUG);
       return false;
@@ -53,14 +52,14 @@ class ControllerExtension extends Extension {
     }
 
     $response = $this->owner->getResponse();
-    if($response && !($response instanceof SS_HTTPResponse)) {
+    if($response && !($response instanceof HTTPResponse)) {
       return;
     }
 
     $stage = Versioned::current_stage();
 
     // get the default policy
-    $policy = CspPolicy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'Header'] );
+    $policy = Policy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'Header'] );
     if($stage == Versioned::get_live_stage()) {
       // live
       $policy = $policy->filter('IsLive', 1);

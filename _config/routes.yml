@@ -4,6 +4,6 @@ After:
   - 'framework/*'
   - 'cms/*'
 ---
-Director:
+SilverStripe\Control\Director:
   rules:
     'csp': 'NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint'

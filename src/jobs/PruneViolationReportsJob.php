@@ -1,13 +1,13 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
-use QueuedJob;
-use QueuedJobService;
-use AbstractQueuedJob;
-use Config;
-use SS_Log;
-use DB;
+use Symbiote\QueuedJobs\Services\QueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
+use SilverStripe\Core\Config\Config;
+// use SS_Log;
+use SilverStripe\ORM\DB;
 use DateTime;
-use Convert;
+use SilverStripe\Core\Convert;
 use Exception;
 
 

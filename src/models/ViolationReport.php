@@ -1,10 +1,16 @@
 <?php
+namespace NSWDPC\Utilities\ContentSecurityPolicy;
+use Silverstripe\ORM\DataObject;
+use SilverStripe\Forms\ReadonlyTransformation;
+
 /**
  * CSP Violation Report
  * @note refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP#Sample_violation_report
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspViolationReport extends DataObject {
+class ViolationReport extends DataObject {
+
+  private static $table_name = 'CspViolationReport';
 
   /**
    * Singular name for CMS
@@ -56,7 +62,7 @@ class CspViolationReport extends DataObject {
    * Create a new Violation Report per data spec
    */
   public static function create_report($data, $user_agent) {
-    $report = new CspViolationReport();
+    $report = new ViolationReport();
     $report->DocumentUri = isset($data['document-uri']) ? $data['document-uri'] : '';
     $report->Referrer = isset($data['referrer']) ? $data['referrer'] : '';
     $report->BlockedUri = isset($data['blocked-uri']) ? $data['blocked-uri'] : '';

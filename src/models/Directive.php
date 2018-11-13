@@ -1,9 +1,18 @@
 <?php
+namespace NSWDPC\Utilities\ContentSecurityPolicy;
+use Silverstripe\ORM\DataObject;
+use Silverstripe\Forms\LiteralField;
+use Silverstripe\Forms\CompositeField;
+use Silverstripe\Forms\Textfield;
+use Silverstripe\Forms\DropdownField;
+
 /**
- * A Content Security Policy directive, can be used by multiple {@link CspPolicy}
+ * A Content Security Policy directive, can be used by multiple {@link Policy}
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspDirective extends DataObject {
+class Directive extends DataObject {
+
+  private static $table_name = 'CspDirective';
 
   private static $singular_name = 'Directive';
   private static $plural_name = 'Directives';
@@ -41,7 +50,7 @@ class CspDirective extends DataObject {
    * @var array
    */
   private static $belongs_many_many = [
-    'Policies' => CspPolicy::class,
+    'Policies' => Policy::class,
   ];
 
   public function getTitle() {
