@@ -1,8 +1,10 @@
 en:
   ContentSecurityPolicy:
-    ALTERNATE_REPORT_URI: 'If not set, the default /csp/vN/report/ path will be used'
+    ALTERNATE_REPORT_URI: 'If not set, and the sending of violation reports is enabled, reports will be directed to %s and will appear in the CSP/Reports admin'
+    ALTERNATE_REPORT_URI_TITLE: 'Set a reporting URL that will accept violation reports'
     REPORT_VIA_META_TAG: 'Reporting violations is not supported when using the meta tag delivery method'
-    SEND_VIOLATION_REPORTS: "'Report Only' is on -  it is wise to turn on sending violation reports"
+    SEND_VIOLATION_REPORTS: "Send violation reports to a reporting system"
+    SEND_VIOLATION_REPORTS_REPORT_ONLY: "'Report Only' is on -  it is wise to turn on sending violation reports"
     USE_ON_PUBLISHED_SITE: 'When unchecked, this policy will be used on the draft site only'
     USED_IN_MULTIPLE_POLICIES: 'This record is used in %d policies. Updating it will modify all linked policies'
     ADD_SELF_VALUE: "Adds the 'self' value to this directive"
@@ -11,3 +13,5 @@ en:
     SELECT_PREDEFINED_DIRECTIVE: '...or select a pre-defined directive'
     PRUNE_REPORTS_JOBTITLE: 'Remove CSP violation reports older than %d hour'
     REMOVED_COUNT_REPORTS: 'Removed %s reports(s)'
+    MINIMUM_CSP_LEVEL: "Minimum CSP Level"
+    MINIMUM_CSP_LEVEL_DESCRIPTION: "Setting a higher level will remove from the policy features deprecated in previous versions, such as the 'report-uri' directive"

@@ -1,6 +1,7 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use Controller;
+use Director;
 use SS_HTTPRequest;
 use Exception;
 use SS_Log;
@@ -65,6 +66,10 @@ class ReportingEndpoint extends Controller {
   private function returnHeader() {
     header("HTTP/1.1 204 No Content");
     exit;
+  }
+
+  public static function getCurrentReportingUrl() {
+    return Director::absoluteBaseURL() . 'csp/v1/report';
   }
 
   /**

@@ -51,6 +51,12 @@ You can receive violation reports when they occur.
 
 The module provides its own endpoint for receiving violation reports - be aware that enabling the local reporting endpoint could cause load issues on higher traffic websites.
 
+### Minimum CSP Level
+
+Refer to the following for changes between levels
++ [Changes from Level 1 to 2](https://www.w3.org/TR/CSP2/#changes-from-level-1)
++ [Changes from Level 2 to 3](https://www.w3.org/TR/CSP3/#changes-from-level-2)
+
 ## Additional Help
 
 The following developer documention URLs provide a wealth of information regarding CSP and web browser suport:

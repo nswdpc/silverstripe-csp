@@ -1,4 +1,6 @@
 <?php
+use NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint;
+
 /**
  * A Content Security Policy policy record
  * @author james.ellis@dpc.nsw.gov.au
@@ -87,7 +89,11 @@ class CspPolicy extends DataObject {
         [ 'Header' => 'Via an HTTP Header',  'MetaTag' => 'As a meta tag' ]
         )->setDescription( _t('ContentSecurityPolicy.REPORT_VIA_META_TAG', 'Reporting violations is not supported when using the meta tag delivery method') )
     );
-    $fields->dataFieldByName('AlternateReportURI')->setDescription( _t('ContentSecurityPolicy.ALTERNATE_REPORT_URI', 'If not set, the default /csp/vN/report/ path will be used') );
+
+    $internal_reporting_url = ReportingEndpoint::getCurrentReportingUrl();
+    $fields->dataFieldByName('AlternateReportURI')
+      ->setTitle( _t('ContentSecurityPolicy.ALTERNATE_REPORT_URI_TITLE', 'Set a reporting URL that will accept violation reports') )
+      ->setDescription( sprintf( _t('ContentSecurityPolicy.ALTERNATE_REPORT_URI', 'If not set, and the sending of violation reports is enabled, reports will be directed to %s and will appear in the CSP/Reports admin'), $internal_reporting_url ) );
 
     // display policy
     $policy = $this->HeaderValues(1, true);
@@ -142,11 +148,20 @@ class CspPolicy extends DataObject {
       );
     }
 
+    $fields->dataFieldByName('SendViolationReports')->setDescription( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS', 'Send violation reports to a reporting system') );
+
     if($this->ReportOnly == 1 && !$this->SendViolationReports) {
-      $fields->dataFieldByName('SendViolationReports')->setDescription( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS', '\'Report Only\' is on - it is wise to turn on sending violation reports') );
+      $fields->dataFieldByName('SendViolationReports')->setRightTitle( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS_REPORT_ONLY', '\'Report Only\' is on - it is wise to turn on sending violation reports') );
     }
 
+    $fields->dataFieldByName('ReportOnly')
+          ->setDescription(  _t('ContentSecurityPolicy.REPORT_ONLY', 'Allows experimenting with the policy by monitoring (but not enforcing) its effects') );
+
     $fields->dataFieldByName('IsLive')->setTitle('Use on published website')->setDescription( _t('ContentSecurityPolicy.USE_ON_PUBLISHED_SITE', 'When unchecked, this policy will be used on the draft site only') );
+
+    $fields->dataFieldByName('MinimumCspLevel')
+          ->setTitle( _t('ContentSecurityPolicy.MINIMUM_CSP_LEVEL', 'Minimum CSP Level') )
+          ->setDescription( _t('ContentSecurityPolicy.MINIMUM_CSP_LEVEL_DESCRIPTION', "Setting a higher level will remove from features deprecated in previous versions, such as the 'report-uri' directive") );
 
     return $fields;
   }
