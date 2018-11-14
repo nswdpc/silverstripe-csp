@@ -1,7 +1,7 @@
 {
   "name": "nswdpc/silverstripe-csp",
   "description": "SilverStripe Content Security Policy module",
-  "type": "silverstripe-module",
+  "type": "silverstripe-vendormodule",
   "keywords": ["silverstripe", "csp", "content security policy"],
   "license": "BSD-3-Clause",
   "authors": [
