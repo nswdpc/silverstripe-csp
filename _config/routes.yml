@@ -1,8 +1,8 @@
 ---
 Name: csp-routes
 After:
-  - 'framework/*'
-  - 'cms/*'
+  - '#rootroutes'
+  - '#coreroutes'
 ---
 SilverStripe\Control\Director:
   rules:

@@ -1,8 +1,5 @@
 ---
 Name: csp_extensions
-After:
-  - 'framework/*'
-  - 'cms/*'
 ---
 NSWDPC\Utilities\ContentSecurityPolicy\CspPolicy:
   run_in_admin: false
