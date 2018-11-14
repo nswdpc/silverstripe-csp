@@ -56,11 +56,11 @@ class ControllerExtension extends Extension {
       return;
     }
 
-    $stage = Versioned::current_stage();
+    $stage = Versioned::get_stage();
 
     // get the default policy
     $policy = Policy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'Header'] );
-    if($stage == Versioned::get_live_stage()) {
+    if($stage == Versioned::LIVE) {
       // live
       $policy = $policy->filter('IsLive', 1);
     }

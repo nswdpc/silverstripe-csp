@@ -31,7 +31,8 @@ class SiteTreeExtension extends Extension {
 
     // get the default policy
     $policy = Policy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'MetaTag'] )->first();
-    if($stage == Versioned::get_live_stage()) {
+    $stage = Versioned::get_stage();
+    if($stage == Versioned::LIVE) {
       // live
       $policy = $policy->filter('IsLive', 1);
     }
