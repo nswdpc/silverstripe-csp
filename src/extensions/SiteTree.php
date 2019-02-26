@@ -25,26 +25,32 @@ class SiteTreeExtension extends Extension {
     return true;
   }
 
+  /**
+   * Note that reporting is ignored when using a meta tag
+   */
   public function MetaTags(&$tags) {
     if(!$this->checkCanRun()) {
       return;
     }
 
+    $stage = Versioned::current_stage();
+    // check if request on the Live stage
+    $is_live = ($stage == Versioned::get_live_stage());
+
     // get the default policy
-    $policy = CspPolicy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'MetaTag'] )->first();
-    if($stage == Versioned::get_live_stage()) {
-      // live
-      $policy = $policy->filter('IsLive', 1);
-    }
-    $policy = $policy->first();
-    if(empty($policy->ID)) {
-      return;
+    $policy = CspPolicy::getDefaultBasePolicy($is_live, CspPolicy::POLICY_DELIVERY_METHOD_METATAG);
+    if(!empty($policy->ID)) {
+      $data = $policy->HeaderValues();
+      $tags .= "<meta http-equiv=\"{$data['header']}\" content=\"" . $data['policy_string'] . "\">\n";
     }
 
-    $data = $policy->HeaderValues();
-
-    // Note that reporting is ignored when using a meta tag
-    $tags .= "<meta http-equiv=\"{$data['header']}\" content=\"" . $data['policy_string'] . "\">\n";
+    // check for a specific page based policy
+    if($this->owner instanceof Page) {
+      $page_policy = CspPolicy::getPagePolicy($this->owner, $is_live, CspPolicy::POLICY_DELIVERY_METHOD_METATAG);
+      if(!empty($page_policy->ID) && ($data = $page_policy->HeaderValues())) {
+        $tags .= "<meta http-equiv=\"{$data['header']}\" content=\"" . $data['policy_string'] . "\">\n";
+      }
+    }
 
   }
 }

@@ -150,4 +150,17 @@ class CspDirective extends DataObject {
     return $fields;
   }
 
+  /**
+   * Returns the directive value for use in a header
+   * @returns string
+   */
+  public function getDirectiveValue() {
+    $value = ($this->IncludeSelf == 1 ? "'self'" : "");
+    $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
+    $value .= ($this->AllowDataUri == 1 ? " data:" : "");
+    $value .= ($this->Value ? " " . trim($this->Value, "; ") : "");
+    $value = trim($value);
+    return $value;
+  }
+
 }

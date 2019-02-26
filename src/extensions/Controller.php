@@ -9,6 +9,7 @@ use SS_Log;
 use SS_HTTPResponse;
 use Versioned;
 use LeftAndMain;
+use ContentController;
 
 /**
  * Provides an extension method so that the Controller can set the relevant CSP header
@@ -59,25 +60,43 @@ class ControllerExtension extends Extension {
 
     $stage = Versioned::current_stage();
 
+    // check if request on the Live stage
+    $is_live = ($stage == Versioned::get_live_stage());
+
+    // only get enabled policy/directives
+    $enabled_policy = $enabled_directives = 1;
+
     // get the default policy
-    $policy = CspPolicy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'Header'] );
-    if($stage == Versioned::get_live_stage()) {
-      // live
-      $policy = $policy->filter('IsLive', 1);
-    }
-    $policy = $policy->first();
+    $policy = CspPolicy::getDefaultBasePolicy($is_live, CspPolicy::POLICY_DELIVERY_METHOD_HEADER);
 
-    if(empty($policy->ID)) {
-      return ;
+    // check for Page specific policies
+    if($this->owner instanceof ContentController && ($data = $this->owner->data())) {
+      $page_policy = CspPolicy::getPagePolicy($data, $is_live, CspPolicy::POLICY_DELIVERY_METHOD_HEADER);
+      if(!empty($page_policy->ID)) {
+        if(!empty($policy->ID)) {
+          /**
+           * SS_HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
+           * Workaround is to set the page policy for merging when HeaderValues() is called
+           * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies
+           * Ref: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+           */
+          $policy->SetMergeFromPolicy($page_policy);
+        } else {
+          // the page policy is *the* policy
+          $policy = $page_policy;
+        }
+      }
     }
 
-    if($data = $policy->HeaderValues()) {
+    // Add the policy/reporting header values
+    if($policy instanceof CspPolicy && ($data = $policy->HeaderValues($enabled_directives))) {
       // Add the Report-To header for all
       if(!empty($data['reporting'])) {
         $response->addHeader("Report-To", json_encode($data['reporting'], JSON_UNESCAPED_SLASHES));
       }
       $response->addHeader($data['header'], $data['policy_string']);
     }
+
     return;
   }
 }

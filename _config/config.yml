@@ -9,6 +9,9 @@ CspPolicy:
   max_age: 10886400
   whitelisted_controllers:
     - TimedNoticeController
+Page:
+  extensions:
+    - NSWDPC\Utilities\ContentSecurityPolicy\PageExtension
 SiteTree:
   extensions:
     - NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension

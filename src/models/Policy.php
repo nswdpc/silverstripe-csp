@@ -13,6 +13,11 @@ class CspPolicy extends DataObject {
   private static $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
   private static $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
 
+  private $merge_from_policy;// at runtime set a policy to merge other directives from, into this policy
+
+  const POLICY_DELIVERY_METHOD_HEADER = 'Header';
+  const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
+
   /**
    * Database fields
    * @var array
@@ -21,6 +26,7 @@ class CspPolicy extends DataObject {
     'Title' => 'Varchar(255)',
     'Enabled' => 'Boolean',
     'IsLive' => 'Boolean',
+    'IsBasePolicy' => 'Boolean',
     'ReportOnly' => 'Boolean',
     'SendViolationReports' => 'Boolean',
     'AlternateReportURI' => 'Varchar(255)',// alternate reporting URI to your own controller/URI
@@ -36,9 +42,10 @@ class CspPolicy extends DataObject {
     'Enabled' => 0,
     'IsLive' => 0,
     'MinimumCspLevel' => 1,// CSP Level 1 by default
-    'DeliveryMethod' => 'Header',
+    'DeliveryMethod' => self::POLICY_DELIVERY_METHOD_HEADER,
     'ReportOnly' => 1,
     'SendViolationReports' => 0,
+    'IsBasePolicy' => 0,
   ];
 
   /**
@@ -51,7 +58,8 @@ class CspPolicy extends DataObject {
     'DeliveryMethod' => 'Method',
     'ReportOnly.Nice' => 'Report Only',
     'SendViolationReports.Nice' => 'Report Violations',
-    'Enabled.Nice' => 'Default',
+    'Enabled.Nice' => 'Enabled',
+    'IsBasePolicy.Nice' => 'Base Policy',
     'IsLive.Nice' => 'Use on published site',
     'Directives.Count' => 'Directive count'
   ];
@@ -65,13 +73,64 @@ class CspPolicy extends DataObject {
   ];
 
   /**
+   * Has_many relationship
+   * @var array
+   */
+  private static $has_many = [
+    'Pages' => Page::class
+  ];
+
+  /**
    * Default sort ordering
    * @var string
    */
-  private static $default_sort = 'Enabled DESC, Title ASC';
+  private static $default_sort = 'IsBasePolicy DESC, Enabled DESC, Title ASC';
 
-  public static function getDefaultRecord() {
-    return CspPolicy::get()->filter('Enabled', 1)->first();
+  /**
+   * Return the default base policy
+   * @param boolean $is_live
+   * @param string $delivery_method
+   */
+  public static function getDefaultBasePolicy($is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER) {
+    $filter = [ 'Enabled' => 1, 'IsBasePolicy' => 1, 'DeliveryMethod' => $delivery_method ];
+    $list = CspPolicy::get()->filter($filter);
+    if($is_live) {
+      $list = $list->filter('IsLive', 1);
+    }
+    return $list->first();
+  }
+
+  /**
+   * Get a page specific policy based on the Page
+   * @param Page $page
+   * @param boolean $is_live
+   * @param string $delivery_method
+   */
+  public static function getPagePolicy(Page $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER) {
+    if(empty($page->CspPolicyID)) {
+      // early return if none linked
+      return;
+    }
+    // Check that the policy is enabled, it's not a base policy..
+    $filter = [ 'CspPolicy.Enabled' => 1,  'CspPolicy.IsBasePolicy' => 0, 'CspPolicy.DeliveryMethod' => $delivery_method ];
+    $list = CspPolicy::get()->filter( $filter )
+              ->innerJoin('Page', "Page.CspPolicyID = CspPolicy.ID AND Page.ID = '" .  Convert::raw2sql($page->ID) . "'");
+    // ... and if live, it's available on Live stage
+    if($is_live) {
+      $list = $list->filter('CspPolicy.IsLive', 1);
+    }
+    return $list->first();
+  }
+
+  /**
+   * Handle changes made after write
+   */
+  public function onAfterWrite() {
+    parent::onAfterWrite();
+    if($this->exists() && $this->IsBasePolicy == 1) {
+      // clear other base policies, without using ORM
+      DB::query("UPDATE `CspPolicy` SET IsBasePolicy = 0 WHERE IsBasePolicy = 1 AND ID <> '" . Convert::raw2sql($this->ID) . "'");
+    }
   }
 
   /**
@@ -86,7 +145,7 @@ class CspPolicy extends DataObject {
       OptionsetField::create(
         'DeliveryMethod',
         'Delivery Method',
-        [ 'Header' => 'Via an HTTP Header',  'MetaTag' => 'As a meta tag' ]
+        [ self::POLICY_DELIVERY_METHOD_HEADER => 'Via an HTTP Header',  self::POLICY_DELIVERY_METHOD_METATAG => 'As a meta tag' ]
         )->setDescription( _t('ContentSecurityPolicy.REPORT_VIA_META_TAG', 'Reporting violations is not supported when using the meta tag delivery method') )
     );
 
@@ -114,9 +173,11 @@ class CspPolicy extends DataObject {
           ),
           LiteralField::create(
             'PolicyEnabledReportTo',
-            '<p><pre><code>'
+              '<p>'
+              . (!empty($policy['reporting']) ? '<pre><code>'
               . 'Report-To: ' . json_encode($policy['reporting'], JSON_UNESCAPED_SLASHES)
-              . '</code></pre></p>'
+              . '</code></pre>' : 'No reporting set')
+              . '</p>'
           )
         ]
       );
@@ -140,9 +201,11 @@ class CspPolicy extends DataObject {
           ),
           LiteralField::create(
             'PolicyAllReportTo',
-            '<p><pre><code>'
+              '<p>'
+              . (!empty($policy['reporting']) ? '<pre><code>'
               . 'Report-To: ' . json_encode($policy['reporting'], JSON_UNESCAPED_SLASHES)
-              . '</code></pre></p>'
+              . '</code></pre>' : 'No reporting set')
+              . '</p>'
           )
         ]
       );
@@ -158,40 +221,103 @@ class CspPolicy extends DataObject {
           ->setDescription(  _t('ContentSecurityPolicy.REPORT_ONLY', 'Allows experimenting with the policy by monitoring (but not enforcing) its effects') );
 
     $fields->dataFieldByName('IsLive')->setTitle('Use on published website')->setDescription( _t('ContentSecurityPolicy.USE_ON_PUBLISHED_SITE', 'When unchecked, this policy will be used on the draft site only') );
+    $fields->dataFieldByName('IsBasePolicy')->setTitle('Is Base Policy')->setDescription( _t('ContentSecurityPolicy.IS_BASE_POLICY_NOTE', 'When checked, this policy will be come the base/default policy for the entire site') );
 
     $fields->dataFieldByName('MinimumCspLevel')
           ->setTitle( _t('ContentSecurityPolicy.MINIMUM_CSP_LEVEL', 'Minimum CSP Level') )
           ->setDescription( _t('ContentSecurityPolicy.MINIMUM_CSP_LEVEL_DESCRIPTION', "Setting a higher level will remove from features deprecated in previous versions, such as the 'report-uri' directive") );
 
+    // default policies aren't linked to any Pages
+    if($this->IsBasePolicy == 1) {
+      $fields->removeByName('Pages');
+    }
     return $fields;
   }
 
   /**
-   * TODO: maybe enabled can trigger on draft sites when off ?
+   * Takes the CspPolicy provided and merges it into this CspPolicy by matching directives
+   * According to MDN "Adding additional policies can only further restrict the capabilities of the protected resource"
+   * @param CspPolicy the policy to merge directives from, into this Policy
+   */
+  public function SetMergeFromPolicy(CspPolicy $merge_from_policy) {
+    $this->merge_from_policy = $merge_from_policy;
+  }
+
+  /**
+   * Retrieve the policy in a format for use in the Header or Meta Tag handling
+   * @param boolean $enabled filter by Enabled directives only
+   * @param boolean $pretty format each policy line on a new line
+   * @returns string
    */
   public function getPolicy($enabled = 1, $pretty = false) {
-    $items = $this->Directives();
+    $directives = $this->Directives();
     if(!is_null($enabled)) {
-      $items = $items->filter('Enabled', (bool)$enabled);
+      $directives = $directives->filter('Enabled', (bool)$enabled);
     }
     $policy = "";
-    foreach($items as $item) {
-      $value = ($item->IncludeSelf == 1 ? "'self'" : "");
-      $value .= ($item->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
-      $value .= ($item->AllowDataUri == 1 ? " data:" : "");
-      $value .= ($item->Value ? " " . trim($item->Value, "; ") : "");
 
-      $value = trim($value);
-      //var_dump($value);print "<br>";
-      $policy .= $item->Key . ($value ? " {$value};" : ";");
-      $policy .= ($pretty ? "\n" : "");
+    $merge_from_policy_directives = null;
+    if($this->merge_from_policy instanceof CspPolicy) {
+      $merge_from_policy_directives = $this->merge_from_policy->Directives();
+      if(!is_null($enabled)) {
+        $merge_from_policy_directives = $merge_from_policy_directives->filter('Enabled', (bool)$enabled);
+      }
+    }
+
+    $keys = [];
+    foreach($directives as $directive) {
+      // get the Directive value
+      $value = $directive->getDirectiveValue();
+      if($merge_from_policy_directives) {
+        // merge a directive from this policy
+        $merge_directive = $merge_from_policy_directives->filter('Key', $directive->Key)->first();
+        if(!empty($merge_directive->Value)) {
+          $merge_directive_value = $merge_directive->getDirectiveValue();
+          if($merge_directive_value != "") {
+            $value .= " " . $merge_directive_value;
+          } else {
+            $value = $merge_directive_value;
+          }
+        }
+      }
+      // add the Key then value to the policy
+      $policy .= $this->KeyValue($directive, $value, $pretty);
+      $keys[] = $directive->Key;
+    }
+
+    if($merge_from_policy_directives) {
+      // find out if there are any directives to add
+      $create_directives = $merge_from_policy_directives->exclude('Key', $keys);
+      if($create_directives) {
+        foreach($create_directives as $create_directive) {
+          // get the Directive value
+          $value = $directive->getDirectiveValue();
+          // add the Key then value to the policy
+          $policy .= $this->KeyValue($create_directive, $value, $pretty);
+        }
+      }
     }
     return $policy;
   }
 
   /**
+   * Form the policy line key/value pairings
+   * @param CspDirective $directive
+   * @param string $value
+   * @param boolean $pretty
+   */
+  private function KeyValue(CspDirective $directive, $value = "", $pretty = false) {
+    $policy_line = $directive->Key . ($value ? " {$value};" : ";");
+    // if pretty printing it, add a line break
+    $policy_line .= ($pretty ? "\n" : "");
+    return $policy_line;
+  }
+
+  /**
    * Header values
    * @returns array
+   * @param boolean $enabled
+   * @param boolean $pretty
    */
   public function HeaderValues($enabled = 1, $pretty = false) {
 
