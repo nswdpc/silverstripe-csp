@@ -9,6 +9,12 @@ class CspDirective extends DataObject {
   private static $plural_name = 'Directives';
 
   /**
+   * Default sort ordering
+   * @var string
+   */
+  private static $default_sort = 'Key ASC';
+
+  /**
    * Database fields
    * @var array
    */
@@ -27,7 +33,8 @@ class CspDirective extends DataObject {
    * @var array
    */
   private static $summary_fields = [
-    'Key' => 'Directive',
+    'ID' => '#',
+    'Key' => 'Name',
     'Value' => 'Value',
     'Enabled.Nice' =>'Enabled',
     'Policies.Count' => 'Policies',
@@ -45,7 +52,7 @@ class CspDirective extends DataObject {
   ];
 
   public function getTitle() {
-    return $this->Key;
+    return $this->Key . " " . $this->getDirectiveValue();
   }
 
   /**

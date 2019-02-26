@@ -54,6 +54,7 @@ class CspPolicy extends DataObject {
    * @var array
    */
   private static $summary_fields = [
+    'ID' => '#',
     'Title' => 'Title',
     'DeliveryMethod' => 'Method',
     'ReportOnly.Nice' => 'Report Only',
@@ -134,12 +135,45 @@ class CspPolicy extends DataObject {
   }
 
   /**
+   * Returns an array of duplicate directive Keys found
+   */
+  public function DuplicateDirectives() {
+    $sql = "SELECT d.`Key`, COUNT(d.`ID`) AS Dupes\n"
+        . " FROM `CspDirective` d\n"
+        . " JOIN `CspPolicy_Directives` pd ON pd.CspDirectiveID = d.ID\n"
+        . " JOIN `CspPolicy` p ON p.ID = pd.CspPolicyID AND p.ID='" . Convert::raw2sql($this->ID) . "'"
+        . " GROUP BY d.`Key`"
+        . " HAVING Dupes > 1";
+    $result = DB::query($sql);
+    $records = [];
+    foreach($result  as $record) {
+      $records[] = $record['Key'];
+    }
+    return $records;
+  }
+
+  /**
    * CMS Fields
    * @return FieldList
    */
   public function getCMSFields()
   {
     $fields = parent::getCMSFields();
+
+    // directives grid field
+    if($this->exists()) {
+      $keys = $this->DuplicateDirectives();
+      if(!empty($keys)) {
+        $fields->addFieldToTab(
+          'Root.Directives',
+          LiteralField::create('DuplicateDirectivesWarning', '<p class="message warning">This policy has the following duplicate directives: '
+            . htmlspecialchars(implode(", ", $keys))
+            . ". Redundant directives should be unlinked or merged.</p>"),
+          'Directives'
+        );
+      }
+    }
+
     $fields->addFieldToTab(
       'Root.Main',
       OptionsetField::create(
