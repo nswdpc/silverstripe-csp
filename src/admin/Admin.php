@@ -18,6 +18,7 @@ class CspModelAdmin extends ModelAdmin {
   private static $menu_icon = '/framework/admin/images/menu-icons/16x16/gears.png';
   private static $managed_models = [
     CspPolicy::class,
+    CspDirective::class,
     CspViolationReport::class
   ];
 
