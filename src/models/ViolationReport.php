@@ -4,7 +4,7 @@
  * @note refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP#Sample_violation_report
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspViolationReport extends DataObject {
+class CspViolationReport extends DataObject implements PermissionProvider {
 
   /**
    * Singular name for CMS
@@ -81,5 +81,39 @@ class CspViolationReport extends DataObject {
     $fields = $fields->transform( new ReadonlyTransformation() );
     return $fields;
   }
+
+  public function canView($member = null){
+      return Permission::check('CSP_VIOLATION_REPORTS_VIEW');
+  }
+
+  public function canEdit($member = null) {
+      return Permission::check('CSP_VIOLATION_REPORTS_EDIT');
+  }
+
+  public function canDelete($member = null) {
+      return Permission::check('CSP_VIOLATION_REPORTS_DELETE');
+  }
+
+  public function canCreate($member = null) {
+      return Permission::check('CSP_VIOLATION_REPORTS_EDIT');
+  }
+
+  public function providePermissions() {
+      return [
+          'CSP_VIOLATION_REPORTS_VIEW' => [
+              'name' => 'View reports',
+              'category' => 'CSP',
+          ],
+          'CSP_VIOLATION_REPORTS_EDIT' => [
+              'name' => 'Edit & Create reports',
+              'category' => 'CSP',
+          ],
+          'CSPE_VIOLATION_REPORTS_DELETE' => [
+              'name' => 'Delete reports',
+              'category' => 'CSP',
+          ]
+      ];
+  }
+
 
 }

@@ -3,7 +3,7 @@
  * A Content Security Policy directive, can be used by multiple {@link CspPolicy}
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspDirective extends DataObject {
+class CspDirective extends DataObject implements PermissionProvider {
 
   private static $singular_name = 'Directive';
   private static $plural_name = 'Directives';
@@ -168,6 +168,39 @@ class CspDirective extends DataObject {
     $value .= ($this->Value ? " " . trim($this->Value, "; ") : "");
     $value = trim($value);
     return $value;
+  }
+
+  public function canView($member = null){
+      return Permission::check('CSP_DIRECTIVE_VIEW');
+  }
+
+  public function canEdit($member = null) {
+      return Permission::check('CSP_DIRECTIVE_EDIT');
+  }
+
+  public function canDelete($member = null) {
+      return Permission::check('CSPE_DIRECTIVE_DELETE');
+  }
+
+  public function canCreate($member = null) {
+      return Permission::check('CSP_DIRECTIVE_EDIT');
+  }
+
+  public function providePermissions() {
+      return [
+          'CSP_DIRECTIVE_VIEW' => [
+              'name' => 'View directives',
+              'category' => 'CSP',
+          ],
+          'CSP_DIRECTIVE_EDIT' => [
+              'name' => 'Edit & Create directives',
+              'category' => 'CSP',
+          ],
+          'CSPE_DIRECTIVE_DELETE' => [
+              'name' => 'Delete directives',
+              'category' => 'CSP',
+          ]
+      ];
   }
 
 }

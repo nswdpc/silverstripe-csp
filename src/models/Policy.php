@@ -5,7 +5,7 @@ use NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint;
  * A Content Security Policy policy record
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspPolicy extends DataObject {
+class CspPolicy extends DataObject implements PermissionProvider {
 
   private static $singular_name = 'Policy';
   private static $plural_name = 'Policies';
@@ -422,5 +422,39 @@ class CspPolicy extends DataObject {
     ];
 
     return $response;
+  }
+
+
+  public function canView($member = null){
+      return Permission::check('CSP_POLICY_VIEW');
+  }
+
+  public function canEdit($member = null) {
+      return Permission::check('CSP_POLICY_EDIT');
+  }
+
+  public function canDelete($member = null) {
+      return Permission::check('CSPE_POLICY_DELETE');
+  }
+
+  public function canCreate($member = null) {
+      return Permission::check('CSP_POLICY_EDIT');
+  }
+
+  public function providePermissions() {
+      return [
+          'CSP_POLICY_VIEW' => [
+              'name' => 'View policies',
+              'category' => 'CSP',
+          ],
+          'CSP_POLICY_EDIT' => [
+              'name' => 'Edit & Create policies',
+              'category' => 'CSP',
+          ],
+          'CSPE_POLICY_DELETE' => [
+              'name' => 'Delete policies',
+              'category' => 'CSP',
+          ]
+      ];
   }
 }
