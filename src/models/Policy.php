@@ -132,12 +132,12 @@ class Policy extends DataObject implements PermissionProvider {
       return;
     }
     // Check that the policy is enabled, it's not a base policy..
-    $filter = [ 'CspPolicy.Enabled' => 1,  'CspPolicy.IsBasePolicy' => 0, 'CspPolicy.DeliveryMethod' => $delivery_method ];
+    $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method ];
     $list = Policy::get()->filter( $filter )
               ->innerJoin('Page', "Page.CspPolicyID = CspPolicy.ID AND Page.ID = '" .  Convert::raw2sql($page->ID) . "'");
     // ... and if live, it's available on Live stage
     if($is_live) {
-      $list = $list->filter('CspPolicy.IsLive', 1);
+      $list = $list->filter('IsLive', 1);
     }
     return $list->first();
   }
@@ -312,11 +312,11 @@ class Policy extends DataObject implements PermissionProvider {
   }
 
   /**
-   * Takes the CspPolicy provided and merges it into this CspPolicy by matching directives
+   * Takes the Policy provided and merges it into this Policy by matching directives
    * According to MDN "Adding additional policies can only further restrict the capabilities of the protected resource"
-   * @param CspPolicy the policy to merge directives from, into this Policy
+   * @param Policy the policy to merge directives from, into this Policy
    */
-  public function SetMergeFromPolicy(CspPolicy $merge_from_policy) {
+  public function SetMergeFromPolicy(Policy $merge_from_policy) {
     $this->merge_from_policy = $merge_from_policy;
   }
 
@@ -334,7 +334,7 @@ class Policy extends DataObject implements PermissionProvider {
     $policy = "";
 
     $merge_from_policy_directives = null;
-    if($this->merge_from_policy instanceof CspPolicy) {
+    if($this->merge_from_policy instanceof Policy) {
       $merge_from_policy_directives = $this->merge_from_policy->Directives();
       if(!is_null($enabled)) {
         $merge_from_policy_directives = $merge_from_policy_directives->filter('Enabled', (bool)$enabled);
