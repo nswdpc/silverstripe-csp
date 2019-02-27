@@ -57,12 +57,12 @@ You can choose to deliver the CSP via meta tags.
 
 Choosing this option will cause certain features to be unavailable, for instance ```report-uri``` and ```report-to``` are not supported in meta tags. You can only get Violation Reports when using the ```Via an HTTP Header``` delivery method.
 
-### Violation Reports
+## Violation Reports
 You can receive violation reports when they occur.
 
 The module provides its own endpoint for receiving violation reports - be aware that enabling the local reporting endpoint could cause load issues on higher traffic websites.
 
-### Minimum CSP Level
+## Minimum CSP Level
 
 Refer to the following for changes between levels
 + [Changes from Level 1 to 2](https://www.w3.org/TR/CSP2/#changes-from-level-1)
@@ -70,7 +70,7 @@ Refer to the following for changes between levels
 
 ## Additional Help
 
-The following developer documention URLs provide a wealth of information regarding CSP and web browser suport:
+The following developer documention URLs provide a wealth of information regarding CSP and web browser support:
 * [Google Developer Docs - CSP](https://developers.google.com/web/fundamentals/security/csp/)
 * [MDN docs - CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
 
