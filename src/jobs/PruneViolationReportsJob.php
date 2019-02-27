@@ -61,6 +61,8 @@ class PruneViolationReportsJob extends AbstractQueuedJob {
     //SS_Log::log($message, SS_Log::DEBUG);
     $this->addMessage($message);
 
+    $this->totalSteps = $this->currentStep = $post_count;
+
     $this->isComplete = true;
     return;
 
