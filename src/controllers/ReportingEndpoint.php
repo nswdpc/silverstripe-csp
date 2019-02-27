@@ -1,10 +1,9 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use SilverStripe\Control\Controller;
+use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
 use Exception;
-// use SS_Log;
-
 
 /*
  * Reporting endpoint used to collect violations
@@ -33,7 +32,7 @@ Array
             [referrer] =>
             [violated-directive] => script-src
             [effective-directive] => script-src
-            [original-policy] => default-src 'self'; report-uri /csp/v1/report/;report-to csp-endpoint;
+            [original-policy] => default-src 'self'; report-uri /csp/v1/report/;report-to default;
             [disposition] => report
             [blocked-uri] => eval
             [line-number] => 673
@@ -66,6 +65,10 @@ class ReportingEndpoint extends Controller {
     exit;
   }
 
+  public static function getCurrentReportingUrl($include_host = true) {
+    return ($include_host ? Director::absoluteBaseURL() : '/') . 'csp/v1/report';
+  }
+
   /**
    * Handle reports by POST, the incoming content-type is application/csp-report, which may not be supported in the environment
    * We use php://input to get the raw input here
@@ -93,7 +96,6 @@ class ReportingEndpoint extends Controller {
       }
     } catch (Exception $e) {
       // Not a warning :)
-      // SS_Log::log("Failed: {$e->getMessage()}", SS_Log::NOTICE);
     }
 
     $this->returnHeader();

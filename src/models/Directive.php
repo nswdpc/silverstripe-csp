@@ -5,12 +5,14 @@ use Silverstripe\Forms\LiteralField;
 use Silverstripe\Forms\CompositeField;
 use Silverstripe\Forms\Textfield;
 use Silverstripe\Forms\DropdownField;
+use SilverStripe\Security\Permission;
+use SilverStripe\Security\PermissionProvider;
 
 /**
  * A Content Security Policy directive, can be used by multiple {@link Policy}
  * @author james.ellis@dpc.nsw.gov.au
  */
-class Directive extends DataObject {
+class Directive extends DataObject implements PermissionProvider {
 
   private static $table_name = 'CspDirective';
 
@@ -54,7 +56,7 @@ class Directive extends DataObject {
   ];
 
   public function getTitle() {
-    return $this->Key;
+    return $this->Key . " " . $this->getDirectiveValue();
   }
 
   /**
@@ -157,6 +159,52 @@ class Directive extends DataObject {
     $fields->dataFieldByName('Value')->setDescription('Note that some directives can contain no values');
 
     return $fields;
+  }
+
+  /**
+  * Returns the directive value for use in a header
+  * @returns string
+  */
+  public function getDirectiveValue() {
+    $value = ($this->IncludeSelf == 1 ? "'self'" : "");
+    $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
+    $value .= ($this->AllowDataUri == 1 ? " data:" : "");
+    $value .= ($this->Value ? " " . trim($this->Value, "; ") : "");
+    $value = trim($value);
+    return $value;
+  }
+
+  public function canView($member = null){
+    return Permission::check('CSP_DIRECTIVE_VIEW');
+  }
+
+  public function canEdit($member = null) {
+    return Permission::check('CSP_DIRECTIVE_EDIT');
+  }
+
+  public function canDelete($member = null) {
+    return Permission::check('CSPE_DIRECTIVE_DELETE');
+  }
+
+  public function canCreate($member = null, $context = array()) {
+    return Permission::check('CSP_DIRECTIVE_EDIT');
+  }
+
+  public function providePermissions() {
+     return [
+       'CSP_DIRECTIVE_VIEW' => [
+           'name' => 'View directives',
+           'category' => 'CSP',
+       ],
+       'CSP_DIRECTIVE_EDIT' => [
+           'name' => 'Edit & Create directives',
+           'category' => 'CSP',
+       ],
+       'CSPE_DIRECTIVE_DELETE' => [
+           'name' => 'Delete directives',
+           'category' => 'CSP',
+       ]
+    ];
   }
 
 }

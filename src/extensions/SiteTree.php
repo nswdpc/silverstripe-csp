@@ -18,33 +18,37 @@ class SiteTreeExtension extends Extension {
     $whitelisted_controllers = Config::inst()->get( Policy::class, 'whitelisted_controllers');
     $controller = Controller::curr();
     if( is_array($whitelisted_controllers) && in_array(get_class($controller), $whitelisted_controllers) ) {
-      //SS_Log::log( "Not running in whitelisted controller:" . get_class($this->owner), SS_Log::DEBUG);
       return false;
     }
     return true;
   }
 
+  /**
+   * Note that reporting is ignored when using a meta tag
+   */
   public function MetaTags(&$tags) {
     if(!$this->checkCanRun()) {
       return;
     }
 
+    $stage = Versioned::current_stage();
+    // check if request on the Live stage
+    $is_live = ($stage == Versioned::LIVE);
+
     // get the default policy
-    $policy = Policy::get()->filter( ['Enabled' => 1, 'DeliveryMethod' => 'MetaTag'] )->first();
-    $stage = Versioned::get_stage();
-    if($stage == Versioned::LIVE) {
-      // live
-      $policy = $policy->filter('IsLive', 1);
-    }
-    $policy = $policy->first();
-    if(empty($policy->ID)) {
-      return;
+    $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_METATAG);
+    if(!empty($policy->ID)) {
+      $data = $policy->HeaderValues();
+      $tags .= "<meta http-equiv=\"{$data['header']}\" content=\"" . $data['policy_string'] . "\">\n";
     }
 
-    $data = $policy->HeaderValues();
-
-    // Note that reporting is ignored when using a meta tag
-    $tags .= "<meta http-equiv=\"{$data['header']}\" content=\"" . $data['policy_string'] . "\">\n";
+    // check for a specific page based policy
+    if($this->owner instanceof Page) {
+      $page_policy = Policy::getPagePolicy($this->owner, $is_live, Policy::POLICY_DELIVERY_METHOD_METATAG);
+      if(!empty($page_policy->ID) && ($data = $page_policy->HeaderValues())) {
+        $tags .= "<meta http-equiv=\"{$data['header']}\" content=\"" . $data['policy_string'] . "\">\n";
+      }
+    }
 
   }
 }

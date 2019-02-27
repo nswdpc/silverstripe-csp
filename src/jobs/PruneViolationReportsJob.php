@@ -4,7 +4,6 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use SilverStripe\Core\Config\Config;
-// use SS_Log;
 use SilverStripe\ORM\DB;
 use DateTime;
 use SilverStripe\Core\Convert;
@@ -58,8 +57,9 @@ class PruneViolationReportsJob extends AbstractQueuedJob {
     $removed = $pre_count - $post_count;
     $removed_string = ($removed . '/' . $pre_count);
     $message = sprintf( _t('ContentSecurityPolicy.REMOVED_COUNT_REPORTS', 'Removed %s reports(s)'), $removed_string );
-    //SS_Log::log($message, SS_Log::DEBUG);
     $this->addMessage($message);
+
+    $this->totalSteps = $this->currentStep = $post_count;
 
     $this->isComplete = true;
     return;
