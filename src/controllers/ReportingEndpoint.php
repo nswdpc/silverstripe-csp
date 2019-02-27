@@ -35,7 +35,7 @@ Array
             [referrer] =>
             [violated-directive] => script-src
             [effective-directive] => script-src
-            [original-policy] => default-src 'self'; report-uri /csp/v1/report/;report-to csp-endpoint;
+            [original-policy] => default-src 'self'; report-uri /csp/v1/report/;report-to default;
             [disposition] => report
             [blocked-uri] => eval
             [line-number] => 673
@@ -60,7 +60,6 @@ class ReportingEndpoint extends Controller {
   ];
 
   public function index(SS_HTTPRequest $request) {
-
   }
 
   private function returnHeader() {
@@ -68,8 +67,8 @@ class ReportingEndpoint extends Controller {
     exit;
   }
 
-  public static function getCurrentReportingUrl() {
-    return Director::absoluteBaseURL() . 'csp/v1/report';
+  public static function getCurrentReportingUrl($include_host = true) {
+    return ($include_host ? Director::absoluteBaseURL() : '/') . 'csp/v1/report';
   }
 
   /**
