@@ -7,7 +7,11 @@ This module provides the ability to:
 + Collect CSP Violation reports internally via a controller or via a specific URL
 + Add page specific CSP records, which work with or without the base policy
 
-> This is the Silverstripe 4.x version of the module
+
+## Versioning
+This is the Silverstripe 4.x version of the module, with releases tagged as v0.2 and up
+
+The Silverstripe 3.x version with releases tagged as v0.1 - any future versions will remain at 0.1.x
 
 ## Instructions
 
