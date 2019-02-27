@@ -1,9 +1,20 @@
 <?php
+namespace NSWDPC\Utilities\ContentSecurityPolicy;
+use Silverstripe\ORM\DataObject;
+use Silverstripe\Forms\LiteralField;
+use Silverstripe\Forms\CompositeField;
+use Silverstripe\Forms\Textfield;
+use Silverstripe\Forms\DropdownField;
+use SilverStripe\Security\Permission;
+use SilverStripe\Security\PermissionProvider;
+
 /**
- * A Content Security Policy directive, can be used by multiple {@link CspPolicy}
+ * A Content Security Policy directive, can be used by multiple {@link Policy}
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspDirective extends DataObject implements PermissionProvider {
+class Directive extends DataObject implements PermissionProvider {
+
+  private static $table_name = 'CspDirective';
 
   private static $singular_name = 'Directive';
   private static $plural_name = 'Directives';
@@ -48,7 +59,7 @@ class CspDirective extends DataObject implements PermissionProvider {
    * @var array
    */
   private static $belongs_many_many = [
-    'Policies' => CspPolicy::class,
+    'Policies' => Policy::class,
   ];
 
   public function getTitle() {
@@ -158,9 +169,9 @@ class CspDirective extends DataObject implements PermissionProvider {
   }
 
   /**
-   * Returns the directive value for use in a header
-   * @returns string
-   */
+  * Returns the directive value for use in a header
+  * @returns string
+  */
   public function getDirectiveValue() {
     $value = ($this->IncludeSelf == 1 ? "'self'" : "");
     $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
@@ -171,36 +182,36 @@ class CspDirective extends DataObject implements PermissionProvider {
   }
 
   public function canView($member = null){
-      return Permission::check('CSP_DIRECTIVE_VIEW');
+    return Permission::check('CSP_DIRECTIVE_VIEW');
   }
 
   public function canEdit($member = null) {
-      return Permission::check('CSP_DIRECTIVE_EDIT');
+    return Permission::check('CSP_DIRECTIVE_EDIT');
   }
 
   public function canDelete($member = null) {
-      return Permission::check('CSPE_DIRECTIVE_DELETE');
+    return Permission::check('CSPE_DIRECTIVE_DELETE');
   }
 
-  public function canCreate($member = null) {
-      return Permission::check('CSP_DIRECTIVE_EDIT');
+  public function canCreate($member = null, $context = array()) {
+    return Permission::check('CSP_DIRECTIVE_EDIT');
   }
 
   public function providePermissions() {
-      return [
-          'CSP_DIRECTIVE_VIEW' => [
-              'name' => 'View directives',
-              'category' => 'CSP',
-          ],
-          'CSP_DIRECTIVE_EDIT' => [
-              'name' => 'Edit & Create directives',
-              'category' => 'CSP',
-          ],
-          'CSPE_DIRECTIVE_DELETE' => [
-              'name' => 'Delete directives',
-              'category' => 'CSP',
-          ]
-      ];
+     return [
+       'CSP_DIRECTIVE_VIEW' => [
+           'name' => 'View directives',
+           'category' => 'CSP',
+       ],
+       'CSP_DIRECTIVE_EDIT' => [
+           'name' => 'Edit & Create directives',
+           'category' => 'CSP',
+       ],
+       'CSPE_DIRECTIVE_DELETE' => [
+           'name' => 'Delete directives',
+           'category' => 'CSP',
+       ]
+    ];
   }
 
 }

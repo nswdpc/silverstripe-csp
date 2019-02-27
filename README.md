@@ -7,8 +7,7 @@ This module provides the ability to:
 + Collect CSP Violation reports internally via a controller or via a specific URL
 + Add page specific CSP records, which work with or without the base policy
 
-> This module is under development and currently supports Silverstripe 3, a v4 branch is available.
-
+> This is the Silverstripe 4.x version of the module
 
 ## Instructions
 
@@ -34,7 +33,6 @@ If one is selected, it is merged into the base policy (if it exists) or is used 
 
 [MDN provides some useful information on this process](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies):
 > Adding additional policies can only further restrict the capabilities of the protected resource
-
 This means that you can't relax the base policy restrictions from within your page policy.
 
 ## Gotchas

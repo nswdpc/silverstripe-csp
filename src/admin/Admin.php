@@ -1,8 +1,6 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
-use CspPolicy;
-use CspViolationReport;
-use ModelAdmin;
+use SilverStripe\Admin\ModelAdmin;
 
 /**
  * Admin for managing Content Security Policy and Violation Reports
@@ -11,15 +9,11 @@ use ModelAdmin;
 class CspModelAdmin extends ModelAdmin {
   private static $url_segment = 'content-security-policy';
   private static $menu_title = 'CSP';
-  /**
-   * Menu icon for Left and Main CMS
-   * @var string
-   */
-  private static $menu_icon = '/framework/admin/images/menu-icons/16x16/gears.png';
+  private static $menu_icon_class = 'font-icon-block';
   private static $managed_models = [
-    CspPolicy::class,
-    CspDirective::class,
-    CspViolationReport::class
+    Policy::class,
+    Directive::class,
+    ViolationReport::class
   ];
 
 }

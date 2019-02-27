@@ -1,11 +1,26 @@
 <?php
-use NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint;
+namespace NSWDPC\Utilities\ContentSecurityPolicy;
+use Silverstripe\Core\Convert;
+use Silverstripe\ORM\DataObject;
+use Silverstripe\Forms\LiteralField;
+use Silverstripe\Forms\CompositeField;
+use Silverstripe\Forms\Textfield;
+use Silverstripe\Forms\DropdownField;
+use Silverstripe\Forms\HeaderField;
+use Silverstripe\Forms\OptionsetField;
+use SilverStripe\Security\Permission;
+use SilverStripe\Security\PermissionProvider;
+use SilverStripe\ORM\DB;
+use Page;
+
 
 /**
  * A Content Security Policy policy record
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspPolicy extends DataObject implements PermissionProvider {
+class Policy extends DataObject implements PermissionProvider {
+
+  private static $table_name = 'CspPolicy';
 
   private static $singular_name = 'Policy';
   private static $plural_name = 'Policies';
@@ -13,8 +28,8 @@ class CspPolicy extends DataObject implements PermissionProvider {
   private static $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
   private static $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
 
-  private $merge_from_policy;// at runtime set a policy to merge other directives from, into this policy
 
+  private $merge_from_policy;// at runtime set a policy to merge other directives from, into this policy
   const POLICY_DELIVERY_METHOD_HEADER = 'Header';
   const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
 
@@ -74,7 +89,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
    * @var array
    */
   private static $many_many = [
-    'Directives' => CspDirective::class,
+    'Directives' => Directive::class,
   ];
 
   /**
@@ -98,7 +113,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
    */
   public static function getDefaultBasePolicy($is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER) {
     $filter = [ 'Enabled' => 1, 'IsBasePolicy' => 1, 'DeliveryMethod' => $delivery_method ];
-    $list = CspPolicy::get()->filter($filter);
+    $list = Policy::get()->filter($filter);
     if($is_live) {
       $list = $list->filter('IsLive', 1);
     }
@@ -118,7 +133,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
     }
     // Check that the policy is enabled, it's not a base policy..
     $filter = [ 'CspPolicy.Enabled' => 1,  'CspPolicy.IsBasePolicy' => 0, 'CspPolicy.DeliveryMethod' => $delivery_method ];
-    $list = CspPolicy::get()->filter( $filter )
+    $list = Policy::get()->filter( $filter )
               ->innerJoin('Page', "Page.CspPolicyID = CspPolicy.ID AND Page.ID = '" .  Convert::raw2sql($page->ID) . "'");
     // ... and if live, it's available on Live stage
     if($is_live) {
@@ -175,6 +190,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
   public function getCMSFields()
   {
     $fields = parent::getCMSFields();
+
 
     // directives grid field
     if($this->exists()) {
@@ -367,7 +383,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
    * @param string $value
    * @param boolean $pretty
    */
-  private function KeyValue(CspDirective $directive, $value = "", $pretty = false) {
+  private function KeyValue(Directive $directive, $value = "", $pretty = false) {
     $policy_line = $directive->Key . ($value ? " {$value};" : ";");
     // if pretty printing it, add a line break
     $policy_line .= ($pretty ? "\n" : "");
@@ -466,7 +482,6 @@ class CspPolicy extends DataObject implements PermissionProvider {
     return $response;
   }
 
-
   public function canView($member = null){
       return Permission::check('CSP_POLICY_VIEW');
   }
@@ -479,7 +494,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
       return Permission::check('CSPE_POLICY_DELETE');
   }
 
-  public function canCreate($member = null) {
+  public function canCreate($member = null, $context = array()) {
       return Permission::check('CSP_POLICY_EDIT');
   }
 
@@ -499,4 +514,5 @@ class CspPolicy extends DataObject implements PermissionProvider {
           ]
       ];
   }
+
 }

@@ -1,9 +1,9 @@
 ---
 Name: csp-routes
 After:
-  - 'framework/*'
-  - 'cms/*'
+  - '#rootroutes'
+  - '#coreroutes'
 ---
-Director:
+SilverStripe\Control\Director:
   rules:
     'csp': 'NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint'

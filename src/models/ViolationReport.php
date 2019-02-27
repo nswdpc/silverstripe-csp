@@ -1,10 +1,18 @@
 <?php
+namespace NSWDPC\Utilities\ContentSecurityPolicy;
+use Silverstripe\ORM\DataObject;
+use SilverStripe\Forms\ReadonlyTransformation;
+use SilverStripe\Security\Permission;
+use SilverStripe\Security\PermissionProvider;
+
 /**
  * CSP Violation Report
  * @note refer to https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP#Sample_violation_report
  * @author james.ellis@dpc.nsw.gov.au
  */
-class CspViolationReport extends DataObject implements PermissionProvider {
+class ViolationReport extends DataObject implements PermissionProvider {
+
+  private static $table_name = 'CspViolationReport';
 
   /**
    * Singular name for CMS
@@ -56,7 +64,7 @@ class CspViolationReport extends DataObject implements PermissionProvider {
    * Create a new Violation Report per data spec
    */
   public static function create_report($data, $user_agent) {
-    $report = new CspViolationReport();
+    $report = new ViolationReport();
     $report->DocumentUri = isset($data['document-uri']) ? $data['document-uri'] : '';
     $report->Referrer = isset($data['referrer']) ? $data['referrer'] : '';
     $report->BlockedUri = isset($data['blocked-uri']) ? $data['blocked-uri'] : '';
@@ -82,6 +90,7 @@ class CspViolationReport extends DataObject implements PermissionProvider {
     return $fields;
   }
 
+
   public function canView($member = null){
       return Permission::check('CSP_VIOLATION_REPORTS_VIEW');
   }
@@ -94,8 +103,8 @@ class CspViolationReport extends DataObject implements PermissionProvider {
       return Permission::check('CSP_VIOLATION_REPORTS_DELETE');
   }
 
-  public function canCreate($member = null) {
-      return Permission::check('CSP_VIOLATION_REPORTS_EDIT');
+  public function canCreate($member = null, $context = array()) {
+      return false;
   }
 
   public function providePermissions() {
@@ -114,6 +123,5 @@ class CspViolationReport extends DataObject implements PermissionProvider {
           ]
       ];
   }
-
 
 }

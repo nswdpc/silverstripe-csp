@@ -1,13 +1,12 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
-use QueuedJob;
-use QueuedJobService;
-use AbstractQueuedJob;
-use Config;
-use SS_Log;
-use DB;
+use Symbiote\QueuedJobs\Services\QueuedJob;
+use Symbiote\QueuedJobs\Services\QueuedJobService;
+use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
+use SilverStripe\Core\Config\Config;
+use SilverStripe\ORM\DB;
 use DateTime;
-use Convert;
+use SilverStripe\Core\Convert;
 use Exception;
 
 
@@ -58,7 +57,6 @@ class PruneViolationReportsJob extends AbstractQueuedJob {
     $removed = $pre_count - $post_count;
     $removed_string = ($removed . '/' . $pre_count);
     $message = sprintf( _t('ContentSecurityPolicy.REMOVED_COUNT_REPORTS', 'Removed %s reports(s)'), $removed_string );
-    //SS_Log::log($message, SS_Log::DEBUG);
     $this->addMessage($message);
 
     $this->totalSteps = $this->currentStep = $post_count - $pre_count;

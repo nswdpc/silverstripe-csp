@@ -1,12 +1,9 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
-use Controller;
-use Director;
-use SS_HTTPRequest;
+use SilverStripe\Control\Controller;
+use SilverStripe\Control\Director;
+use SilverStripe\Control\HTTPRequest;
 use Exception;
-use SS_Log;
-use CspViolationReport;
-
 
 /*
  * Reporting endpoint used to collect violations
@@ -59,7 +56,8 @@ class ReportingEndpoint extends Controller {
     'v1/report' => 'report'
   ];
 
-  public function index(SS_HTTPRequest $request) {
+  public function index(HTTPRequest $request) {
+
   }
 
   private function returnHeader() {
@@ -75,7 +73,7 @@ class ReportingEndpoint extends Controller {
    * Handle reports by POST, the incoming content-type is application/csp-report, which may not be supported in the environment
    * We use php://input to get the raw input here
    */
-  public function report(SS_HTTPRequest $request) {
+  public function report(HTTPRequest $request) {
     // collect the body
     try {
 
@@ -92,13 +90,12 @@ class ReportingEndpoint extends Controller {
         throw new Exception('No csp-report index found in POSTed data');
       }
       $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-      $report = CspViolationReport::create_report( $post['csp-report'], $user_agent );
+      $report = ViolationReport::create_report( $post['csp-report'], $user_agent );
       if(empty($report->ID)) {
         throw new Exception('Could not create report from data submitted');
       }
     } catch (Exception $e) {
       // Not a warning :)
-      SS_Log::log("Failed: {$e->getMessage()}", SS_Log::NOTICE);
     }
 
     $this->returnHeader();
