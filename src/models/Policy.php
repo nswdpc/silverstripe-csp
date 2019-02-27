@@ -18,6 +18,8 @@ class CspPolicy extends DataObject implements PermissionProvider {
   const POLICY_DELIVERY_METHOD_HEADER = 'Header';
   const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
 
+  const DEFAULT_REPORTING_GROUP = 'default';
+
   /**
    * Database fields
    * @var array
@@ -29,6 +31,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
     'IsBasePolicy' => 'Boolean',
     'ReportOnly' => 'Boolean',
     'SendViolationReports' => 'Boolean',
+    'EnableNEL' => 'Boolean', // Enable Network Error Logging (for supporting browsers)
     'AlternateReportURI' => 'Varchar(255)',// alternate reporting URI to your own controller/URI
     'DeliveryMethod' => 'Enum(\'Header,MetaTag\')',
     'MinimumCspLevel' => 'Enum(\'1,2,3\')',// CSP level to support, specifically used for reporting, which changed between 2 and 3
@@ -46,6 +49,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
     'ReportOnly' => 1,
     'SendViolationReports' => 0,
     'IsBasePolicy' => 0,
+    'EnableNEL' => 0,
   ];
 
   /**
@@ -135,6 +139,18 @@ class CspPolicy extends DataObject implements PermissionProvider {
   }
 
   /**
+   * Event handler called before writing to the database.
+   */
+  public function onBeforeWrite()
+  {
+    parent::onBeforeWrite();
+    if($this->EnableNEL == 1) {
+      // ensure on if NEL is enabled
+      $this->SendViolationReports = 1;
+    }
+  }
+
+  /**
    * Returns an array of duplicate directive Keys found
    */
   public function DuplicateDirectives() {
@@ -183,10 +199,15 @@ class CspPolicy extends DataObject implements PermissionProvider {
         )->setDescription( _t('ContentSecurityPolicy.REPORT_VIA_META_TAG', 'Reporting violations is not supported when using the meta tag delivery method') )
     );
 
-    $internal_reporting_url = ReportingEndpoint::getCurrentReportingUrl();
+    $internal_reporting_url = ReportingEndpoint::getCurrentReportingUrl(false);
     $fields->dataFieldByName('AlternateReportURI')
       ->setTitle( _t('ContentSecurityPolicy.ALTERNATE_REPORT_URI_TITLE', 'Set a reporting URL that will accept violation reports') )
-      ->setDescription( sprintf( _t('ContentSecurityPolicy.ALTERNATE_REPORT_URI', 'If not set, and the sending of violation reports is enabled, reports will be directed to %s and will appear in the CSP/Reports admin'), $internal_reporting_url ) );
+      ->setDescription( sprintf( _t('ContentSecurityPolicy.ALTERNATE_REPORT_URI',
+                        'If not set and the sending of violation reports is enabled,'
+                        . ' reports will be directed to %s and will appear in the CSP/Reports admin.'
+                        . ' <br>Sending reports back to your own website may cause performance degradation.'),
+                        $internal_reporting_url
+                        ) );
 
     // display policy
     $policy = $this->HeaderValues(1, true);
@@ -209,7 +230,8 @@ class CspPolicy extends DataObject implements PermissionProvider {
             'PolicyEnabledReportTo',
               '<p>'
               . (!empty($policy['reporting']) ? '<pre><code>'
-              . 'Report-To: ' . json_encode($policy['reporting'], JSON_UNESCAPED_SLASHES)
+              . 'Report-To: ' . json_encode($policy['reporting'])
+              . (!empty($policy['nel']) ? "\nNEL: " . json_encode($policy['nel']) : "")
               . '</code></pre>' : 'No reporting set')
               . '</p>'
           )
@@ -237,7 +259,8 @@ class CspPolicy extends DataObject implements PermissionProvider {
             'PolicyAllReportTo',
               '<p>'
               . (!empty($policy['reporting']) ? '<pre><code>'
-              . 'Report-To: ' . json_encode($policy['reporting'], JSON_UNESCAPED_SLASHES)
+              . 'Report-To: ' . json_encode($policy['reporting'])
+              . (!empty($policy['nel']) ? "\nNEL: " . json_encode($policy['nel']) : "")
               . '</code></pre>' : 'No reporting set')
               . '</p>'
           )
@@ -246,6 +269,10 @@ class CspPolicy extends DataObject implements PermissionProvider {
     }
 
     $fields->dataFieldByName('SendViolationReports')->setDescription( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS', 'Send violation reports to a reporting system') );
+
+    $fields->dataFieldByName('EnableNEL')
+            ->setTitle( _t('ContentSecurityPolicy.ENABLE_NEL', 'Enable Network Error Logging (NEL)') )
+            ->setDescription( _t('ContentSecurityPolicy.ENABLE_NEL_NOTE', 'For supporting browsers. Turning this on will enable \'Send Violation Reports\'') );
 
     if($this->ReportOnly == 1 && !$this->SendViolationReports) {
       $fields->dataFieldByName('SendViolationReports')->setRightTitle( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS_REPORT_ONLY', '\'Report Only\' is on - it is wise to turn on sending violation reports') );
@@ -371,7 +398,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
       if($this->AlternateReportURI) {
         $reporting_url = $this->AlternateReportURI;
       } else {
-        $reporting_url = "/csp/v1/report/";
+        $reporting_url = ReportingEndpoint::getCurrentReportingUrl();
       }
 
       /**
@@ -380,6 +407,8 @@ class CspPolicy extends DataObject implements PermissionProvider {
        * With a min. level of 3, we send Report-To only
        * @see https://wicg.github.io/reporting/#examples
        * @see https://w3c.github.io/webappsec-csp/#directives-reporting
+       * @note the Abort steps here - https://w3c.github.io/reporting/#process-header
+       * If you are testing locally with a self signed cert or without a cert, it's possible Report-To will make no difference in supporting Browsers e.g Chrome 70+
        */
 
       $report_to = "";
@@ -391,27 +420,39 @@ class CspPolicy extends DataObject implements PermissionProvider {
        */
       $max_age = abs($this->config()->get('max_age'));
 
+      $include_subdomains = (bool)$this->config()->get('include_subdomains');
+
+      $reporting_group = self::DEFAULT_REPORTING_GROUP;
+
       // 3 only gets Report-To
       $reporting = [
-        "group" => "csp-endpoint",
-        "max-age" => $max_age,
+        "group" => $reporting_group,
+        "max_age" => $max_age,
         "endpoints" => [
           // an array of URLs, non secure-endpoints should be ignored by the user agent
           [ "url" => $reporting_url ],
         ],
+        "include_subdomains" => $include_subdomains
       ];
 
       if($min_csp_level < 3) {
         // Only 1,2 will add a report-uri, when selecting '3' this is ignored
-        $report_to .= "report-uri {$reporting_url}";
+        $report_to .= "report-uri {$reporting_url};";
       }
 
       // 1,2,3 use report-to so that UserAgents that support it can use this as they'll ignore report-uri
-      $report_to .= ";" . ($pretty ? "\n" : " ") . "report-to csp-endpoint";
+      $report_to .= "report-to {$reporting_group};";
 
       // only apply report_to if there is a URL and the
-      if($reporting_url) {
-        $policy_string .= ($pretty ? "\n" : "") . $report_to;
+      $policy_string .= $report_to;
+
+      $nel = [];
+      if($this->EnableNEL == 1) {
+        $nel = [
+          "report_to" => $reporting_group,
+          "max_age" => $max_age,
+          "include_subdomains" => $include_subdomains
+        ];
       }
     }
 
@@ -419,6 +460,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
       'header' => $header,
       'policy_string' => $policy_string,
       'reporting' => $reporting,
+      'nel' => $nel
     ];
 
     return $response;

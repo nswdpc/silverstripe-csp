@@ -92,8 +92,12 @@ class ControllerExtension extends Extension {
     if($policy instanceof CspPolicy && ($data = $policy->HeaderValues($enabled_directives))) {
       // Add the Report-To header for all
       if(!empty($data['reporting'])) {
-        $response->addHeader("Report-To", json_encode($data['reporting'], JSON_UNESCAPED_SLASHES));
+        $response->addHeader("Report-To", json_encode($data['reporting']));
       }
+      if(!empty($data['nel'])) {
+        $response->addHeader("NEL", json_encode($data['nel']));
+      }
+      // the relevant CSP-header with its values
       $response->addHeader($data['header'], $data['policy_string']);
     }
 
