@@ -59,7 +59,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob {
     $message = sprintf( _t('ContentSecurityPolicy.REMOVED_COUNT_REPORTS', 'Removed %s reports(s)'), $removed_string );
     $this->addMessage($message);
 
-    $this->totalSteps = $this->currentStep = $post_count;
+    $this->totalSteps = $this->currentStep = $post_count - $pre_count;
 
     $this->isComplete = true;
     return;
