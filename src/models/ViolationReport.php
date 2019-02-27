@@ -44,7 +44,7 @@ class CspViolationReport extends DataObject implements PermissionProvider {
   private static $summary_fields = [
     'ID' => '#',//for referring to report numbers
     'Created.Nice' => 'Created',
-    'Disposition' => 'Disposition',
+    'UserAgent' => 'User Agent',
     'DocumentUri' => 'Document URI',
     'BlockedUri' => 'Blocked URI',
     'ViolatedDirective' => 'Directive',
