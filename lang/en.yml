@@ -1,6 +1,6 @@
 en:
   ContentSecurityPolicy:
-    ALTERNATE_REPORT_URI: 'If not set, and the sending of violation reports is enabled, reports will be directed to %s and will appear in the CSP/Reports admin'
+    ALTERNATE_REPORT_URI: 'If not set, and the sending of violation reports is enabled, reports will be directed to %s and will appear in the CSP/Reports admin<br>Sending reports back to your own website may cause performance degradation.'
     ALTERNATE_REPORT_URI_TITLE: 'Set a reporting URL that will accept violation reports'
     REPORT_VIA_META_TAG: 'Reporting violations is not supported when using the meta tag delivery method'
     SEND_VIOLATION_REPORTS: "Send violation reports to a reporting system"
