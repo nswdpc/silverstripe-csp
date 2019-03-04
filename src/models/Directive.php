@@ -100,6 +100,12 @@ class Directive extends DataObject implements PermissionProvider {
     return $keys;
   }
 
+  public static function KeysWithoutValues() {
+      return [
+          'block-all-mixed-content','upgrade-insecure-requests'
+      ];
+  }
+
   /**
    * Event handler called before writing to the database.
    */
@@ -107,14 +113,19 @@ class Directive extends DataObject implements PermissionProvider {
   {
     parent::onBeforeWrite();
     if(!$this->Key && $this->KeySelection) {
-      $this->Key = $this->KeySelection;
+        $this->Key = $this->KeySelection;
     }
 
-    if($this->Key == 'upgrade-insecure-requests') {
-      $this->Value = '';
+    if( in_array( $this->Key, self::KeysWithoutValues() ) ) {
+        // ensure these keys never get values
+        $this->Value = '';
+        $this->IncludeSelf = 0;
+        $this->UnsafeInline = 0;
+        $this->AllowDataUri = 0;
     } else {
-      $this->Value = trim(rtrim($this->Value, ";"));
+        $this->Value = trim(rtrim($this->Value, ";"));
     }
+
   }
 
   /**
