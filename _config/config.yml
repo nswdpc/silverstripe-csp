@@ -6,16 +6,16 @@ NSWDPC\Utilities\ContentSecurityPolicy\Policy:
   max_age: 10886400
   include_subdomains: true
   whitelisted_controllers:
-    - TimedNoticeController
-Page:
-  extensions:
-    - NSWDPC\Utilities\ContentSecurityPolicy\PageExtension
+    -
 SilverStripe\CMS\Model\SiteTree:
   extensions:
     - NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension
 SilverStripe\Control\Controller:
   extensions:
     - NSWDPC\Utilities\ContentSecurityPolicy\ControllerExtension
+SilverStripe\Security\Security:
+  extensions:
+    - NSWDPC\Utilities\ContentSecurityPolicy\ContentSecurityPolicyEnable
 # report removal job
 NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
   older_than: 1

@@ -8,6 +8,7 @@ use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\CMS\Controllers\ContentController;
+use SilverStripe\CMS\Controllers\ModelAsController;
 
 /**
  * Provides an extension method so that the Controller can set the relevant CSP header
@@ -20,38 +21,48 @@ class ControllerExtension extends Extension {
    * Check to see if the current Controller allows a CSP header
    */
   private function checkCanRun() {
-    $run_in_admin = Config::inst()->get( Policy::class , 'run_in_admin');
+
+    // ADMIN check
     $is_in_admin = $this->owner instanceof LeftAndMain;
-    $whitelisted_controllers = Config::inst()->get( Policy::class, 'whitelisted_controllers');
-    if( !$run_in_admin && $is_in_admin ) {
-      return false;
+    if($is_in_admin) {
+        $run_in_admin = Config::inst()->get( Policy::class , 'run_in_admin');
+        return $run_in_admin;
     }
 
+    // Allow certain controllers to remove headers (as in the request is 'whitelisted')
+    $whitelisted_controllers = Config::inst()->get( Policy::class, 'whitelisted_controllers');
     if( is_array($whitelisted_controllers) && in_array(get_class($this->owner), $whitelisted_controllers) ) {
       return false;
     }
 
-    if(!($this->owner instanceof ContentController) && !($this->owner instanceof LeftAndMain)) {
-        // can only run in these controllers
-        return false;
+    if($this->owner instanceof ContentController ) {
+        // all ContentControllers are enabled
+        return true;
     }
-    return true;
+
+    /**
+     * Any controller that implements this method can return it
+     * This can be accessed either via a trait or via applying the ContentSecurityPolicyEnable extension to a Controller type
+     */
+    if(method_exists( $this->owner, 'EnableContentSecurityPolicy')
+        || $this->owner->hasMethod('EnableContentSecurityPolicy')) {
+        return $this->owner->EnableContentSecurityPolicy();
+    }
+
+    // Do not enable by default on all controllers
+    return false;
   }
 
   public function onAfterInit() {
 
-    if(Director::is_cli()) {
-      // Don't run when executing on the shell
-      return;
-    }
-
+    // Don't go in a loop reporting to the Reporting Endpoint controller from the Reporting Endpoint controller!
     if($this->owner instanceof ReportingEndpoint) {
-      // Don't go in a loop reporting to the Reporting Endpoint controller from the Reporting Endpoint controller!
       return;
     }
 
+    // check if we can proceed
     if(!$this->checkCanRun()) {
-      return;
+        return;
     }
 
     $response = $this->owner->getResponse();

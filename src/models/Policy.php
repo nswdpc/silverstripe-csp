@@ -11,8 +11,7 @@ use Silverstripe\Forms\OptionsetField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use SilverStripe\ORM\DB;
-use Page;
-
+use SilverStripe\CMS\Model\SiteTree;
 
 /**
  * A Content Security Policy policy record
@@ -34,6 +33,11 @@ class Policy extends DataObject implements PermissionProvider {
   const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
 
   const DEFAULT_REPORTING_GROUP = 'default';
+
+  const HEADER_CSP_REPORT_ONLY = 'Content-Security-Policy-Report-Only';
+  const HEADER_CSP = 'Content-Security-Policy';
+  const HEADER_REPORT_TO = 'Report-To';
+  const HEADER_NEL = 'NEL';
 
   /**
    * Database fields
@@ -97,7 +101,7 @@ class Policy extends DataObject implements PermissionProvider {
    * @var array
    */
   private static $has_many = [
-    'Pages' => Page::class
+    'Pages' => SiteTree::class
   ];
 
   /**
@@ -122,11 +126,11 @@ class Policy extends DataObject implements PermissionProvider {
 
   /**
    * Get a page specific policy based on the Page
-   * @param Page $page
+   * @param SiteTree $page
    * @param boolean $is_live
    * @param string $delivery_method
    */
-  public static function getPagePolicy(Page $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER) {
+  public static function getPagePolicy(SiteTree $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER) {
     if(empty($page->CspPolicyID)) {
       // early return if none linked
       return;
@@ -134,7 +138,7 @@ class Policy extends DataObject implements PermissionProvider {
     // Check that the policy is enabled, it's not a base policy..
     $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method ];
     $list = Policy::get()->filter( $filter )
-              ->innerJoin('Page', "Page.CspPolicyID = CspPolicy.ID AND Page.ID = '" .  Convert::raw2sql($page->ID) . "'");
+              ->innerJoin('SiteTree', "SiteTree.CspPolicyID = CspPolicy.ID AND SiteTree.ID = '" .  Convert::raw2sql($page->ID) . "'");
     // ... and if live, it's available on Live stage
     if($is_live) {
       $list = $list->filter('IsLive', 1);
@@ -402,10 +406,10 @@ class Policy extends DataObject implements PermissionProvider {
     if(!$policy_string) {
       return false;
     }
-    $reporting = [];
-    $header = 'Content-Security-Policy';
+    $reporting = $nel = [];
+    $header = self::HEADER_CSP;
     if($this->ReportOnly == 1) {
-      $header = 'Content-Security-Policy-Report-Only';
+      $header = self::HEADER_CSP_REPORT_ONLY;
     }
 
     if($this->SendViolationReports) {
@@ -462,7 +466,6 @@ class Policy extends DataObject implements PermissionProvider {
       // only apply report_to if there is a URL and the
       $policy_string .= $report_to;
 
-      $nel = [];
       if($this->EnableNEL == 1) {
         $nel = [
           "report_to" => $reporting_group,
@@ -480,6 +483,21 @@ class Policy extends DataObject implements PermissionProvider {
     ];
 
     return $response;
+  }
+
+  /**
+   * Given a policy string, parse out the parts into key value pairs
+   * @returns array
+   * @param string the value of a Content-Security-Policy[-Report-Only] header
+   */
+  public static function parsePolicy($policy_string) {
+      $parts = explode(";", rtrim($policy_string, ";"));
+      $data = [];
+      foreach ($parts as $part) {
+          $pieces = explode(" ", $part, 2);
+          $data[$pieces[0]] = isset($pieces[1]) ? $pieces[1] : '';
+      }
+      return $data;
   }
 
   public function canView($member = null){

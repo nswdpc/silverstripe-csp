@@ -33,7 +33,7 @@ When you are pleased with the settings, check the "Use on published website" set
 ## Page specific policies
 
 By default Pages can define a specific Policy for delivery when requested.
-If one is selected, it is merged into the base policy (if it exists) or is used as the policy for that request.
+If one is selected on the Settings tab of a page in the site tree, it is merged into the base policy (if it exists) or is used as the policy for that request.
 
 [MDN provides some useful information on this process](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies):
 > Adding additional policies can only further restrict the capabilities of the protected resource
