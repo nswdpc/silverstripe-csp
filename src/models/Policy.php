@@ -143,7 +143,8 @@ class Policy extends DataObject implements PermissionProvider {
     if($is_live) {
       $list = $list->filter('IsLive', 1);
     }
-    return $list->first();
+    $policy = $list->first();
+    return $policy;
   }
 
   /**
@@ -230,7 +231,7 @@ class Policy extends DataObject implements PermissionProvider {
                         ) );
 
     // display policy
-    $policy = $this->HeaderValues(1, true);
+    $policy = $this->HeaderValues(1, self::POLICY_DELIVERY_METHOD_HEADER, true);
     if($policy) {
       $fields->addFieldsToTab(
         'Root.Main',
@@ -259,7 +260,7 @@ class Policy extends DataObject implements PermissionProvider {
       );
     }
 
-    $policy = $this->HeaderValues(null, true);
+    $policy = $this->HeaderValues(null, self::POLICY_DELIVERY_METHOD_HEADER, true);
     if($policy) {
       $fields->addFieldsToTab(
         'Root.Main',
@@ -400,7 +401,7 @@ class Policy extends DataObject implements PermissionProvider {
    * @param boolean $enabled
    * @param boolean $pretty
    */
-  public function HeaderValues($enabled = 1, $pretty = false) {
+  public function HeaderValues($enabled = 1, $method = self::POLICY_DELIVERY_METHOD_HEADER, $pretty = false) {
 
     $policy_string = trim($this->getPolicy($enabled, $pretty));
     if(!$policy_string) {
@@ -409,10 +410,16 @@ class Policy extends DataObject implements PermissionProvider {
     $reporting = $nel = [];
     $header = self::HEADER_CSP;
     if($this->ReportOnly == 1) {
-      $header = self::HEADER_CSP_REPORT_ONLY;
+        if($method == self::POLICY_DELIVERY_METHOD_METATAG) {
+            // MetaTag delivery does not support CSPRO, go no further (delivers NO CSP headers)
+            return false;
+        } else if($method == self::POLICY_DELIVERY_METHOD_HEADER) {
+            // only HTTP Header can use CSPRO currently
+            $header = self::HEADER_CSP_REPORT_ONLY;
+        }
     }
 
-    if($this->SendViolationReports) {
+    if($method == self::POLICY_DELIVERY_METHOD_HEADER && $this->SendViolationReports) {
 
       // Determine which reporting URI to use, external or internal
       if($this->AlternateReportURI) {
