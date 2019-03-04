@@ -1,0 +1,11 @@
+SilverStripe\CMS\Model\SiteTree:
+  home:
+    Title: Home
+    URLSegment: home
+    CspPolicyID: 0
+    Sort: 0
+  testpage:
+    Title: TestCspPolicyPage
+    URLSegment: testcsppolicypage
+    CspPolicyID: 0
+    Sort: 0
