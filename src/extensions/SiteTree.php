@@ -112,7 +112,11 @@ class SiteTreeExtension extends Extension
             }
         }
 
-        return DBField::create_field( DBHTMLText::class, implode("\n", $tags) );
+        if(!empty($tags)) {
+            return DBField::create_field( DBHTMLText::class, implode("\n", $tags) );
+        }
+
+        return "";
 
     }
 }
