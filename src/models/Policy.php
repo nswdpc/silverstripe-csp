@@ -295,12 +295,13 @@ class Policy extends DataObject implements PermissionProvider {
             ->setTitle( _t('ContentSecurityPolicy.ENABLE_NEL', 'Enable Network Error Logging (NEL)') )
             ->setDescription( _t('ContentSecurityPolicy.ENABLE_NEL_NOTE', 'For supporting browsers. Turning this on will enable \'Send Violation Reports\'') );
 
-    if($this->ReportOnly == 1 && !$this->SendViolationReports) {
-      $fields->dataFieldByName('SendViolationReports')->setRightTitle( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS_REPORT_ONLY', '\'Report Only\' is on - it is wise to turn on sending violation reports') );
-    }
-
     $fields->dataFieldByName('ReportOnly')
-          ->setDescription(  _t('ContentSecurityPolicy.REPORT_ONLY', 'Allows experimenting with the policy by monitoring (but not enforcing) its effects') );
+          ->setDescription(  _t('ContentSecurityPolicy.REPORT_ONLY', 'Allows experimenting with the policy by monitoring (but not enforcing) its effects.') );
+
+    if($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_METATAG && $this->ReportOnly == 1) {
+        $fields->dataFieldByName('ReportOnly')
+            ->setRightTitle( _t('ContentSecurityPolicy.REPORT_ONLY_METATAG_WARNING', 'The delivery method is set to \'meta tag\', this setting will be ignored') );
+    }
 
     $fields->dataFieldByName('IsLive')->setTitle('Use on published website')->setDescription( _t('ContentSecurityPolicy.USE_ON_PUBLISHED_SITE', 'When unchecked, this policy will be used on the draft site only') );
     $fields->dataFieldByName('IsBasePolicy')->setTitle('Is Base Policy')->setDescription( _t('ContentSecurityPolicy.IS_BASE_POLICY_NOTE', 'When checked, this policy will be come the base/default policy for the entire site') );
