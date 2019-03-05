@@ -1,15 +1,25 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Core\Config\Config;
 
 class PolicyTest extends SapphireTest
 {
 
     protected $usesDatabase = true;
 
+    private $include_report_to = false;
+
     public function setUp()
     {
         parent::setUp();
+        $this->include_report_to = Config::inst()->get( Policy::class, 'include_report_to' );
+        Config::inst()->update( Policy::class, 'include_report_to', true );
+    }
+
+    public function tearDown() {
+        parent::tearDown();
+        Config::inst()->update( Policy::class, 'include_report_to', $this->include_report_to );
     }
 
     private function createPolicy($data)
@@ -88,7 +98,7 @@ class PolicyTest extends SapphireTest
 
         $this->assertEquals($policy->Directives()->count(), 1);
 
-        $header = $policy->HeaderValues();
+        $header = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
         $this->assertTrue(isset($header['header']) && isset($header['policy_string']) && isset($header['reporting']) && isset($header['nel']));
 
@@ -97,26 +107,26 @@ class PolicyTest extends SapphireTest
         $this->assertTrue(strpos($header['policy_string'], "'self'") !== false);
         $this->assertTrue(strpos($header['policy_string'], "font-src") === 0);
         $this->assertTrue(strpos($header['policy_string'], "https://example.com https://www.example.net https://*.example.org") !== false);
-        $this->assertEquals($header['reporting']['endpoints'][0]['url'], ReportingEndpoint::getCurrentReportingUrl(true));
-        $this->assertEquals($header['nel']['report_to'], Policy::DEFAULT_REPORTING_GROUP);
-        $this->assertEquals($header['reporting']['group'], Policy::DEFAULT_REPORTING_GROUP);
+        $this->assertEquals($header['reporting'][0]['endpoints'][0]['url'], ReportingEndpoint::getCurrentReportingUrl(true));
+        $this->assertEquals($header['nel']['report_to'], Policy::DEFAULT_REPORTING_GROUP_NEL);
+        $this->assertEquals($header['reporting'][0]['group'], Policy::DEFAULT_REPORTING_GROUP);// TODO handle based on group name ?
 
         $policy->EnableNEL = 0;
         $policy->write();
 
-        $header = $policy->HeaderValues();
+        $header = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
         $this->assertTrue(empty($header['nel']));
 
         $policy->SendViolationReports = 0;
         $policy->write();
-        $header = $policy->HeaderValues();
+        $header = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
         $this->assertTrue(empty($header['reporting']));
 
         $policy->ReportOnly = 1;
         $policy->write();
 
-        $header = $policy->HeaderValues();
+        $header = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
         $this->assertTrue(isset($header['header']) && Policy::HEADER_CSP_REPORT_ONLY);
 
@@ -226,7 +236,7 @@ class PolicyTest extends SapphireTest
 
         $this->assertEquals($policy->Directives()->count(), count($directives));
 
-        $headers = $policy->HeaderValues();
+        $headers = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
         /**
          * The CSP values should look like:
@@ -244,7 +254,7 @@ class PolicyTest extends SapphireTest
         $this->assertTrue(!empty($headers['nel']));
         $this->assertTrue(!empty($headers['policy_string']));
 
-        $formatted_values = Policy::parsePolicy($header['policy_string']);
+        $formatted_values = Policy::parsePolicy($headers['policy_string']);
 
         foreach ($formatted_values as $key => $value) {
             if (in_array($key, Directive::KeysWithoutValues())) {
@@ -317,7 +327,7 @@ class PolicyTest extends SapphireTest
         ]);
         $policy->Directives()->add($directive);
 
-        $headers = $policy->HeaderValues();
+        $headers = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
         $this->assertTrue( !empty($headers['policy_string']) );
 
