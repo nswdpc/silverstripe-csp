@@ -19,6 +19,12 @@ class CspPolicy extends DataObject implements PermissionProvider {
   const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
 
   const DEFAULT_REPORTING_GROUP = 'default';
+  const DEFAULT_REPORTING_GROUP_NEL = 'network-error-logging';
+
+  const HEADER_CSP_REPORT_ONLY = 'Content-Security-Policy-Report-Only';
+  const HEADER_CSP = 'Content-Security-Policy';
+  const HEADER_REPORT_TO = 'Report-To';
+  const HEADER_NEL = 'NEL';
 
   /**
    * Database fields
@@ -27,14 +33,15 @@ class CspPolicy extends DataObject implements PermissionProvider {
   private static $db = [
     'Title' => 'Varchar(255)',
     'Enabled' => 'Boolean',
+    'MinimumCspLevel' => 'Enum(\'1,2,3\')',// CSP level to support, specifically used for reporting, which changed between 2 and 3
     'IsLive' => 'Boolean',
     'IsBasePolicy' => 'Boolean',
     'ReportOnly' => 'Boolean',
     'SendViolationReports' => 'Boolean',
-    'EnableNEL' => 'Boolean', // Enable Network Error Logging (for supporting browsers)
     'AlternateReportURI' => 'Varchar(255)',// alternate reporting URI to your own controller/URI
+    'EnableNEL' => 'Boolean', // Enable Network Error Logging (for supporting browsers)
+    'AlternateNELReportURI' => 'Varchar(255)', // NEL reporting URL e.g an external service
     'DeliveryMethod' => 'Enum(\'Header,MetaTag\')',
-    'MinimumCspLevel' => 'Enum(\'1,2,3\')',// CSP level to support, specifically used for reporting, which changed between 2 and 3
   ];
 
   /**
@@ -82,7 +89,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
    * @var array
    */
   private static $has_many = [
-    'Pages' => Page::class
+    'Pages' => SiteTree::class
   ];
 
   /**
@@ -107,24 +114,25 @@ class CspPolicy extends DataObject implements PermissionProvider {
 
   /**
    * Get a page specific policy based on the Page
-   * @param Page $page
+   * @param SiteTree $page
    * @param boolean $is_live
    * @param string $delivery_method
    */
-  public static function getPagePolicy(Page $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER) {
+  public static function getPagePolicy(SiteTree $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER) {
     if(empty($page->CspPolicyID)) {
       // early return if none linked
       return;
     }
     // Check that the policy is enabled, it's not a base policy..
-    $filter = [ 'CspPolicy.Enabled' => 1,  'CspPolicy.IsBasePolicy' => 0, 'CspPolicy.DeliveryMethod' => $delivery_method ];
+    $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method ];
     $list = CspPolicy::get()->filter( $filter )
-              ->innerJoin('Page', "Page.CspPolicyID = CspPolicy.ID AND Page.ID = '" .  Convert::raw2sql($page->ID) . "'");
+              ->innerJoin('SiteTree', "SiteTree.CspPolicyID = CspPolicy.ID AND SiteTree.ID = '" .  Convert::raw2sql($page->ID) . "'");
     // ... and if live, it's available on Live stage
     if($is_live) {
-      $list = $list->filter('CspPolicy.IsLive', 1);
+      $list = $list->filter('IsLive', 1);
     }
-    return $list->first();
+    $policy = $list->first();
+    return $policy;
   }
 
   /**
@@ -209,8 +217,17 @@ class CspPolicy extends DataObject implements PermissionProvider {
                         $internal_reporting_url
                         ) );
 
+    $fields->dataFieldByName('AlternateNELReportURI')
+      ->setTitle( _t('ContentSecurityPolicy.ALTERNATE_NEL_REPORT_URI_TITLE', 'Set an NEL/Reporting API reporting URL that will accept Network Error Logging reports') )
+      ->setDescription( sprintf( _t('ContentSecurityPolicy.ALTERNATE_NEL_REPORT_URI',
+                        'If not set and the sending of violation reports is enabled,'
+                        . ' NEL reports will be directed to %s and will appear in the CSP/Reports admin.'
+                        . ' <br>Sending reports back to your own website may cause performance degradation.'),
+                        $internal_reporting_url
+                        ) );
+
     // display policy
-    $policy = $this->HeaderValues(1, true);
+    $policy = $this->HeaderValues(1, self::POLICY_DELIVERY_METHOD_HEADER, true);
     if($policy) {
       $fields->addFieldsToTab(
         'Root.Main',
@@ -239,7 +256,7 @@ class CspPolicy extends DataObject implements PermissionProvider {
       );
     }
 
-    $policy = $this->HeaderValues(null, true);
+    $policy = $this->HeaderValues(null, self::POLICY_DELIVERY_METHOD_HEADER, true);
     if($policy) {
       $fields->addFieldsToTab(
         'Root.Main',
@@ -274,12 +291,13 @@ class CspPolicy extends DataObject implements PermissionProvider {
             ->setTitle( _t('ContentSecurityPolicy.ENABLE_NEL', 'Enable Network Error Logging (NEL)') )
             ->setDescription( _t('ContentSecurityPolicy.ENABLE_NEL_NOTE', 'For supporting browsers. Turning this on will enable \'Send Violation Reports\'') );
 
-    if($this->ReportOnly == 1 && !$this->SendViolationReports) {
-      $fields->dataFieldByName('SendViolationReports')->setRightTitle( _t('ContentSecurityPolicy.SEND_VIOLATION_REPORTS_REPORT_ONLY', '\'Report Only\' is on - it is wise to turn on sending violation reports') );
-    }
-
     $fields->dataFieldByName('ReportOnly')
           ->setDescription(  _t('ContentSecurityPolicy.REPORT_ONLY', 'Allows experimenting with the policy by monitoring (but not enforcing) its effects') );
+
+    if($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_METATAG && $this->ReportOnly == 1) {
+        $fields->dataFieldByName('ReportOnly')
+            ->setRightTitle( _t('ContentSecurityPolicy.REPORT_ONLY_METATAG_WARNING', 'The delivery method is set to \'meta tag\', this setting will be ignored') );
+    }
 
     $fields->dataFieldByName('IsLive')->setTitle('Use on published website')->setDescription( _t('ContentSecurityPolicy.USE_ON_PUBLISHED_SITE', 'When unchecked, this policy will be used on the draft site only') );
     $fields->dataFieldByName('IsBasePolicy')->setTitle('Is Base Policy')->setDescription( _t('ContentSecurityPolicy.IS_BASE_POLICY_NOTE', 'When checked, this policy will be come the base/default policy for the entire site') );
@@ -380,19 +398,27 @@ class CspPolicy extends DataObject implements PermissionProvider {
    * @param boolean $enabled
    * @param boolean $pretty
    */
-  public function HeaderValues($enabled = 1, $pretty = false) {
+  public function HeaderValues($enabled = 1, $method = self::POLICY_DELIVERY_METHOD_HEADER, $pretty = false) {
 
     $policy_string = trim($this->getPolicy($enabled, $pretty));
     if(!$policy_string) {
       return false;
     }
-    $reporting = [];
-    $header = 'Content-Security-Policy';
+    $reporting = $nel = [];
+    $header = self::HEADER_CSP;
     if($this->ReportOnly == 1) {
-      $header = 'Content-Security-Policy-Report-Only';
+        if($method == self::POLICY_DELIVERY_METHOD_METATAG) {
+            // MetaTag delivery does not support CSPRO, go no further (delivers NO CSP headers)
+            return false;
+        } else if($method == self::POLICY_DELIVERY_METHOD_HEADER) {
+            // only HTTP Header can use CSPRO currently
+            $header = self::HEADER_CSP_REPORT_ONLY;
+        }
     }
 
-    if($this->SendViolationReports) {
+    if($method == self::POLICY_DELIVERY_METHOD_HEADER && $this->SendViolationReports) {
+
+      $include_report_to = $this->config()->get('include_report_to');
 
       // Determine which reporting URI to use, external or internal
       if($this->AlternateReportURI) {
@@ -425,32 +451,51 @@ class CspPolicy extends DataObject implements PermissionProvider {
       $reporting_group = self::DEFAULT_REPORTING_GROUP;
 
       // 3 only gets Report-To
-      $reporting = [
-        "group" => $reporting_group,
-        "max_age" => $max_age,
-        "endpoints" => [
-          // an array of URLs, non secure-endpoints should be ignored by the user agent
-          [ "url" => $reporting_url ],
-        ],
-        "include_subdomains" => $include_subdomains
-      ];
+      if($include_report_to) {
+          $reporting[] = [
+            "group" => $reporting_group,
+            "max_age" => $max_age,
+            "endpoints" => [
+              // an array of URLs, non secure-endpoints should be ignored by the user agent
+              [ "url" => $reporting_url ],
+            ],
+            "include_subdomains" => $include_subdomains
+          ];
+      }
 
       if($min_csp_level < 3) {
         // Only 1,2 will add a report-uri, when selecting '3' this is ignored
         $report_to .= "report-uri {$reporting_url};";
       }
 
-      // 1,2,3 use report-to so that UserAgents that support it can use this as they'll ignore report-uri
-      $report_to .= "report-to {$reporting_group};";
+      if($include_report_to) {
+        // 1,2,3 use report-to so that UserAgents that support it can use this as they'll ignore report-uri
+        $report_to .= "report-to {$reporting_group};";
+      }
 
       // only apply report_to if there is a URL and the
       $policy_string .= $report_to;
 
-      $nel = [];
       if($this->EnableNEL == 1) {
+        if($this->AlternateNELReportURI) {
+            $nel_reporting_url = $this->AlternateNELReportURI;
+        } else {
+            $nel_reporting_url = ReportingEndpoint::getCurrentReportingUrl();// sent report to self
+        }
+
         $nel = [
-          "report_to" => $reporting_group,
+          "report_to" => self::DEFAULT_REPORTING_GROUP_NEL,
           "max_age" => $max_age,
+          "include_subdomains" => $include_subdomains
+        ];
+
+        // Add group to reporting
+        $reporting[] = [
+          "group" => self::DEFAULT_REPORTING_GROUP_NEL,
+          "max_age" => $max_age,
+          "endpoints" => [
+            [ "url" => $nel_reporting_url ],
+          ],
           "include_subdomains" => $include_subdomains
         ];
       }
@@ -466,6 +511,20 @@ class CspPolicy extends DataObject implements PermissionProvider {
     return $response;
   }
 
+  /**
+   * Given a policy string, parse out the parts into key value pairs
+   * @returns array
+   * @param string the value of a Content-Security-Policy[-Report-Only] header
+   */
+  public static function parsePolicy($policy_string) {
+      $parts = explode(";", rtrim($policy_string, ";"));
+      $data = [];
+      foreach ($parts as $part) {
+          $pieces = explode(" ", $part, 2);
+          $data[$pieces[0]] = isset($pieces[1]) ? $pieces[1] : '';
+      }
+      return $data;
+  }
 
   public function canView($member = null){
       return Permission::check('CSP_POLICY_VIEW');

@@ -1,0 +1,11 @@
+SiteTree:
+  home:
+    Title: 'Totally the Home Page'
+    URLSegment: home
+    CspPolicyID: 0
+    Sort: 0
+  testpage:
+    Title: TestCspPolicyPage
+    URLSegment: testcsppolicypage
+    CspPolicyID: 0
+    Sort: 0
