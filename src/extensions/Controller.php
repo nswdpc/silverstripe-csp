@@ -103,7 +103,13 @@ class ControllerExtension extends Extension {
     if($policy instanceof Policy && ($data = $policy->HeaderValues($enabled_directives))) {
       // Add the Report-To header for all
       if(!empty($data['reporting'])) {
-        $response->addHeader("Report-To", json_encode($data['reporting'], JSON_UNESCAPED_SLASHES));
+        /**
+         * See: https://www.w3.org/TR/reporting/
+         * "The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ], as described in Section 4 of [HTTP-JFV]."
+         */
+        $encoded_report_to = json_encode($data['reporting'], JSON_UNESCAPED_SLASHES);
+        $encoded_report_to = trim($encoded_report_to, "[]");
+        $response->addHeader("Report-To", $encoded_report_to);
       }
       if(!empty($data['nel'])) {
         $response->addHeader("NEL", json_encode($data['nel'], JSON_UNESCAPED_SLASHES));

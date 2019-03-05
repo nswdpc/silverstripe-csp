@@ -34,6 +34,7 @@ class Policy extends DataObject implements PermissionProvider {
   const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
 
   const DEFAULT_REPORTING_GROUP = 'default';
+  const DEFAULT_REPORTING_GROUP_NEL = 'network-error-logging';
 
   const HEADER_CSP_REPORT_ONLY = 'Content-Security-Policy-Report-Only';
   const HEADER_CSP = 'Content-Security-Policy';
@@ -47,14 +48,15 @@ class Policy extends DataObject implements PermissionProvider {
   private static $db = [
     'Title' => 'Varchar(255)',
     'Enabled' => 'Boolean',
+    'MinimumCspLevel' => 'Enum(\'1,2,3\')',// CSP level to support, specifically used for reporting, which changed between 2 and 3
     'IsLive' => 'Boolean',
     'IsBasePolicy' => 'Boolean',
     'ReportOnly' => 'Boolean',
     'SendViolationReports' => 'Boolean',
+    'AlternateReportURI' => 'Varchar(255)',// Reporting URL e.g an external service
     'EnableNEL' => 'Boolean', // Enable Network Error Logging (for supporting browsers)
-    'AlternateReportURI' => 'Varchar(255)',// alternate reporting URI to your own controller/URI
+    'AlternateNELReportURI' => 'Varchar(255)', // NEL reporting URL e.g an external service
     'DeliveryMethod' => 'Enum(\'Header,MetaTag\')',
-    'MinimumCspLevel' => 'Enum(\'1,2,3\')',// CSP level to support, specifically used for reporting, which changed between 2 and 3
   ];
 
   /**
@@ -227,6 +229,15 @@ class Policy extends DataObject implements PermissionProvider {
       ->setDescription( sprintf( _t('ContentSecurityPolicy.ALTERNATE_REPORT_URI',
                         'If not set and the sending of violation reports is enabled,'
                         . ' reports will be directed to %s and will appear in the CSP/Reports admin.'
+                        . ' <br>Sending reports back to your own website may cause performance degradation.'),
+                        $internal_reporting_url
+                        ) );
+
+    $fields->dataFieldByName('AlternateNELReportURI')
+      ->setTitle( _t('ContentSecurityPolicy.ALTERNATE_NEL_REPORT_URI_TITLE', 'Set an NEL/Reporting API reporting URL that will accept Network Error Logging reports') )
+      ->setDescription( sprintf( _t('ContentSecurityPolicy.ALTERNATE_NEL_REPORT_URI',
+                        'If not set and the sending of violation reports is enabled,'
+                        . ' NEL reports will be directed to %s and will appear in the CSP/Reports admin.'
                         . ' <br>Sending reports back to your own website may cause performance degradation.'),
                         $internal_reporting_url
                         ) );
@@ -457,7 +468,7 @@ class Policy extends DataObject implements PermissionProvider {
 
       // 3 only gets Report-To
       if($include_report_to) {
-          $reporting = [
+          $reporting[] = [
             "group" => $reporting_group,
             "max_age" => $max_age,
             "endpoints" => [
@@ -481,13 +492,32 @@ class Policy extends DataObject implements PermissionProvider {
       // only apply report_to if there is a URL and the
       $policy_string .= $report_to;
 
+      // Network Error Logging support
       if($this->EnableNEL == 1) {
-        $nel = [
-          "report_to" => $reporting_group,
-          "max_age" => $max_age,
-          "include_subdomains" => $include_subdomains
-        ];
+
+            if($this->AlternateNELReportURI) {
+                $nel_reporting_url = $this->AlternateNELReportURI;
+            } else {
+                $nel_reporting_url = ReportingEndpoint::getCurrentReportingUrl();// sent report to self
+            }
+
+            $nel = [
+              "report_to" => self::DEFAULT_REPORTING_GROUP_NEL,
+              "max_age" => $max_age,
+              "include_subdomains" => $include_subdomains
+            ];
+
+            // Add group to reporting
+            $reporting[] = [
+              "group" => self::DEFAULT_REPORTING_GROUP_NEL,
+              "max_age" => $max_age,
+              "endpoints" => [
+                [ "url" => $nel_reporting_url ],
+              ],
+              "include_subdomains" => $include_subdomains
+            ];
       }
+
     }
 
     $response = [
