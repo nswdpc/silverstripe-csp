@@ -24,6 +24,7 @@ class Policy extends DataObject implements PermissionProvider {
   private static $singular_name = 'Policy';
   private static $plural_name = 'Policies';
 
+  private static $include_report_to = false;// possible issue in Chrome when the report-to directive is set, seems the report-uri directive does not work!
   private static $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
   private static $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
 
@@ -422,6 +423,8 @@ class Policy extends DataObject implements PermissionProvider {
 
     if($method == self::POLICY_DELIVERY_METHOD_HEADER && $this->SendViolationReports) {
 
+      $include_report_to = $this->config()->get('include_report_to');
+
       // Determine which reporting URI to use, external or internal
       if($this->AlternateReportURI) {
         $reporting_url = $this->AlternateReportURI;
@@ -453,23 +456,27 @@ class Policy extends DataObject implements PermissionProvider {
       $reporting_group = self::DEFAULT_REPORTING_GROUP;
 
       // 3 only gets Report-To
-      $reporting = [
-        "group" => $reporting_group,
-        "max_age" => $max_age,
-        "endpoints" => [
-          // an array of URLs, non secure-endpoints should be ignored by the user agent
-          [ "url" => $reporting_url ],
-        ],
-        "include_subdomains" => $include_subdomains
-      ];
+      if($include_report_to) {
+          $reporting = [
+            "group" => $reporting_group,
+            "max_age" => $max_age,
+            "endpoints" => [
+              // an array of URLs, non secure-endpoints should be ignored by the user agent
+              [ "url" => $reporting_url ],
+            ],
+            "include_subdomains" => $include_subdomains
+          ];
+      }
 
       if($min_csp_level < 3) {
         // Only 1,2 will add a report-uri, when selecting '3' this is ignored
         $report_to .= "report-uri {$reporting_url};";
       }
 
-      // 1,2,3 use report-to so that UserAgents that support it can use this as they'll ignore report-uri
-      $report_to .= "report-to {$reporting_group};";
+      if($include_report_to) {
+          // 1,2,3 use report-to so that UserAgents that support it can use this as they'll ignore report-uri
+          $report_to .= "report-to {$reporting_group};";
+      }
 
       // only apply report_to if there is a URL and the
       $policy_string .= $report_to;
