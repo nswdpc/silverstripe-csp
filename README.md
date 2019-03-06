@@ -7,8 +7,7 @@ This module provides the ability to:
 + Collect CSP Violation reports internally via a controller or via a specific URL
 + Add page specific CSP records, which work with or without the base policy
 
-> This module is under development and currently supports Silverstripe 3, a v4 branch is available.
-
+> This is the Silverstripe 3 development branch of the module, updates will occur against master with changes made here if required
 
 ## Instructions
 
@@ -55,7 +54,11 @@ You can whitelist certain controllers in module config. This will block the poli
 ### Using meta tags
 You can choose to deliver the CSP via meta tags.
 
-Choosing this option will cause certain features to be unavailable, for instance ```report-uri``` and ```report-to``` are not supported in meta tags. You can only get Violation Reports when using the ```Via an HTTP Header``` delivery method.
+Choosing this option will cause certain features to be unavailable
+* The ```report-uri``` and ```report-to``` directives are not supported in meta tags and will not be present
+* The ```Content-Security-Policy-Report-Only``` header is not supported, currently.
+
+The only way to received policy violation reports is via HTTP Header delivery method.
 
 ## Violation Reports
 You can receive violation reports when they occur.
