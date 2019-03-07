@@ -39,6 +39,25 @@ If one is selected on the Settings tab of a page in the site tree, it is merged 
 > Adding additional policies can only further restrict the capabilities of the protected resource
 This means that you can't relax the base policy restrictions from within your page policy.
 
+## Using a nonce
+
+The module will set a nonce ('number once') per request, which will be applied to relevant elements in the page prior to output. This is a handy way to whitelist inline trusted scripts that are added by modules.
+
+In order to use the nonce in the relevant elements, the directive value "Use Nonce" must be checked in the Directive's admin screen.
+
+### Examples
+Before nonce
+```
+<script>var = 'foo';</script>
+```
+
+After nonce
+```
+<script nonce="my_nonce">var = 'foo';</script>
+```
+
+Application of the nonce occurs in middleware regardless of the Requirements backend used.
+
 ## Gotchas
 
 ### unsafe-eval in the /admin
