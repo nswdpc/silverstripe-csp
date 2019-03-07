@@ -78,6 +78,9 @@ class ControllerExtension extends Extension {
     // only get enabled policy/directives
     $enabled_policy = $enabled_directives = 1;
 
+    // define a NONCE for this request, regardless of whether a policy is available
+    define('CSP_NONCE', Policy::getNonce(32));
+
     $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
     // check for Page specific policies
@@ -100,22 +103,26 @@ class ControllerExtension extends Extension {
     }
 
     // Add the policy/reporting header values
-    if($policy instanceof Policy && ($data = $policy->HeaderValues($enabled_directives))) {
-      // Add the Report-To header for all
-      if(!empty($data['reporting'])) {
-        /**
-         * See: https://www.w3.org/TR/reporting/
-         * "The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ], as described in Section 4 of [HTTP-JFV]."
-         */
-        $encoded_report_to = json_encode($data['reporting'], JSON_UNESCAPED_SLASHES);
-        $encoded_report_to = trim($encoded_report_to, "[]");
-        $response->addHeader("Report-To", $encoded_report_to);
+    if($policy instanceof Policy) {
+
+      $data = $policy->HeaderValues($enabled_directives);
+      if(!empty($data)) {
+          // Add the Report-To header for all
+          if(!empty($data['reporting'])) {
+            /**
+             * See: https://www.w3.org/TR/reporting/
+             * "The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ], as described in Section 4 of [HTTP-JFV]."
+             */
+            $encoded_report_to = json_encode($data['reporting'], JSON_UNESCAPED_SLASHES);
+            $encoded_report_to = trim($encoded_report_to, "[]");
+            $response->addHeader("Report-To", $encoded_report_to);
+          }
+          if(!empty($data['nel'])) {
+            $response->addHeader("NEL", json_encode($data['nel'], JSON_UNESCAPED_SLASHES));
+          }
+          // the relevant CSP-header with its values
+          $response->addHeader($data['header'], $data['policy_string']);
       }
-      if(!empty($data['nel'])) {
-        $response->addHeader("NEL", json_encode($data['nel'], JSON_UNESCAPED_SLASHES));
-      }
-      // the relevant CSP-header with its values
-      $response->addHeader($data['header'], $data['policy_string']);
     }
 
     return;

@@ -114,6 +114,14 @@ class Policy extends DataObject implements PermissionProvider {
   private static $default_sort = 'IsBasePolicy DESC, Enabled DESC, Title ASC';
 
   /**
+   * Create a nonce for this request. Use the constant CSP_NONCE to get the nonce already created for the current request
+   * @param int $length
+   */
+  public static function getNonce($length) {
+      return bin2hex(random_bytes( $length / 2 ) );
+  }
+
+  /**
    * Return the default base policy
    * @param boolean $is_live
    * @param string $delivery_method
@@ -543,6 +551,17 @@ class Policy extends DataObject implements PermissionProvider {
           $data[$pieces[0]] = isset($pieces[1]) ? $pieces[1] : '';
       }
       return $data;
+  }
+
+  public static function getNonceEnabledDirectives($policy_string) {
+      $directives = [];
+      $parts = self::parsePolicy($policy_string);
+      foreach($parts as $k=>$v) {
+          if(strpos($v, "'nonce-") !== false) {
+              $directives[$k] = true;
+          }
+      }
+      return $directives;
   }
 
   public function canView($member = null){

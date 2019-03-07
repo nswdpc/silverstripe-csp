@@ -1,0 +1,10 @@
+---
+Name: csp_middleware
+After:
+  - requestprocessors
+---
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\Control\Director:
+    properties:
+      Middlewares:
+        CSPMiddleware: '%$NSWDPC\Utilities\ContentSecurityPolicy\CSPMiddleware'

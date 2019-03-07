@@ -35,7 +35,8 @@ class Directive extends DataObject implements PermissionProvider {
     'IncludeSelf' => 'Boolean',
     'UnsafeInline' => 'Boolean',
     'AllowDataUri' => 'Boolean',
-    'Enabled' => 'Boolean'
+    'Enabled' => 'Boolean',
+    'UseNonce' => 'Boolean',
   ];
 
   /**
@@ -52,6 +53,7 @@ class Directive extends DataObject implements PermissionProvider {
     'IncludeSelf.Nice' =>'Include \'self\'',
     'UnsafeInline.Nice' =>'Unsafe Inline',
     'AllowDataUri.Nice' =>'Allow Data URI',
+    'UseNonce.Nice' => 'Use Nonce'
   ];
 
   /**
@@ -176,6 +178,8 @@ class Directive extends DataObject implements PermissionProvider {
 
     $fields->dataFieldByName('Value')->setDescription('Note that some directives can contain no values');
 
+    $fields->dataFieldByName('UseNonce')->setDescription('Add the system generated per-request nonce to this directive. Only applicable to certain directives.');
+
     return $fields;
   }
 
@@ -188,6 +192,10 @@ class Directive extends DataObject implements PermissionProvider {
     $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
     $value .= ($this->AllowDataUri == 1 ? " data:" : "");
     $value .= ($this->Value ? " " . trim($this->Value, "; ") : "");
+    // Add the nonce if available and enabled for this directive
+    if($this->UseNonce == 1 && defined("CSP_NONCE") && CSP_NONCE) {
+        $value .= " 'nonce-" . CSP_NONCE . "'";
+    }
     $value = trim($value);
     return $value;
   }
