@@ -11,6 +11,7 @@
   ],
   "require": {
     "silverstripe/framework": "^4",
+    "silverstripe/cms": "^4",
     "symbiote/silverstripe-queuedjobs": "^4"
   },
   "extra": {
