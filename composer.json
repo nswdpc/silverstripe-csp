@@ -12,7 +12,8 @@
   "require": {
     "silverstripe/framework": "^4",
     "silverstripe/cms": "^4",
-    "symbiote/silverstripe-queuedjobs": "^4"
+    "symbiote/silverstripe-queuedjobs": "^4",
+    "symbiote/silverstripe-multivaluefield": "^5.0"
   },
   "extra": {
     "installer-name": "silverstripe-csp"
