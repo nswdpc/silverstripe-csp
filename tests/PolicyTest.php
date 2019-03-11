@@ -87,7 +87,8 @@ class PolicyTest extends SapphireTest
 
         $directive = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://example.com https://www.example.net https://*.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode([ 'https://example.com' => '1', 'https://www.example.net' => '2', 'https://*.example.org' => '3' ]),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
@@ -176,7 +177,8 @@ class PolicyTest extends SapphireTest
         $directives = [];
         $directives[] = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://font.example.com https://font.example.net https://*.font.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://font.example.com' => '', 'https://font.example.net' => '', 'https://*.font.example.org' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
@@ -185,7 +187,8 @@ class PolicyTest extends SapphireTest
 
         $directives[] = $this->createDirective([
             'Key' => 'media-src',
-            'Value' => 'https://media.example.com',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://media.example.com' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
             'AllowDataUri' => 0,
@@ -194,7 +197,8 @@ class PolicyTest extends SapphireTest
 
         $directives[] = $this->createDirective([
             'Key' => 'script-src',
-            'Value' => 'https://script.example.com',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://script.example.com' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
             'AllowDataUri' => 1,
@@ -203,7 +207,8 @@ class PolicyTest extends SapphireTest
 
         $directives[] = $this->createDirective([
             'Key' => 'upgrade-insecure-requests',
-            'Value' => 'https://uir.example.com', // test for empty value
+            'Value' => '',
+            'RulesValue' => json_encode(['https://uir.example.com' => '']), // test for empty value
             // the following values should be ignored
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
@@ -213,7 +218,8 @@ class PolicyTest extends SapphireTest
 
         $directives[] = $this->createDirective([
             'Key' => 'block-all-mixed-content',
-            'Value' => 'https://bamc.example.com', // test for empty value
+            'Value' => '',
+            'RulesValue' => json_encode(['https://bamc.example.com' => '']), // test for empty value
             // the following values should be ignored
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
@@ -226,7 +232,7 @@ class PolicyTest extends SapphireTest
             if (in_array($directive->Key, Directive::KeysWithoutValues())) {
                 $test_directive = Directive::get()->byId($directive->ID);
                 $this->assertTrue(
-                    $test_directive->Value == ""
+                    $test_directive->RulesValue == ""
                     && $test_directive->AllowDataUri == 0
                     && $test_directive->UnsafeInline == 0
                     && $test_directive->IncludeSelf == 0
@@ -319,7 +325,8 @@ class PolicyTest extends SapphireTest
 
         $directive = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://font.example.com https://font.example.net https://*.font.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://font.example.com' => '', 'https://font.example.net' => '', 'https://*.font.example.org' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,

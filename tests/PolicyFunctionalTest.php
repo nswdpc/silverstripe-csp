@@ -83,7 +83,8 @@ class PolicyFunctionalTest extends FunctionalTest
         $directives = [];
         $directives[] = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://font.example.com https://font.example.net https://*.font.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://font.example.com' => '', 'https://font.example.net' => '', 'https://*.font.example.org' => '']),
             'IncludeSelf' => 0,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
@@ -92,7 +93,8 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $directives[] = $this->createDirective([
             'Key' => 'media-src',
-            'Value' => 'https://media.example.com',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://media.example.com' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
             'AllowDataUri' => 0,
@@ -101,7 +103,8 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $directives[] = $this->createDirective([
             'Key' => 'script-src',
-            'Value' => 'https://script.example.com',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://script.example.com' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
             'AllowDataUri' => 1,
@@ -110,7 +113,8 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $directives[] = $this->createDirective([
             'Key' => 'upgrade-insecure-requests',
-            'Value' => 'https://uir.example.com', // test for empty value
+            'Value' => '',
+            'RulesValue' => json_encode(['https://uir.example.com' => '']), // test for empty value
             // the following values should be ignored
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
@@ -120,7 +124,8 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $directives[] = $this->createDirective([
             'Key' => 'block-all-mixed-content',
-            'Value' => 'https://bamc.example.com', // test for empty value
+            'Value' => '',
+            'RulesValue' => json_encode(['https://bamc.example.com' => '']), // test for empty value
             // the following values should be ignored
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
@@ -203,7 +208,8 @@ class PolicyFunctionalTest extends FunctionalTest
         $directives = [];
         $directives[] = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://base.font.example.com https://base.font.example.net https://*.base.font.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://base.font.example.com' => '', 'https://base.font.example.net' => '', 'https://*.base.font.example.org' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
@@ -231,7 +237,8 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $directive = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://pagetestfont.example.com',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://pagetestfont.example.com' => '']),
             'IncludeSelf' => 1, // add to make stricter
             'UnsafeInline' => 1, // add unsafe inline
             'AllowDataUri' => 0,
@@ -305,7 +312,8 @@ class PolicyFunctionalTest extends FunctionalTest
         $directives = [];
         $directives[] = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://base.font.example.com https://base.font.example.net https://*.base.font.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://base.font.example.com' => '', 'https://base.font.example.net' => '', 'https://*.base.font.example.org' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
@@ -333,7 +341,8 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $directive = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://pagetestfont.example.com',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://pagetestfont.example.com' => '']),
             'IncludeSelf' => 1, // add to make stricter
             'UnsafeInline' => 1, // add unsafe inline
             'AllowDataUri' => 0,
@@ -457,7 +466,8 @@ class PolicyFunctionalTest extends FunctionalTest
             $directives = [];
             $directives[] = $this->createDirective([
                 'Key' => 'font-src',
-                'Value' => 'https://base.font.example.com https://base.font.example.net https://*.base.font.example.org',
+                'Value' => '',
+                'RulesValue' => json_encode(['https://base.font.example.com' => '', 'https://base.font.example.net' => '', 'https://*.base.font.example.org' => '']),
                 'IncludeSelf' => 1,
                 'UnsafeInline' => 0,
                 'AllowDataUri' => 1,
@@ -485,7 +495,8 @@ class PolicyFunctionalTest extends FunctionalTest
 
             $directive = $this->createDirective([
                 'Key' => 'font-src',
-                'Value' => 'https://pagetestfont.example.com',
+                'Value' => '',
+                'RulesValue' => json_encode(['https://pagetestfont.example.com' => '']),
                 'IncludeSelf' => 1, // add to make stricter
                 'UnsafeInline' => 1, // add unsafe inline
                 'AllowDataUri' => 0,

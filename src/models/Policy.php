@@ -366,7 +366,7 @@ class Policy extends DataObject implements PermissionProvider {
       if($merge_from_policy_directives) {
         // merge a directive from this policy
         $merge_directive = $merge_from_policy_directives->filter('Key', $directive->Key)->first();
-        if(!empty($merge_directive->Value)) {
+        if(!empty($merge_directive->Rules)) {
           $merge_directive_value = $merge_directive->getDirectiveValue();
           if($merge_directive_value != "") {
             $value .= " " . $merge_directive_value;

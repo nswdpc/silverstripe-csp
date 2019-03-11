@@ -4,9 +4,11 @@ use Silverstripe\ORM\DataObject;
 use Silverstripe\Forms\LiteralField;
 use Silverstripe\Forms\CompositeField;
 use Silverstripe\Forms\Textfield;
+use Silverstripe\Forms\TextareaField;
 use Silverstripe\Forms\DropdownField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
+use Symbiote\MultiValueField\Fields\KeyValueField;
 
 /**
  * A Content Security Policy directive, can be used by multiple {@link Policy}
@@ -31,7 +33,8 @@ class Directive extends DataObject implements PermissionProvider {
    */
   private static $db = [
     'Key' => 'Varchar(255)',
-    'Value' => 'Text',
+    'Rules' => 'MultiValueField',
+    'Value' => 'Text',// Deprecated
     'IncludeSelf' => 'Boolean',
     'UnsafeInline' => 'Boolean',
     'AllowDataUri' => 'Boolean',
@@ -46,7 +49,7 @@ class Directive extends DataObject implements PermissionProvider {
   private static $summary_fields = [
     'ID' => '#',
     'Key' => 'Name',
-    'Value' => 'Value',
+    'DirectiveValue' => 'Value',
     'Enabled.Nice' =>'Enabled',
     'Policies.Count' => 'Policies',
     'IncludeSelf.Nice' =>'Include \'self\'',
@@ -63,7 +66,7 @@ class Directive extends DataObject implements PermissionProvider {
   ];
 
   public function getTitle() {
-    return $this->Key . " " . $this->getDirectiveValue();
+    return substr($this->Key . " " . $this->getDirectiveValue(), 0, 100) . "...";
   }
 
   /**
@@ -118,12 +121,14 @@ class Directive extends DataObject implements PermissionProvider {
 
     if( in_array( $this->Key, self::KeysWithoutValues() ) ) {
         // ensure these keys never get values
-        $this->Value = '';
+        $this->Value = '';// DEPRECATED
+        $this->Rules = '';// no rules
+        $this->RulesValue = '';// no rules value either
         $this->IncludeSelf = 0;
         $this->UnsafeInline = 0;
         $this->AllowDataUri = 0;
     } else {
-        $this->Value = trim(rtrim($this->Value, ";"));
+        $this->Value = trim(rtrim($this->Value, ";"));// DEPRECATED
     }
 
   }
@@ -171,12 +176,46 @@ class Directive extends DataObject implements PermissionProvider {
           $select_keys
         )->setEmptyString('')
       ),
-      'Value'
+      'Rules'
     );
 
-    $fields->dataFieldByName('Value')->setDescription('Note that some directives can contain no values');
+    $fields->addFieldToTab(
+        'Root.Main',
+        KeyValueField::create('Rules', 'Rules & Restrictions')
+            ->setDescription('Add the rule on the left and a reason for adding the rule on the right')
+            ->setRightTitle('Some values, such has hashes, must be single-quoted'),
+        'IncludeSelf'
+    );
+
+    $fields->addFieldToTab(
+        'Root.Main',
+        TextareaField::create('LiteralRules', 'Current directive value', htmlspecialchars($this->getDirectiveValue())),
+        'Rules'
+    );
+
+    $fields->makeFieldReadonly('LiteralRules');
+
+    $fields->dataFieldByName('Value')->setDescription('DEPRECATED (use Rules)');
 
     return $fields;
+  }
+
+  /**
+   * Rules are stored in a key/value mapping. Return the rules as a value for inclusion in the header
+   * @returns string
+   */
+  public function getValuesFromRules() {
+      $rules = $this->Rules;
+      $values = "";
+      if($rules) {
+          $rules = $rules->getValues();
+          if(!empty($rules) && is_array($rules)) {
+              foreach($rules as $rule => $optional_reason) {
+                  $values .= $rule . " ";
+              }
+          }
+      }
+      return trim($values, "; ");
   }
 
   /**
@@ -187,7 +226,12 @@ class Directive extends DataObject implements PermissionProvider {
     $value = ($this->IncludeSelf == 1 ? "'self'" : "");
     $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
     $value .= ($this->AllowDataUri == 1 ? " data:" : "");
-    $value .= ($this->Value ? " " . trim($this->Value, "; ") : "");
+    if($this->Value) {
+        // DEPRECATED method
+        $value .= ($this->Value ? " " . trim($this->Value, "; ") : "");
+    } else {
+        $value .= " " . $this->getValuesFromRules();
+    }
     $value = trim($value);
     return $value;
   }
