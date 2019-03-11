@@ -34,7 +34,6 @@ class Directive extends DataObject implements PermissionProvider {
   private static $db = [
     'Key' => 'Varchar(255)',
     'Rules' => 'MultiValueField',
-    'Value' => 'Text',// Deprecated
     'IncludeSelf' => 'Boolean',
     'UnsafeInline' => 'Boolean',
     'AllowDataUri' => 'Boolean',
@@ -121,14 +120,11 @@ class Directive extends DataObject implements PermissionProvider {
 
     if( in_array( $this->Key, self::KeysWithoutValues() ) ) {
         // ensure these keys never get values
-        $this->Value = '';// DEPRECATED
         $this->Rules = '';// no rules
         $this->RulesValue = '';// no rules value either
         $this->IncludeSelf = 0;
         $this->UnsafeInline = 0;
         $this->AllowDataUri = 0;
-    } else {
-        $this->Value = trim(rtrim($this->Value, ";"));// DEPRECATED
     }
 
   }
@@ -183,7 +179,7 @@ class Directive extends DataObject implements PermissionProvider {
         'Root.Main',
         KeyValueField::create('Rules', 'Rules & Restrictions')
             ->setDescription('Add the rule on the left and a reason for adding the rule on the right')
-            ->setRightTitle('Some values, such has hashes, must be single-quoted'),
+            ->setRightTitle('Some values, such as hashes, must be single-quoted'),
         'IncludeSelf'
     );
 
@@ -195,7 +191,7 @@ class Directive extends DataObject implements PermissionProvider {
 
     $fields->makeFieldReadonly('LiteralRules');
 
-    $fields->dataFieldByName('Value')->setDescription('DEPRECATED (use Rules)');
+    $fields->removeByName('Value');
 
     return $fields;
   }
@@ -226,12 +222,7 @@ class Directive extends DataObject implements PermissionProvider {
     $value = ($this->IncludeSelf == 1 ? "'self'" : "");
     $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
     $value .= ($this->AllowDataUri == 1 ? " data:" : "");
-    if($this->Value) {
-        // DEPRECATED method
-        $value .= ($this->Value ? " " . trim($this->Value, "; ") : "");
-    } else {
-        $value .= " " . $this->getValuesFromRules();
-    }
+    $value .= " " . $this->getValuesFromRules();
     $value = trim($value);
     return $value;
   }
