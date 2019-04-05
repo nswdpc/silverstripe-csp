@@ -1,5 +1,6 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
+
 use SilverStripe\Control\Controller;
 use SilverStripe\Dev\FunctionalTest;
 use Silverstripe\CMS\Model\SiteTree;
@@ -32,7 +33,8 @@ class PolicyFunctionalTest extends FunctionalTest
         parent::setUp();
     }
 
-    public function tearDown() {
+    public function tearDown()
+    {
         parent::tearDown();
     }
 
@@ -139,31 +141,31 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $this->assertEquals($policy->Directives()->count(), count($directives));
 
-        $home = SiteTree::get()->filter('URLSegment','home')->first();
+        $home = SiteTree::get()->filter('URLSegment', 'home')->first();
         $home->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
         $result = $this->get('home/');
 
-        $this->assertTrue( $result instanceof HTTPResponse );
+        $this->assertTrue($result instanceof HTTPResponse);
 
-        $header_csp = $result->getHeader( Policy::HEADER_CSP );
-        $this->assertNotNull( $header_csp, "No " . Policy::HEADER_CSP . " Header!");
+        $header_csp = $result->getHeader(Policy::HEADER_CSP);
+        $this->assertNotNull($header_csp, "No " . Policy::HEADER_CSP . " Header!");
 
-        $header_nel = $result->getHeader( Policy::HEADER_NEL );
-        $this->assertNotNull( $header_nel, "No " . Policy::HEADER_NEL . " Header!");
+        $header_nel = $result->getHeader(Policy::HEADER_NEL);
+        $this->assertNotNull($header_nel, "No " . Policy::HEADER_NEL . " Header!");
 
-        $header_report_to = $result->getHeader( Policy::HEADER_REPORT_TO );
-        $this->assertNotNull( $header_report_to, "No " . Policy::HEADER_REPORT_TO . " Header!");
+        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
+        $this->assertNotNull($header_report_to, "No " . Policy::HEADER_REPORT_TO . " Header!");
 
         $policy->ReportOnly = 1;
         $policy->write();
 
         $result = $this->get('home/');
 
-        $this->assertTrue( $result instanceof HTTPResponse );
+        $this->assertTrue($result instanceof HTTPResponse);
 
-        $header_csp_report_only = $result->getHeader( Policy::HEADER_CSP_REPORT_ONLY );
-        $this->assertNotNull( $header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " Header!");
+        $header_csp_report_only = $result->getHeader(Policy::HEADER_CSP_REPORT_ONLY);
+        $this->assertNotNull($header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " Header!");
 
         // Turn off Report-To and NEL
         $policy->SendViolationReports = 0;
@@ -172,23 +174,23 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $result = $this->get('home/');
 
-        $this->assertTrue( $result instanceof HTTPResponse );
+        $this->assertTrue($result instanceof HTTPResponse);
 
-        $header_csp_report_only = $result->getHeader( Policy::HEADER_CSP_REPORT_ONLY );
-        $this->assertNotNull( $header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " Header!");
+        $header_csp_report_only = $result->getHeader(Policy::HEADER_CSP_REPORT_ONLY);
+        $this->assertNotNull($header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " Header!");
 
-        $header_nel = $result->getHeader( Policy::HEADER_NEL );
-        $this->assertNull( $header_nel, Policy::HEADER_NEL . " Header!");
+        $header_nel = $result->getHeader(Policy::HEADER_NEL);
+        $this->assertNull($header_nel, Policy::HEADER_NEL . " Header!");
 
-        $header_report_to = $result->getHeader( Policy::HEADER_REPORT_TO );
-        $this->assertNull( $header_report_to, Policy::HEADER_REPORT_TO . " Header!");
+        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
+        $this->assertNull($header_report_to, Policy::HEADER_REPORT_TO . " Header!");
     }
 
     /**
      * Test HTTP headers
      */
-    public function testPageHttpHeaders() {
-
+    public function testPageHttpHeaders()
+    {
         $this->clearAllPolicies();
 
         // create a system policy
@@ -247,7 +249,7 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $page_policy->Directives()->add($directive);
 
-        $test_page = SiteTree::get()->filter('URLSegment','testcsppolicypage')->first();
+        $test_page = SiteTree::get()->filter('URLSegment', 'testcsppolicypage')->first();
         $test_page->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
         $test_page->CspPolicyID = $page_policy->ID;
@@ -256,43 +258,41 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $test_page_policy = $test_page->CspPolicy();
 
-        $this->assertEquals( $test_page_policy->ID, $page_policy->ID );
+        $this->assertEquals($test_page_policy->ID, $page_policy->ID);
 
         $result = $this->get('testcsppolicypage/');
 
-        $this->assertTrue( $result instanceof HTTPResponse );
+        $this->assertTrue($result instanceof HTTPResponse);
 
-        $header_csp = $result->getHeader( Policy::HEADER_CSP );
-        $this->assertNotNull( $header_csp, "No " . Policy::HEADER_CSP . " Header!");
+        $header_csp = $result->getHeader(Policy::HEADER_CSP);
+        $this->assertNotNull($header_csp, "No " . Policy::HEADER_CSP . " Header!");
 
         $formatted_values = Policy::parsePolicy($header_csp);
 
-        $this->assertTrue( !empty($formatted_values['font-src']), 'No font-src in headers response' );
+        $this->assertTrue(!empty($formatted_values['font-src']), 'No font-src in headers response');
 
         $this->assertTrue(
-            strpos( $formatted_values['font-src'], "'self'" ) !== false
-            && strpos( $formatted_values['font-src'], " data: ") !== false
-            && strpos( $formatted_values['font-src'], "https://base.font.example.com" ) !== false
-            && strpos( $formatted_values['font-src'], "https://base.font.example.net" ) !== false
-            && strpos( $formatted_values['font-src'], "https://*.base.font.example.org" ) !== false
-            && strpos( $formatted_values['font-src'], "https://pagetestfont.example.com" ) !== false
+            strpos($formatted_values['font-src'], "'self'") !== false
+            && strpos($formatted_values['font-src'], " data: ") !== false
+            && strpos($formatted_values['font-src'], "https://base.font.example.com") !== false
+            && strpos($formatted_values['font-src'], "https://base.font.example.net") !== false
+            && strpos($formatted_values['font-src'], "https://*.base.font.example.org") !== false
+            && strpos($formatted_values['font-src'], "https://pagetestfont.example.com") !== false
         );
 
         // the main base policy sets these
-        $header_nel = $result->getHeader( Policy::HEADER_NEL );
-        $this->assertNotNull( $header_nel, "No " . Policy::HEADER_NEL . " Header!");
+        $header_nel = $result->getHeader(Policy::HEADER_NEL);
+        $this->assertNotNull($header_nel, "No " . Policy::HEADER_NEL . " Header!");
 
-        $header_report_to = $result->getHeader( Policy::HEADER_REPORT_TO );
-        $this->assertNotNull( $header_report_to, "No " . Policy::HEADER_REPORT_TO . " Header!");
-
-
+        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
+        $this->assertNotNull($header_report_to, "No " . Policy::HEADER_REPORT_TO . " Header!");
     }
 
     /**
      * Test headers delivered via Meta Tags
      */
-    public function testPageMetaTag() {
-
+    public function testPageMetaTag()
+    {
         $this->clearAllPolicies();
 
         // create a system policy
@@ -351,7 +351,7 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $page_policy->Directives()->add($directive);
 
-        $test_page = SiteTree::get()->filter('URLSegment','testcsppolicypage')->first();
+        $test_page = SiteTree::get()->filter('URLSegment', 'testcsppolicypage')->first();
         $test_page->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
         $test_page->CspPolicyID = $page_policy->ID;
@@ -360,11 +360,11 @@ class PolicyFunctionalTest extends FunctionalTest
 
         $test_page_policy = $test_page->CspPolicy();
 
-        $this->assertEquals( $test_page_policy->ID, $page_policy->ID );
+        $this->assertEquals($test_page_policy->ID, $page_policy->ID);
 
         $result = $this->get('testcsppolicypage/');
 
-        $this->assertTrue( $result instanceof HTTPResponse );
+        $this->assertTrue($result instanceof HTTPResponse);
 
         $body = $result->getBody();
 
@@ -376,7 +376,7 @@ class PolicyFunctionalTest extends FunctionalTest
             $tags = $dom->getElementsByTagName('meta');
             foreach ($tags as $tag) {
                 $equiv = $tag->getAttribute('http-equiv');
-                switch($equiv) {
+                switch ($equiv) {
                     case Policy::HEADER_CSP_REPORT_ONLY:
                     case Policy::HEADER_REPORT_TO:
                     case Policy::HEADER_NEL:
@@ -391,16 +391,15 @@ class PolicyFunctionalTest extends FunctionalTest
                         break;
                 }
             }
-
         } catch (Exception $e) {
             $this->assertTrue(false, $e->getMessage());
         }
 
-        $this->assertEquals( count($csp_meta_tags), 2, "Header count is: " . count($csp_meta_tags) );
+        $this->assertEquals(count($csp_meta_tags), 2, "Header count is: " . count($csp_meta_tags));
 
         try {
             $expected_found = 0;
-            foreach($csp_meta_tags as $csp_tag) {
+            foreach ($csp_meta_tags as $csp_tag) {
                 $content = $csp_tag->getAttribute('content');
                 $content = html_entity_decode($content);
 
@@ -408,128 +407,125 @@ class PolicyFunctionalTest extends FunctionalTest
                 // <meta http-equiv="Content-Security-Policy" content="font-src &#039;self&#039; &#039;unsafe-inline&#039; https://pagetestfont.example.com;" />
 
                 // test for report-uri and report-to directives with trailing space, these directives should NOT be present in metatag content attribute value
-                if(strpos( $content, 'report-uri ' ) ) {
+                if (strpos($content, 'report-uri ')) {
                     throw new Exception("report-uri directive found in '{$content}'");
                 }
-                if(strpos( $content, 'report-to ' ) ) {
+                if (strpos($content, 'report-to ')) {
                     throw new Exception("report-to directive found in '{$content}'");
                 }
 
-                if(strpos( $content, "https://pagetestfont.example.com") !== false) {
-                    if(strpos( $content, "'unsafe-inline'") !== false) {
+                if (strpos($content, "https://pagetestfont.example.com") !== false) {
+                    if (strpos($content, "'unsafe-inline'") !== false) {
                         $expected_found++;
                     }
                 }
 
 
-                if(strpos( $content, "https://base.font.example.com") !== false
-                    && strpos( $content, "https://base.font.example.net")
-                    && strpos( $content, "https://*.base.font.example.org")) {
-
-                        if(strpos( $content, "data:") !== false) {
-                            $expected_found++;
-                        }
+                if (strpos($content, "https://base.font.example.com") !== false
+                    && strpos($content, "https://base.font.example.net")
+                    && strpos($content, "https://*.base.font.example.org")) {
+                    if (strpos($content, "data:") !== false) {
+                        $expected_found++;
+                    }
                 }
-
             }
 
             $this->assertEquals($expected_found, 2, "Expected values not found in meta tags");
         } catch (Exception $e) {
             $this->assertTrue(false, $e->getMessage());
         }
-
     }
 
 
 
-        /**
-         * Test headers delivered via Meta Tags with reporting, no tags should appear
-         */
-        public function testPageMetaTagWithReporting() {
+    /**
+     * Test headers delivered via Meta Tags with reporting, no tags should appear
+     */
+    public function testPageMetaTagWithReporting()
+    {
+        $this->clearAllPolicies();
 
-            $this->clearAllPolicies();
+        // create a system policy
+        $policy = $this->createPolicy([
+            'Title' => 'Test Meta Tag Policy with Report Only',
+            'Enabled' => 1,
+            'IsLive' => 1,
+            'IsBasePolicy' => 1,
+            'ReportOnly' => 1,
+            'SendViolationReports' => 1,
+            'EnableNEL' => 1,
+            'AlternateReportURI' => '',
+            'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_METATAG,
+            'MinimumCspLevel' => 1,
+        ]);
 
-            // create a system policy
-            $policy = $this->createPolicy([
-                'Title' => 'Test Meta Tag Policy with Report Only',
-                'Enabled' => 1,
-                'IsLive' => 1,
-                'IsBasePolicy' => 1,
-                'ReportOnly' => 1,
-                'SendViolationReports' => 1,
-                'EnableNEL' => 1,
-                'AlternateReportURI' => '',
-                'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_METATAG,
-                'MinimumCspLevel' => 1,
-            ]);
+        $directives = [];
+        $directives[] = $this->createDirective([
+            'Key' => 'font-src',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://base.font.example.com' => '', 'https://base.font.example.net' => '', 'https://*.base.font.example.org' => '']),
+            'IncludeSelf' => 1,
+            'UnsafeInline' => 0,
+            'AllowDataUri' => 1,
+            'Enabled' => 1,
+        ]);
 
-            $directives = [];
-            $directives[] = $this->createDirective([
-                'Key' => 'font-src',
-                'Value' => '',
-                'RulesValue' => json_encode(['https://base.font.example.com' => '', 'https://base.font.example.net' => '', 'https://*.base.font.example.org' => '']),
-                'IncludeSelf' => 1,
-                'UnsafeInline' => 0,
-                'AllowDataUri' => 1,
-                'Enabled' => 1,
-            ]);
-
-            foreach ($directives as $directive) {
-                $policy->Directives()->add($directive);
-            }
+        foreach ($directives as $directive) {
+            $policy->Directives()->add($directive);
+        }
 
 
-            // create a page policy and check the headers are returned
-            $page_policy = $this->createPolicy([
-                'Title' => 'Test Csp Page MetaTag Policy with Report Only',
-                'Enabled' => 1,
-                'IsLive' => 1,
-                'IsBasePolicy' => 0,
-                'ReportOnly' => 1,
-                'SendViolationReports' => 0,
-                'EnableNEL' => 0,
-                'AlternateReportURI' => '',
-                'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_METATAG,
-                'MinimumCspLevel' => 1,
-            ]);
+        // create a page policy and check the headers are returned
+        $page_policy = $this->createPolicy([
+            'Title' => 'Test Csp Page MetaTag Policy with Report Only',
+            'Enabled' => 1,
+            'IsLive' => 1,
+            'IsBasePolicy' => 0,
+            'ReportOnly' => 1,
+            'SendViolationReports' => 0,
+            'EnableNEL' => 0,
+            'AlternateReportURI' => '',
+            'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_METATAG,
+            'MinimumCspLevel' => 1,
+        ]);
 
-            $directive = $this->createDirective([
-                'Key' => 'font-src',
-                'Value' => '',
-                'RulesValue' => json_encode(['https://pagetestfont.example.com' => '']),
-                'IncludeSelf' => 1, // add to make stricter
-                'UnsafeInline' => 1, // add unsafe inline
-                'AllowDataUri' => 0,
-                'Enabled' => 1,
-            ]);
+        $directive = $this->createDirective([
+            'Key' => 'font-src',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://pagetestfont.example.com' => '']),
+            'IncludeSelf' => 1, // add to make stricter
+            'UnsafeInline' => 1, // add unsafe inline
+            'AllowDataUri' => 0,
+            'Enabled' => 1,
+        ]);
 
-            $page_policy->Directives()->add($directive);
+        $page_policy->Directives()->add($directive);
 
-            $test_page = SiteTree::get()->filter('URLSegment','testcsppolicypage')->first();
-            $test_page->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
+        $test_page = SiteTree::get()->filter('URLSegment', 'testcsppolicypage')->first();
+        $test_page->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
-            $test_page->CspPolicyID = $page_policy->ID;
-            $test_page->write();
-            $test_page->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
+        $test_page->CspPolicyID = $page_policy->ID;
+        $test_page->write();
+        $test_page->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
-            $test_page_policy = $test_page->CspPolicy();
+        $test_page_policy = $test_page->CspPolicy();
 
-            $this->assertEquals( $test_page_policy->ID, $page_policy->ID );
+        $this->assertEquals($test_page_policy->ID, $page_policy->ID);
 
-            $result = $this->get('testcsppolicypage/');
+        $result = $this->get('testcsppolicypage/');
 
-            $this->assertTrue( $result instanceof HTTPResponse );
+        $this->assertTrue($result instanceof HTTPResponse);
 
-            $body = $result->getBody();
+        $body = $result->getBody();
 
-            try {
-                $dom = new DOMDocument();
-                $utf8_body = '<?xml encoding="UTF-8">' . $body;
-                $dom->loadHTML($body);
-                $tags = $dom->getElementsByTagName('meta');
-                foreach ($tags as $tag) {
-                    $equiv = $tag->getAttribute('http-equiv');
-                    switch($equiv) {
+        try {
+            $dom = new DOMDocument();
+            $utf8_body = '<?xml encoding="UTF-8">' . $body;
+            $dom->loadHTML($body);
+            $tags = $dom->getElementsByTagName('meta');
+            foreach ($tags as $tag) {
+                $equiv = $tag->getAttribute('http-equiv');
+                switch ($equiv) {
                         case Policy::HEADER_CSP_REPORT_ONLY:
                         case Policy::HEADER_REPORT_TO:
                         case Policy::HEADER_NEL:
@@ -541,15 +537,11 @@ class PolicyFunctionalTest extends FunctionalTest
                             // some other meta
                             break;
                     }
-                }
-
-            } catch (Exception $e) {
-                $this->assertTrue(false, $e->getMessage());
             }
-
-            // none of the blocked metatags have appeared
-
+        } catch (Exception $e) {
+            $this->assertTrue(false, $e->getMessage());
         }
 
-
+        // none of the blocked metatags have appeared
+    }
 }

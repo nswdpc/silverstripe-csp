@@ -1,11 +1,11 @@
 <?php
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
+
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
 
 class PolicyTest extends SapphireTest
 {
-
     protected $usesDatabase = true;
 
     private $include_report_to = false;
@@ -13,13 +13,14 @@ class PolicyTest extends SapphireTest
     public function setUp()
     {
         parent::setUp();
-        $this->include_report_to = Config::inst()->get( Policy::class, 'include_report_to' );
-        Config::inst()->update( Policy::class, 'include_report_to', true );
+        $this->include_report_to = Config::inst()->get(Policy::class, 'include_report_to');
+        Config::inst()->update(Policy::class, 'include_report_to', true);
     }
 
-    public function tearDown() {
+    public function tearDown()
+    {
         parent::tearDown();
-        Config::inst()->update( Policy::class, 'include_report_to', $this->include_report_to );
+        Config::inst()->update(Policy::class, 'include_report_to', $this->include_report_to);
     }
 
     private function createPolicy($data)
@@ -51,7 +52,6 @@ class PolicyTest extends SapphireTest
 
     public function testPolicy()
     {
-
         $this->clearAllPolicies();
 
         $policy = $this->createPolicy([
@@ -154,7 +154,6 @@ class PolicyTest extends SapphireTest
         $check_policy = Policy::get()->byId($non_enabled_policy->ID);
 
         $this->assertTrue($check_policy && $check_policy->IsBasePolicy == 1, 'New Base policy was not valid');
-
     }
 
     public function testDirectives()
@@ -269,30 +268,30 @@ class PolicyTest extends SapphireTest
                 switch ($key) {
                     case 'font-src':
                         $this->assertTrue(
-                            strpos( $value, "'self'" ) !== false
-                            && strpos( $value, " data: ") !== false
-                            && strpos( $value, "https://font.example.com" ) !== false
-                            && strpos( $value, "https://font.example.net" ) !== false
-                            && strpos( $value, "https://*.font.example.org" ) !== false
+                            strpos($value, "'self'") !== false
+                            && strpos($value, " data: ") !== false
+                            && strpos($value, "https://font.example.com") !== false
+                            && strpos($value, "https://font.example.net") !== false
+                            && strpos($value, "https://*.font.example.org") !== false
                         );
                         break;
                     case 'media-src':
                         $this->assertTrue(
-                            strpos( $value, "'self'" ) !== false
-                            && strpos( $value, "'unsafe-inline'" ) !== false
-                            && strpos( $value, "https://media.example.com" ) !== false
+                            strpos($value, "'self'") !== false
+                            && strpos($value, "'unsafe-inline'") !== false
+                            && strpos($value, "https://media.example.com") !== false
                         );
                         break;
                     case 'script-src':
                         $this->assertTrue(
-                            strpos( $value, "'self'" ) !== false
-                            && strpos( $value, " data: " ) !== false
-                            && strpos( $value, "'unsafe-inline'" ) !== false
-                            && strpos( $value, "https://script.example.com" ) !== false
+                            strpos($value, "'self'") !== false
+                            && strpos($value, " data: ") !== false
+                            && strpos($value, "'unsafe-inline'") !== false
+                            && strpos($value, "https://script.example.com") !== false
                         );
                         break;
                     case 'report-uri':
-                        $this->assertEquals($value,  ReportingEndpoint::getCurrentReportingUrl(true));
+                        $this->assertEquals($value, ReportingEndpoint::getCurrentReportingUrl(true));
                         break;
                     case 'report-to':
                         $this->assertEquals($value, Policy::DEFAULT_REPORTING_GROUP);
@@ -301,13 +300,13 @@ class PolicyTest extends SapphireTest
                         // have to test these if added
                         break;
                 }
-
             }
         }
     }
 
     // set a Policy to 3 which should drop report-uri
-    public function testCspLevel() {
+    public function testCspLevel()
+    {
         $this->clearAllPolicies();
 
         $policy = $this->createPolicy([
@@ -336,16 +335,15 @@ class PolicyTest extends SapphireTest
 
         $headers = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
-        $this->assertTrue( !empty($headers['policy_string']) );
+        $this->assertTrue(!empty($headers['policy_string']));
 
         $formatted_values = Policy::parsePolicy($headers['policy_string']);
 
-        $this->assertTrue( !array_key_exists('report-uri', $formatted_values) );
+        $this->assertTrue(!array_key_exists('report-uri', $formatted_values));
 
         $this->assertTrue(
-                    array_key_exists('report-to', $formatted_values)
+            array_key_exists('report-to', $formatted_values)
                     && $formatted_values['report-to'] == Policy::DEFAULT_REPORTING_GROUP
         );
-
     }
 }

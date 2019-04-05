@@ -52,7 +52,7 @@ class SiteTreeExtension extends Extension
     {
         $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
         $controller = Controller::curr();
-        if(!$controller) {
+        if (!$controller) {
             // no current controller
             return false;
         }
@@ -69,7 +69,8 @@ class SiteTreeExtension extends Extension
      * Extension hook, see {@link SilverStripe\CMS\Model\SiteTree::MetaTags}
      * @returns void
      */
-    public function MetaTags(&$tags) {
+    public function MetaTags(&$tags)
+    {
         $csp_tags = $this->CspMetaTags();
         $tags = $tags . "\n" . $csp_tags;
     }
@@ -112,11 +113,10 @@ class SiteTreeExtension extends Extension
             }
         }
 
-        if(!empty($tags)) {
-            return DBField::create_field( DBHTMLText::class, implode("\n", $tags) );
+        if (!empty($tags)) {
+            return DBField::create_field(DBHTMLText::class, implode("\n", $tags));
         }
 
         return "";
-
     }
 }
