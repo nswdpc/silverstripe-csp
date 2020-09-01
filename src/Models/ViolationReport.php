@@ -1,4 +1,5 @@
 <?php
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use Silverstripe\ORM\DataObject;
@@ -108,7 +109,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         return Permission::check('CSP_VIOLATION_REPORTS_DELETE');
     }
 
-    public function canCreate($member = null, $context = array())
+    public function canCreate($member = null, $context = [])
     {
         return false;
     }

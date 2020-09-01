@@ -1,4 +1,5 @@
 <?php
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 /**

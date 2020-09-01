@@ -1,4 +1,5 @@
 <?php
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use Silverstripe\ORM\DataObject;
@@ -163,19 +164,19 @@ class Directive extends DataObject implements PermissionProvider
         foreach ($keys as $key => $value) {
             $select_keys[ $key ] = $key . " - " . $value;
         }
-        $fields->removeByName(array(
+        $fields->removeByName([
             'Key'
-        ));
+        ]);
         $fields->addFieldToTab(
             'Root.Main',
-                CompositeField::create(
-                TextField::create('Key', 'Enter a directive'),
-                DropdownField::create(
+            CompositeField::create(
+                    TextField::create('Key', 'Enter a directive'),
+                    DropdownField::create(
                     'KeySelection',
                     _t('ContentSecurityPolicy.SELECT_PREDEFINED_DIRECTIVE', '...or select a pre-defined directive'),
                     $select_keys
                 )->setEmptyString('')
-            ),
+                ),
             'Rules'
         );
 
@@ -248,7 +249,7 @@ class Directive extends DataObject implements PermissionProvider
         return Permission::check('CSPE_DIRECTIVE_DELETE');
     }
 
-    public function canCreate($member = null, $context = array())
+    public function canCreate($member = null, $context = [])
     {
         return Permission::check('CSP_DIRECTIVE_EDIT');
     }

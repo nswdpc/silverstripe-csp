@@ -1,4 +1,5 @@
 <?php
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use Silverstripe\Core\Convert;
@@ -223,9 +224,9 @@ class Policy extends DataObject implements PermissionProvider
         $fields->addFieldToTab(
             'Root.Main',
             OptionsetField::create(
-              'DeliveryMethod',
-              'Delivery Method',
-              [ self::POLICY_DELIVERY_METHOD_HEADER => 'Via an HTTP Header',  self::POLICY_DELIVERY_METHOD_METATAG => 'As a meta tag' ]
+                'DeliveryMethod',
+                'Delivery Method',
+                [ self::POLICY_DELIVERY_METHOD_HEADER => 'Via an HTTP Header',  self::POLICY_DELIVERY_METHOD_METATAG => 'As a meta tag' ]
             )->setDescription(_t('ContentSecurityPolicy.REPORT_VIA_META_TAG', 'Reporting violations is not supported when using the meta tag delivery method'))
         );
 
@@ -246,8 +247,8 @@ class Policy extends DataObject implements PermissionProvider
             ->setTitle(_t('ContentSecurityPolicy.ALTERNATE_NEL_REPORT_URI_TITLE', 'Set an NEL/Reporting API reporting URL that will accept Network Error Logging reports'))
             ->setDescription(sprintf(
                 _t(
-                'ContentSecurityPolicy.ALTERNATE_NEL_REPORT_URI',
-                'If not set and the sending of violation reports is enabled,'
+                    'ContentSecurityPolicy.ALTERNATE_NEL_REPORT_URI',
+                    'If not set and the sending of violation reports is enabled,'
                             . ' NEL reports will be directed to %s and will appear in the CSP/Reports admin.'
                             . ' <br>Sending reports back to your own website may cause performance degradation.'
                 ),
@@ -260,26 +261,26 @@ class Policy extends DataObject implements PermissionProvider
             $fields->addFieldsToTab(
                 'Root.Main',
                 [
-                  HeaderField::create(
-                      'EnabledDirectivePolicy',
-                      'Policy (enabled directives)'
-                  ),
-                  LiteralField::create(
-                      'PolicyEnabledDirectives',
-                      '<p><pre><code>'
-                      . $policy['header'] . ": \n"
-                      . $policy['policy_string']
-                      . '</code></pre></p>'
-                  ),
-                  LiteralField::create(
-                      'PolicyEnabledReportTo',
-                      '<p>'
-                      . (!empty($policy['reporting']) ? '<pre><code>'
-                      . 'Report-To: ' . json_encode($policy['reporting'])
-                      . (!empty($policy['nel']) ? "\nNEL: " . json_encode($policy['nel']) : "")
-                      . '</code></pre>' : 'No reporting set')
-                      . '</p>'
-                  )
+                    HeaderField::create(
+                        'EnabledDirectivePolicy',
+                        'Policy (enabled directives)'
+                    ),
+                    LiteralField::create(
+                        'PolicyEnabledDirectives',
+                        '<p><pre><code>'
+                        . $policy['header'] . ": \n"
+                        . $policy['policy_string']
+                        . '</code></pre></p>'
+                    ),
+                    LiteralField::create(
+                        'PolicyEnabledReportTo',
+                        '<p>'
+                        . (!empty($policy['reporting']) ? '<pre><code>'
+                        . 'Report-To: ' . json_encode($policy['reporting'])
+                        . (!empty($policy['nel']) ? "\nNEL: " . json_encode($policy['nel']) : "")
+                        . '</code></pre>' : 'No reporting set')
+                        . '</p>'
+                    )
                 ]
             );
         }
@@ -289,26 +290,26 @@ class Policy extends DataObject implements PermissionProvider
             $fields->addFieldsToTab(
                 'Root.Main',
                 [
-                  HeaderField::create(
-                      'AllDirectivePolicy',
-                      'Policy (all directives)'
-                  ),
-                  LiteralField::create(
-                      'PolicyAllDirectives',
-                      '<p><pre><code>'
-                      . $policy['header'] . ": \n"
-                      . $policy['policy_string']
-                      . '</code></pre></p>'
-                  ),
-                  LiteralField::create(
-                      'PolicyAllReportTo',
-                      '<p>'
-                      . (!empty($policy['reporting']) ? '<pre><code>'
-                      . 'Report-To: ' . json_encode($policy['reporting'])
-                      . (!empty($policy['nel']) ? "\nNEL: " . json_encode($policy['nel']) : "")
-                      . '</code></pre>' : 'No reporting set')
-                      . '</p>'
-                  )
+                    HeaderField::create(
+                        'AllDirectivePolicy',
+                        'Policy (all directives)'
+                    ),
+                    LiteralField::create(
+                        'PolicyAllDirectives',
+                        '<p><pre><code>'
+                        . $policy['header'] . ": \n"
+                        . $policy['policy_string']
+                        . '</code></pre></p>'
+                    ),
+                    LiteralField::create(
+                        'PolicyAllReportTo',
+                        '<p>'
+                        . (!empty($policy['reporting']) ? '<pre><code>'
+                        . 'Report-To: ' . json_encode($policy['reporting'])
+                        . (!empty($policy['nel']) ? "\nNEL: " . json_encode($policy['nel']) : "")
+                        . '</code></pre>' : 'No reporting set')
+                        . '</p>'
+                    )
                 ]
             );
         }
@@ -573,7 +574,7 @@ class Policy extends DataObject implements PermissionProvider
         return Permission::check('CSPE_POLICY_DELETE');
     }
 
-    public function canCreate($member = null, $context = array())
+    public function canCreate($member = null, $context = [])
     {
         return Permission::check('CSP_POLICY_EDIT');
     }
