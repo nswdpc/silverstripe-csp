@@ -1,11 +1,12 @@
 <?php
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
+
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
 
 class PolicyTest extends SapphireTest
 {
-
     protected $usesDatabase = true;
 
     private $include_report_to = false;
@@ -13,13 +14,14 @@ class PolicyTest extends SapphireTest
     public function setUp()
     {
         parent::setUp();
-        $this->include_report_to = Config::inst()->get( Policy::class, 'include_report_to' );
-        Config::inst()->update( Policy::class, 'include_report_to', true );
+        $this->include_report_to = Config::inst()->get(Policy::class, 'include_report_to');
+        Config::inst()->update(Policy::class, 'include_report_to', true);
     }
 
-    public function tearDown() {
+    public function tearDown()
+    {
         parent::tearDown();
-        Config::inst()->update( Policy::class, 'include_report_to', $this->include_report_to );
+        Config::inst()->update(Policy::class, 'include_report_to', $this->include_report_to);
     }
 
     private function createPolicy($data)
@@ -49,9 +51,25 @@ class PolicyTest extends SapphireTest
         }
     }
 
+    public function testNonce() {
+        $length = 32;
+        // nonce is a private static, but Config should not be allowed to set it
+        $configured_nonce = 'a_configured_nonce';
+        Config::inst()->update( Policy::class, 'nonce', $configured_nonce);
+        // get the nonce
+        $nonce = Policy::getNonce($length);
+        // the one added via config should not be the one returned
+        $this->assertNotEquals($nonce, $configured_nonce,  "Nonce matches config value");
+        // check length match
+        $this->assertEquals(strlen($nonce), $length, "Nonce is not {$length} chrs");
+        // the nonce cannot be changed
+        $nonce_new = Policy::getNonce($length);
+        $this->assertEquals($nonce_new, $nonce, "New Nonce is != old nonce");
+
+    }
+
     public function testPolicy()
     {
-
         $this->clearAllPolicies();
 
         $policy = $this->createPolicy([
@@ -87,7 +105,8 @@ class PolicyTest extends SapphireTest
 
         $directive = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://example.com https://www.example.net https://*.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode([ 'https://example.com' => '1', 'https://www.example.net' => '2', 'https://*.example.org' => '3' ]),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
@@ -153,7 +172,6 @@ class PolicyTest extends SapphireTest
         $check_policy = Policy::get()->byId($non_enabled_policy->ID);
 
         $this->assertTrue($check_policy && $check_policy->IsBasePolicy == 1, 'New Base policy was not valid');
-
     }
 
     public function testDirectives()
@@ -176,7 +194,8 @@ class PolicyTest extends SapphireTest
         $directives = [];
         $directives[] = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://font.example.com https://font.example.net https://*.font.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://font.example.com' => '', 'https://font.example.net' => '', 'https://*.font.example.org' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
@@ -185,7 +204,8 @@ class PolicyTest extends SapphireTest
 
         $directives[] = $this->createDirective([
             'Key' => 'media-src',
-            'Value' => 'https://media.example.com',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://media.example.com' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
             'AllowDataUri' => 0,
@@ -194,7 +214,8 @@ class PolicyTest extends SapphireTest
 
         $directives[] = $this->createDirective([
             'Key' => 'script-src',
-            'Value' => 'https://script.example.com',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://script.example.com' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
             'AllowDataUri' => 1,
@@ -203,7 +224,8 @@ class PolicyTest extends SapphireTest
 
         $directives[] = $this->createDirective([
             'Key' => 'upgrade-insecure-requests',
-            'Value' => 'https://uir.example.com', // test for empty value
+            'Value' => '',
+            'RulesValue' => json_encode(['https://uir.example.com' => '']), // test for empty value
             // the following values should be ignored
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
@@ -213,7 +235,8 @@ class PolicyTest extends SapphireTest
 
         $directives[] = $this->createDirective([
             'Key' => 'block-all-mixed-content',
-            'Value' => 'https://bamc.example.com', // test for empty value
+            'Value' => '',
+            'RulesValue' => json_encode(['https://bamc.example.com' => '']), // test for empty value
             // the following values should be ignored
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
@@ -226,7 +249,7 @@ class PolicyTest extends SapphireTest
             if (in_array($directive->Key, Directive::KeysWithoutValues())) {
                 $test_directive = Directive::get()->byId($directive->ID);
                 $this->assertTrue(
-                    $test_directive->Value == ""
+                    $test_directive->RulesValue == ""
                     && $test_directive->AllowDataUri == 0
                     && $test_directive->UnsafeInline == 0
                     && $test_directive->IncludeSelf == 0
@@ -263,30 +286,30 @@ class PolicyTest extends SapphireTest
                 switch ($key) {
                     case 'font-src':
                         $this->assertTrue(
-                            strpos( $value, "'self'" ) !== false
-                            && strpos( $value, " data: ") !== false
-                            && strpos( $value, "https://font.example.com" ) !== false
-                            && strpos( $value, "https://font.example.net" ) !== false
-                            && strpos( $value, "https://*.font.example.org" ) !== false
+                            strpos($value, "'self'") !== false
+                            && strpos($value, " data: ") !== false
+                            && strpos($value, "https://font.example.com") !== false
+                            && strpos($value, "https://font.example.net") !== false
+                            && strpos($value, "https://*.font.example.org") !== false
                         );
                         break;
                     case 'media-src':
                         $this->assertTrue(
-                            strpos( $value, "'self'" ) !== false
-                            && strpos( $value, "'unsafe-inline'" ) !== false
-                            && strpos( $value, "https://media.example.com" ) !== false
+                            strpos($value, "'self'") !== false
+                            && strpos($value, "'unsafe-inline'") !== false
+                            && strpos($value, "https://media.example.com") !== false
                         );
                         break;
                     case 'script-src':
                         $this->assertTrue(
-                            strpos( $value, "'self'" ) !== false
-                            && strpos( $value, " data: " ) !== false
-                            && strpos( $value, "'unsafe-inline'" ) !== false
-                            && strpos( $value, "https://script.example.com" ) !== false
+                            strpos($value, "'self'") !== false
+                            && strpos($value, " data: ") !== false
+                            && strpos($value, "'unsafe-inline'") !== false
+                            && strpos($value, "https://script.example.com") !== false
                         );
                         break;
                     case 'report-uri':
-                        $this->assertEquals($value,  ReportingEndpoint::getCurrentReportingUrl(true));
+                        $this->assertEquals($value, ReportingEndpoint::getCurrentReportingUrl(true));
                         break;
                     case 'report-to':
                         $this->assertEquals($value, Policy::DEFAULT_REPORTING_GROUP);
@@ -295,13 +318,13 @@ class PolicyTest extends SapphireTest
                         // have to test these if added
                         break;
                 }
-
             }
         }
     }
 
     // set a Policy to 3 which should drop report-uri
-    public function testCspLevel() {
+    public function testCspLevel()
+    {
         $this->clearAllPolicies();
 
         $policy = $this->createPolicy([
@@ -319,7 +342,8 @@ class PolicyTest extends SapphireTest
 
         $directive = $this->createDirective([
             'Key' => 'font-src',
-            'Value' => 'https://font.example.com https://font.example.net https://*.font.example.org',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://font.example.com' => '', 'https://font.example.net' => '', 'https://*.font.example.org' => '']),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
@@ -329,16 +353,15 @@ class PolicyTest extends SapphireTest
 
         $headers = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
-        $this->assertTrue( !empty($headers['policy_string']) );
+        $this->assertTrue(!empty($headers['policy_string']));
 
         $formatted_values = Policy::parsePolicy($headers['policy_string']);
 
-        $this->assertTrue( !array_key_exists('report-uri', $formatted_values) );
+        $this->assertTrue(!array_key_exists('report-uri', $formatted_values));
 
         $this->assertTrue(
-                    array_key_exists('report-to', $formatted_values)
+            array_key_exists('report-to', $formatted_values)
                     && $formatted_values['report-to'] == Policy::DEFAULT_REPORTING_GROUP
         );
-
     }
 }

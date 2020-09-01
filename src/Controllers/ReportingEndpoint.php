@@ -1,5 +1,7 @@
 <?php
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
+
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
@@ -46,59 +48,60 @@ Array
 </code>
  *
  */
-class ReportingEndpoint extends Controller {
+class ReportingEndpoint extends Controller
+{
+    private static $allowed_actions = [
+        'report'
+    ];
 
-  private static $allowed_actions = [
-    'report'
-  ];
+    private static $url_handlers = [
+        'v1/report' => 'report'
+    ];
 
-  private static $url_handlers = [
-    'v1/report' => 'report'
-  ];
-
-  public function index(HTTPRequest $request) {
-
-  }
-
-  private function returnHeader() {
-    header("HTTP/1.1 204 No Content");
-    exit;
-  }
-
-  public static function getCurrentReportingUrl($include_host = true) {
-    return ($include_host ? Director::absoluteBaseURL() : '/') . 'csp/v1/report';
-  }
-
-  /**
-   * Handle reports by POST, the incoming content-type is application/csp-report, which may not be supported in the environment
-   * We use php://input to get the raw input here
-   */
-  public function report(HTTPRequest $request) {
-    // collect the body
-    try {
-
-      if(!$request->isPOST()) {
-        $this->returnHeader();
-      }
-
-      $post = file_get_contents("php://input");
-      if(empty($post)) {
-        $this->returnHeader();
-      }
-      $post = json_decode($post, true);
-      if(empty($post['csp-report'])) {
-        throw new Exception('No csp-report index found in POSTed data');
-      }
-      $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-      $report = ViolationReport::create_report( $post['csp-report'], $user_agent );
-      if(empty($report->ID)) {
-        throw new Exception('Could not create report from data submitted');
-      }
-    } catch (Exception $e) {
-      // Not a warning :)
+    public function index(HTTPRequest $request)
+    {
     }
 
-    $this->returnHeader();
+    private function returnHeader()
+    {
+        header("HTTP/1.1 204 No Content");
+        exit;
+    }
 
-  }
+    public static function getCurrentReportingUrl($include_host = true)
+    {
+        return ($include_host ? Director::absoluteBaseURL() : '/') . 'csp/v1/report';
+    }
+
+    /**
+     * Handle reports by POST, the incoming content-type is application/csp-report, which may not be supported in the environment
+     * We use php://input to get the raw input here
+     */
+    public function report(HTTPRequest $request)
+    {
+        // collect the body
+        try {
+            if (!$request->isPOST()) {
+                $this->returnHeader();
+            }
+
+            $post = file_get_contents("php://input");
+            if (empty($post)) {
+                $this->returnHeader();
+            }
+            $post = json_decode($post, true);
+            if (empty($post['csp-report'])) {
+                throw new Exception('No csp-report index found in POSTed data');
+            }
+            $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
+            $report = ViolationReport::create_report($post['csp-report'], $user_agent);
+            if (empty($report->ID)) {
+                throw new Exception('Could not create report from data submitted');
+            }
+        } catch (Exception $e) {
+            // Not a warning :)
+        }
+
+        $this->returnHeader();
+    }
 }

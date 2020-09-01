@@ -1,0 +1,4 @@
+/tests            export-ignore
+/docs             export-ignore
+/client/src       export-ignore
+/.gitattributes   export-ignore
