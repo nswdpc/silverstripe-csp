@@ -232,7 +232,7 @@ class Directive extends DataObject implements PermissionProvider
         $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
         $value .= ($this->AllowDataUri == 1 ? " data:" : "");
         // Add the nonce if available and enabled for this directive
-        if($this->UseNonce == 1 && ($nonce = Policy::getNonce())) {
+        if($this->UseNonce == 1 && ($nonce = Nonce::get())) {
             $value .= " 'nonce-{$nonce}'";
         }
         $value .= " " . $this->getValuesFromRules();

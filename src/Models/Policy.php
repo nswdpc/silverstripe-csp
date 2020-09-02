@@ -116,26 +116,6 @@ class Policy extends DataObject implements PermissionProvider
      */
     private static $default_sort = 'IsBasePolicy DESC, Enabled DESC, Title ASC';
 
-    private static $nonce = '';
-
-    /**
-     * Create a nonce
-     * @param int $length
-     */
-    private static function createNonce($length) {
-        self::$nonce = bin2hex(random_bytes( $length / 2 ) );
-    }
-
-    /**
-     * Get the current nonce, if one does not exist, create it
-     */
-    public static function getNonce($length = 32) {
-        if(!self::$nonce) {
-            self::createNonce($length);
-        }
-        return self::$nonce;
-    }
-
     /**
      * Return the default base policy
      * @param boolean $is_live

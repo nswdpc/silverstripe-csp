@@ -9,6 +9,8 @@ use SilverStripe\Versioned\Versioned;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Config\Config;
 use DOMDocument;
+use DOMNode;
+use DOMNodeList;
 use Exception;
 
 class PolicyFunctionalTest extends FunctionalTest
@@ -647,7 +649,7 @@ class PolicyFunctionalTest extends FunctionalTest
 
             $result = $test->get('home/');// nonce created here
 
-            $nonce = Policy::getNonce();// get the nonce created
+            $nonce = Nonce::get();// get the nonce created
 
             $this->assertNotEmpty($nonce, "Generated nonce is empty");
 
@@ -670,7 +672,7 @@ class PolicyFunctionalTest extends FunctionalTest
             $test->assertTrue( strpos($parts['style-src'], "'nonce-{$nonce}'") !== false, "No nonce in style-src" );
 
             try {
-                $expected_nonces = 5;//see noncetest SiteTree.ss
+                $expected_nonces = 0;
                 $found_nonces = 0;
                 libxml_use_internal_errors(true);
                 $body = $result->getBody();
@@ -682,23 +684,14 @@ class PolicyFunctionalTest extends FunctionalTest
                 $styles = $dom->getElementsByTagName('style');
                 $links = $dom->getElementsByTagName('link');
 
-                foreach($scripts as $script) {
-                    $nonce_value = $script->getAttribute('nonce');
-                    $this->assertEquals($nonce_value, $nonce, "<script> nonce {$nonce_value} != {$nonce}");
-                    $found_nonces++;
-                }
+                $expected_nonces += $scripts->length;
+                $found_nonces += $this->verifyElements($scripts, $nonce);
 
-                foreach($styles as $style) {
-                    $nonce_value = $style->getAttribute('nonce');
-                    $this->assertEquals($nonce_value, $nonce, "<style> nonce {$nonce_value} != {$nonce}");
-                    $found_nonces++;
-                }
+                $expected_nonces += $styles->length;
+                $found_nonces += $this->verifyElements($styles, $nonce);
 
-                foreach($links as $link) {
-                    $nonce_value = $link->getAttribute('nonce');
-                    $this->assertEquals($nonce_value, $nonce, "<link> nonce {$nonce_value} != {$nonce}");
-                    $found_nonces++;
-                }
+                $expected_nonces += $links->length;
+                $found_nonces += $this->verifyElements($links, $nonce);
 
                 $this->assertEquals($expected_nonces, $found_nonces, "Expected nonces={$expected_nonces} != Found nonces={$found_nonces}");
 
@@ -708,5 +701,21 @@ class PolicyFunctionalTest extends FunctionalTest
 
         });
 
+    }
+
+    /**
+     * Given an {@link DOMNodeList} list of nodes, verify that each one has a nonce
+     */
+    private function verifyElements(DOMNodeList $nodelist, $nonce) {
+        $found_nonces = 0;
+        foreach($nodelist as $element) {
+            $nonce_value = $element->getAttribute('nonce');
+            if($element->hasAttribute('data-should-nonce')) {
+                $this->assertNotEquals($element->getAttribute('data-should-nonce'), 0, "Found <{$element->nodeName}> had data-should-nonce=0");
+            }
+            $this->assertEquals($nonce_value, $nonce, "<{$element->nodeName}> nonce {$nonce_value} != {$nonce}");
+            $found_nonces++;
+        }
+        return $found_nonces;
     }
 }
