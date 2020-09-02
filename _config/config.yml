@@ -1,6 +1,7 @@
 ---
-Name: csp_extensions
+Name: csp_configuration
 ---
+# default policy configuration
 NSWDPC\Utilities\ContentSecurityPolicy\Policy:
   include_report_to: false
   run_in_admin: false
@@ -8,6 +9,12 @@ NSWDPC\Utilities\ContentSecurityPolicy\Policy:
   include_subdomains: true
   whitelisted_controllers:
     -
+# report removal job
+NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
+  older_than: 1
+---
+Name: csp_extensions
+---
 SilverStripe\CMS\Model\SiteTree:
   extensions:
     - NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension
@@ -17,6 +24,3 @@ SilverStripe\Control\Controller:
 SilverStripe\Security\Security:
   extensions:
     - NSWDPC\Utilities\ContentSecurityPolicy\ContentSecurityPolicyEnable
-# report removal job
-NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
-  older_than: 1
