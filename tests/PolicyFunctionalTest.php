@@ -550,7 +550,7 @@ class PolicyFunctionalTest extends FunctionalTest
         // none of the blocked metatags have appeared
     }
 
-    public function testNonce()
+    public function testPolicyNonce()
     {
         $test = $this;
 
@@ -649,9 +649,10 @@ class PolicyFunctionalTest extends FunctionalTest
 
             $result = $test->get('home/');// nonce created here
 
-            $nonce = Nonce::get();// get the nonce created
+            $nonce = new Nonce();// get the nonce created
+            $nonce->get();
 
-            $this->assertNotEmpty($nonce, "Generated nonce is empty");
+            $this->assertNotEmpty($nonce->get(), "Generated nonce is empty");
 
             $test->assertTrue($result instanceof HttpResponse);
 
@@ -668,8 +669,8 @@ class PolicyFunctionalTest extends FunctionalTest
             $test->assertTrue( array_key_exists('script-src', $enabled_directives), 'script-src does not have a nonce' );
             $test->assertTrue( array_key_exists('style-src', $enabled_directives), 'style-src does not have a nonce' );
 
-            $test->assertTrue( strpos($parts['script-src'], "'nonce-{$nonce}'") !== false, "No nonce in script-src" );
-            $test->assertTrue( strpos($parts['style-src'], "'nonce-{$nonce}'") !== false, "No nonce in style-src" );
+            $test->assertTrue( strpos($parts['script-src'], "'nonce-{$nonce}'") !== false, "Unmatched nonce {$nonce} in script-src {$parts['script-src']}" );
+            $test->assertTrue( strpos($parts['style-src'], "'nonce-{$nonce}'") !== false, "Unmatched nonce {$nonce} in style-src {$parts['style-src']}" );
 
             try {
                 $expected_nonces = 0;
@@ -693,8 +694,6 @@ class PolicyFunctionalTest extends FunctionalTest
                 $expected_nonces += $links->length;
                 $found_nonces += $this->verifyElements($links, $nonce);
 
-                $this->assertEquals($expected_nonces, $found_nonces, "Expected nonces={$expected_nonces} != Found nonces={$found_nonces}");
-
             } catch (Exception $e) {
                 $test->assertTrue(false, $e->getMessage());
             }
@@ -706,15 +705,26 @@ class PolicyFunctionalTest extends FunctionalTest
     /**
      * Given an {@link DOMNodeList} list of nodes, verify that each one has a nonce
      */
-    private function verifyElements(DOMNodeList $nodelist, $nonce) {
+    private function verifyElements(DOMNodeList $nodelist, Nonce $nonce) {
         $found_nonces = 0;
+        $nonce_value = $nonce->get();
         foreach($nodelist as $element) {
-            $nonce_value = $element->getAttribute('nonce');
+            $nonce_found_value = $element->getAttribute('nonce');
             if($element->hasAttribute('data-should-nonce')) {
-                $this->assertNotEquals($element->getAttribute('data-should-nonce'), 0, "Found <{$element->nodeName}> had data-should-nonce=0");
+                $this->assertNotEquals(
+                        $element->getAttribute('data-should-nonce'),
+                        0,
+                        "Found <{$element->nodeName}> had data-should-nonce=0"
+                );
             }
-            $this->assertEquals($nonce_value, $nonce, "<{$element->nodeName}> nonce {$nonce_value} != {$nonce}");
-            $found_nonces++;
+            if($nonce->applicableElement($element)) {
+                $this->assertEquals(
+                        $nonce_found_value,
+                        $nonce_value,
+                        "<{$element->nodeName}> nonce found value={$nonce_found_value} != {$nonce_value}"
+                );
+                $found_nonces++;
+            }
         }
         return $found_nonces;
     }

@@ -83,8 +83,9 @@ class ControllerExtension extends Extension
         // only get enabled policy/directives
         $enabled_policy = $enabled_directives = 1;
 
-        // define a NONCE for this request, regardless of whether a policy is available
-        Nonce::get();
+        // return the nonce for this request
+        $nonce = new Nonce();
+        $nonce->get();
 
         $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
 

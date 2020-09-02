@@ -4,6 +4,7 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Control\Middleware\HTTPMiddleware;
+use SilverStripe\Core\Config\Config;
 use DOMDocument;
 
 /**
@@ -50,7 +51,8 @@ class CSPMiddleware implements HTTPMiddleware
         $response = $delegate($request);
         $policy = $this->getPolicy($response);
         if($policy) {
-            $nonce = Nonce::get();// this will create a nonce
+            // Create a nonce, if enabled
+            $nonce = new Nonce();
             $parts = Policy::getNonceEnabledDirectives($policy);
             if($nonce && !empty($parts)) {
                 libxml_use_internal_errors(true);
@@ -62,21 +64,11 @@ class CSPMiddleware implements HTTPMiddleware
                 $dom->loadHTML( $body , LIBXML_HTML_NODEFDTD );
                 if(!empty($parts['script-src'])) {
                     $scripts = $dom->getElementsByTagName('script');
-                    foreach($scripts as $script) {
-                        $script->setAttribute('nonce', $nonce);
-                    }
+                    $nonce->addToElements($scripts);
                 }
                 if(!empty($parts['style-src'])) {
                     $styles = $dom->getElementsByTagName('style');
-                    foreach($styles as $style) {
-                        $style->setAttribute('nonce', $nonce);
-                    }
-                    $links = $dom->getElementsByTagName('link');
-                    foreach($links as $link) {
-                        if($link->getAttribute('rel') == 'stylesheet') {
-                            $link->setAttribute('nonce', $nonce);
-                        }
-                    }
+                    $nonce->addToElements($styles);
                 }
                 $html = $dom->saveHTML();
                 $response->setBody($html);

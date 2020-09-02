@@ -51,23 +51,6 @@ class PolicyTest extends SapphireTest
         }
     }
 
-    public function testNonce() {
-        $length = 32;
-        // nonce is a private static, but Config should not be allowed to set it
-        $configured_nonce = 'a_configured_nonce';
-        Config::inst()->update( Policy::class, 'nonce', $configured_nonce);
-        // get the nonce
-        $nonce = Nonce::get($length);
-        // the one added via config should not be the one returned
-        $this->assertNotEquals($nonce, $configured_nonce,  "Nonce matches config value");
-        // check length match
-        $this->assertEquals(strlen($nonce), $length, "Nonce is not {$length} chrs");
-        // the nonce cannot be changed
-        $nonce_new = Nonce::get($length);
-        $this->assertEquals($nonce_new, $nonce, "New Nonce is != old nonce");
-
-    }
-
     public function testPolicy()
     {
         $this->clearAllPolicies();

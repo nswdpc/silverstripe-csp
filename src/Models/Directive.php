@@ -198,7 +198,12 @@ class Directive extends DataObject implements PermissionProvider
 
         $fields->makeFieldReadonly('LiteralRules');
 
-        $fields->dataFieldByName('UseNonce')->setDescription('Add the system generated per-request nonce to this directive. Only applicable to certain directives.');
+
+        $fields->dataFieldByName('UseNonce')
+                ->setDescription(
+                    'Add the system generated per-request number-once value to this directive.'
+                    . ' Only applicable to certain directives.'
+        );
 
         return $fields;
     }
@@ -232,8 +237,10 @@ class Directive extends DataObject implements PermissionProvider
         $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
         $value .= ($this->AllowDataUri == 1 ? " data:" : "");
         // Add the nonce if available and enabled for this directive
-        if($this->UseNonce == 1 && ($nonce = Nonce::get())) {
-            $value .= " 'nonce-{$nonce}'";
+        if($this->UseNonce == 1) {
+            $nonce = new Nonce();
+            $nonce_value = $nonce->get();
+            $value .= " 'nonce-{$nonce_value}'";
         }
         $value .= " " . $this->getValuesFromRules();
         $value = trim($value);
