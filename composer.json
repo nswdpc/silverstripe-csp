@@ -10,6 +10,7 @@
     }
   ],
   "require": {
+    "ext-xml": "*",
     "silverstripe/framework": "^4",
     "silverstripe/cms": "^4",
     "symbiote/silverstripe-queuedjobs": "^4",
