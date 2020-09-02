@@ -51,10 +51,10 @@ class CSPMiddleware implements HTTPMiddleware
         $response = $delegate($request);
         $policy = $this->getPolicy($response);
         if($policy) {
-            // Create a nonce, if enabled
-            $nonce = new Nonce();
             $parts = Policy::getNonceEnabledDirectives($policy);
-            if($nonce && !empty($parts)) {
+            if(!empty($parts)) {
+                // Creates a nonce
+                $nonce = new Nonce();
                 libxml_use_internal_errors(true);
                 $body = $response->getBody();
                 if(!$body) {

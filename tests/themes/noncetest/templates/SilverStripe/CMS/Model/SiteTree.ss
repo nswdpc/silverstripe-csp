@@ -2,8 +2,11 @@
 <head>
     <meta charset="utf-8">
     <title>NONCE TEST FOR SITETREE</title>
-    <script>var foo='bar';</script>
-    <link rel="stylesheet" type="text/css" href="/path/to/some/style.css">
+    <!-- this script has been added inline in the template and should not get a nonce -->
+    <script data-should-nonce="0">var foo='bar';</script>
+    <% require customScript("var template_custom_script=1;","template_custom_script") %>
+    <% require customCSS("address { background:ultra-black; }","template_custom_style") %>
+    <link rel="stylesheet" type="text/css" href="/path/to/some/style.css" data-should-nonce="0">
 </head>
         <body>
                 <h1>Home</h1>
@@ -22,7 +25,7 @@
 
                 <!-- <script data-should-nonce="0">var test='a comment';</script> -->
 
-                <style type="text/css">
+                <style type="text/css" data-should-nonce="0">
                     p {
                         color : 'bacon';
                     }
@@ -32,8 +35,8 @@
 
         </body>
 
-        <script src="/path/to/some/script.js"></script>
-        <script src="/path/to/another/script.js" nonce="another-nonce">
+        <script src="/path/to/some/script.js" data-should-nonce="0"></script>
+        <script src="/path/to/another/script.js" data-should-nonce="0">
             <!-- override nonce in this script -->
         </script>
 </html>

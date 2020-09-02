@@ -3,6 +3,7 @@
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use SilverStripe\Core\Config\Config;
+use SilverStripe\View\Requirements;
 use DOMNodeList;
 use DOMElement;
 
@@ -75,21 +76,70 @@ class Nonce
      * @param DOMElement $element
      */
     public function applicableElement(DOMElement $element) {
+        $inline = false;
         switch(strtolower($element->nodeName)) {
             case "script":
                 // inline scripts get a nonce
                 $src = $element->hasAttribute('src');
-                return !$src;
+                $inline = !$src;
                 break;
             case "style":
                 // styles are inline elements and get a nonce
-                return true;
+                $inline = true;
                 break;
             default:
                 // unhandled element nodeName
+                $inline = false;
+                break;
+        }
+        if($inline) {
+            return $this->isInRequirements($element);
+        } else {
+            // non inline element
+            return false;
+        }
+    }
+
+    /**
+     * Test if the element was added via {@link Requirements}
+     * Any element found in the HTML will not be given a nonce (e.g injected element)
+     * @param DOMElement $element
+     */
+    public function isInRequirements(DOMElement $element) {
+        $backend = Requirements::backend();
+        $value = trim($element->nodeValue);
+        switch(strtolower($element->nodeName)) {
+            case "script":
+                $scripts = $backend->getCustomScripts();
+                foreach($scripts as $uniq => $script) {
+                    $script_value = $this->addCdata($script);
+                    if($value == $script_value) {
+                        return true;
+                    }
+                }
+                return false;
+                break;
+            case "style":
+                $styles = $backend->getCustomCSS();
+                foreach($styles as $uniq => $style_value) {
+                    if($value == $style_value) {
+                        return true;
+                    }
+                }
+                return false;
+                break;
+            default:
                 return false;
                 break;
         }
+    }
+
+    /**
+     * Add the CDATA to match requirements, saves us from regex hell
+     * The templated requirement will include CDATA already
+     */
+    public function addCdata($script) {
+        return "//<![CDATA[\n{$script}\n//]]>";
     }
 
 }

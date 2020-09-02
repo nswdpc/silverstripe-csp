@@ -8,6 +8,7 @@ use Silverstripe\CMS\Model\SiteTree;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\View\Requirements;
 use DOMDocument;
 use DOMNode;
 use DOMNodeList;
@@ -646,7 +647,6 @@ class PolicyFunctionalTest extends FunctionalTest
             $home = SiteTree::get()->filter('URLSegment','home')->first();
             $home->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
-
             $result = $test->get('home/');// nonce created here
 
             $nonce = new Nonce();// get the nonce created
@@ -673,6 +673,7 @@ class PolicyFunctionalTest extends FunctionalTest
             $test->assertTrue( strpos($parts['style-src'], "'nonce-{$nonce}'") !== false, "Unmatched nonce {$nonce} in style-src {$parts['style-src']}" );
 
             try {
+
                 $expected_nonces = 0;
                 $found_nonces = 0;
                 libxml_use_internal_errors(true);
@@ -683,7 +684,6 @@ class PolicyFunctionalTest extends FunctionalTest
                 // gather scripts and styles, check nonces
                 $scripts = $dom->getElementsByTagName('script');
                 $styles = $dom->getElementsByTagName('style');
-                $links = $dom->getElementsByTagName('link');
 
                 $expected_nonces += $scripts->length;
                 $found_nonces += $this->verifyElements($scripts, $nonce);
@@ -691,11 +691,8 @@ class PolicyFunctionalTest extends FunctionalTest
                 $expected_nonces += $styles->length;
                 $found_nonces += $this->verifyElements($styles, $nonce);
 
-                $expected_nonces += $links->length;
-                $found_nonces += $this->verifyElements($links, $nonce);
-
             } catch (Exception $e) {
-                $test->assertTrue(false, $e->getMessage());
+                $test->assertTrue(false, "Exception:" . $e->getMessage());
             }
 
         });
@@ -707,24 +704,30 @@ class PolicyFunctionalTest extends FunctionalTest
      */
     private function verifyElements(DOMNodeList $nodelist, Nonce $nonce) {
         $found_nonces = 0;
-        $nonce_value = $nonce->get();
+        $nonce_value = $nonce->get();// the current nonce
         foreach($nodelist as $element) {
-            $nonce_found_value = $element->getAttribute('nonce');
-            if($element->hasAttribute('data-should-nonce')) {
-                $this->assertNotEquals(
-                        $element->getAttribute('data-should-nonce'),
-                        0,
-                        "Found <{$element->nodeName}> had data-should-nonce=0"
-                );
-            }
-            if($nonce->applicableElement($element)) {
+            /**
+             * verify that every element having a nonce attribute,
+             * that its value matches the nonce value
+             */
+            if($element->hasAttribute('nonce')) {
+                $nonce_found_value = $element->getAttribute('nonce');
                 $this->assertEquals(
                         $nonce_found_value,
                         $nonce_value,
                         "<{$element->nodeName}> nonce found value={$nonce_found_value} != {$nonce_value}"
                 );
-                $found_nonces++;
+            } else if($element->hasAttribute('data-should-nonce')) {
+                // no nonce attribute found.. but maybe it should have a nonce ?
+                $should = $element->getAttribute('data-should-nonce');
+                // to pass, the value should be zero
+                $this->assertEquals(
+                        $should, // 1 will mean it should have gotten a nonce, which is a failure
+                        0,
+                        "Found <{$element->nodeName}> with value {$element->nodeValue} which has a data-should-nonce={$should}"
+                );
             }
+
         }
         return $found_nonces;
     }
