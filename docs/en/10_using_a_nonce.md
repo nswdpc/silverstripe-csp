@@ -12,6 +12,7 @@ To work with inline scripts, either:
 + try to move any scripts in ```<script>``` tags to external scripts loaded from an approved host name.
 + use a hash of the script contents to approve certain inline scripts
 + use a nonce (**n**umber **once**) on all approved scripts
++ use the `strict-dynamic` directive
 
 ### Using a nonce
 

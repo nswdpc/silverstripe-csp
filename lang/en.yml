@@ -14,4 +14,4 @@ en:
     PRUNE_REPORTS_JOBTITLE: 'Remove CSP violation reports older than %d hour'
     REMOVED_COUNT_REPORTS: 'Removed %s reports(s)'
     MINIMUM_CSP_LEVEL: "Minimum CSP Level"
-    MINIMUM_CSP_LEVEL_DESCRIPTION: "Setting a higher level will remove from the policy features deprecated in previous versions, such as the 'report-uri' directive"
+    MINIMUM_CSP_LEVEL_DESCRIPTION: "Setting a higher level will remove from the policy features deprecated in previous versions, such as the 'report-uri' directive. 2 is a good setting."

@@ -2,11 +2,11 @@
 
 This module provides the ability to:
 
-+ Create one or more CSP records and make one of those the base policy for use on the website
++ Create one or more CSP records within the administration area and make one of those the base policy for use on the website
 + Set a CSP record to be report only
 + Collect CSP Violation reports internally via a controller or via a specific URL
 + Add page specific CSP records, which work with or without the base policy
-
++ Add a per-request nonce
 
 ## Versioning
 This is the Silverstripe 4.x version of the module, with releases tagged as v0.2 and up
@@ -16,28 +16,27 @@ The Silverstripe 3.x version with releases tagged as v0.1 - any future versions 
 ## Instructions
 
 0. Read the gotchas section below
-1. Install the module
-2. Add at least one policy record, best if you set it to 'report only' at the start & make it available on your draft site only
-3. Set the policy to be delivered via a meta tag or via a HTTP headers (recommended: HTTP headers)
-4. Enable the policy
-5. Watch for any violation reports
-
-A good set of settings to start out with is:
-1. Enabled: on - make it available for use
-2. Use on published website: off - only draft site readers will get the Content-Security-Policy
-3. Report Only: off or on - this is up to you. When off, assets that violate the policy will not be shown/evaluated
-4. Send Violation Reports: off or on - when on, reports will be sent to the configured reporting endpoint
+0. Install the module
+0. Add at least one Policy record in the "CSP" administration section.
+    * Set it to 'report only'
+    * Mark it as the 'base policy'
+    * Optionally, make it available on your draft site only
+0. Set the policy to be delivered via a HTTP headers (you can use meta tags but this method limits the feature you can use).
+0. Add some Directives
+0. Mark the Policy 'Enabled', save it and
+0. Watch for violation reports or look at your browser dev console
 
 When you are pleased with the settings, check the "Use on published website" setting and save.
 
 ## Page specific policies
 
-By default Pages can define a specific Policy for delivery when requested.
-If one is selected on the Settings tab of a page in the site tree, it is merged into the base policy (if it exists) or is used as the policy for that request.
+By default Pages can define an extra Policy for delivery when requested with the following caveat:
+
+> Adding additional policies can only further restrict the capabilities of the protected resource
 
 [MDN provides some useful information on this process](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies):
-> Adding additional policies can only further restrict the capabilities of the protected resource
-This means that you can't relax the base policy restrictions from within your page policy.
+
+This means that you can't (currently) relax the base policy restrictions from within your page policy.
 
 ## Using a nonce
 
@@ -53,10 +52,16 @@ Before nonce
 
 After nonce
 ```
-<script nonce="my_nonce">var = 'foo';</script>
+<script nonce="request_nonce">var = 'foo';</script>
 ```
 
 Application of the nonce occurs in middleware regardless of the Requirements backend used.
+
+Only inline scripts and style elements added by the Requirements API will get the nonce attribute added.
+
+Any script added in a template will not receive a nonce, to whitelist these scripts you should add a matching SHA256, SHA384 or SHA512 hash for the script (of everything between the <script></script> tags) to whitelist these scripts.
+
+If inline scripts are injected into your page, supporting browsers will block their execution.
 
 ## Gotchas
 
@@ -74,6 +79,7 @@ You can whitelist certain controllers in module config. This will block the poli
 > Override module configuration in your project configuration.
 
 ### Using meta tags
+
 You can choose to deliver the CSP via meta tags.
 
 Choosing this option will cause certain features to be unavailable
@@ -83,9 +89,10 @@ Choosing this option will cause certain features to be unavailable
 The only way to received policy violation reports is via HTTP Header delivery method.
 
 ## Violation Reports
-You can receive violation reports when they occur.
 
-The module provides its own endpoint for receiving violation reports - be aware that enabling the local reporting endpoint could cause load issues on higher traffic websites.
+You can choose to receive violation reports when they occur at a reporting service that can handle CSP reports.
+
+The module provides its own controller for receiving violation reports - be aware that enabling local reporting could cause load issues on higher traffic websites.
 
 ## Minimum CSP Level
 
@@ -98,11 +105,22 @@ Refer to the following for changes between levels
 The following developer documention URLs provide a wealth of information regarding CSP and web browser support:
 * [Google Developer Docs - CSP](https://developers.google.com/web/fundamentals/security/csp/)
 * [MDN docs - CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
+* [Content Security Policy (CSP) Quick Reference Guide](https://content-security-policy.com/)
 
-### Browser Compatibility
+## Browser Compatibility
 
 MDN provides an [extensive browser support matrix](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP#Browser_compatibility), as does [Can I Use](https://caniuse.com/#feat=contentsecuritypolicy)
 
+Note that Internet Explorer will never get support for nearly all CSP directives.
+
+## Authors
+
++ [dpcdigital@NSWDPC:~$](https://dpc.nsw.gov.au)
+
 ## Bugs
 
-Report bugs to the Github issues list
+Please report bugs to the Github issues list
+
+## License
+
+BSD-3 clause
