@@ -79,28 +79,27 @@ class Directive extends DataObject implements PermissionProvider
     public function possibleKeys()
     {
         $keys = [
-            'default-src' => 'the fallback for all directives',
-            'base-uri' => 'restricts the URLs which can be used in a document\'s <base> element',
-            'frame-src' => 'specifies valid sources for nested browsing contexts loading using elements such as <frame> and <iframe>',
-            'connect-src' => 'restricts the URLs which can be loaded using script interfaces (Restricted APIs: <a ping>, Fetch,  XHR, WebSocket, EventSource)',
-            'font-src' => 'specifies valid sources for fonts loaded using @font-face',
-            'form-action' => 'restricts the URLs which can be used as the target of a form submissions from a given context',
-            'frame-src' => 'specifies valid sources for nested browsing contexts loading using elements such as <frame> and <iframe>',
-            'frame-ancestors' => 'specifies valid parents that may embed a page using <frame>, <iframe>, <object>, <embed>, or <applet>',
-            'img-src' => 'specifies valid sources of images and favicons',
-            'media-src' => 'specifies valid sources for loading media using the <audio> and <video> elements',
-            'object-src' => 'specifies valid sources for the <object>, <embed>, and <applet> elements',
-            'script-src' => 'Specifies valid sources for JavaScript',
-            'style-src' => 'specifies valid sources for sources for stylesheets',
-            'upgrade-insecure-requests' => 'instructs user agents to treat all of a site\'s insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS)',
-            'worker-src' => 'specifies valid sources for Worker, SharedWorker, or ServiceWorker scripts',
-            'prefetch-src' => 'Specifies valid sources to be prefetched or prerendered',
-            'webrtc-src' => 'specifies valid sources for WebRTC connections',
-            'manifest-src' => 'specifies valid sources of application manifest files',
-            'plugin-types' => 'restricts the set of plugins that can be embedded into a document by limiting the types of resources which can be loaded',
-            'sandbox' => 'enables a sandbox for the requested resource similar to the <iframe> sandbox attribute',
-            'block-all-mixed-content' => 'prevents loading any assets using HTTP when the page is loaded using HTTPS',
-            'require-sri-for' => 'requires the use of SRI for scripts or styles on the page'
+            'default-src' => _t('ContentSecurityPolicy.DIRECTIVE_DEFAULT_SRC', 'the fallback for all directives'),
+            'base-uri' => _t('ContentSecurityPolicy.DIRECTIVE_BASE_URI', 'restricts the URLs which can be used in a document\'s <base> element'),
+            'frame-src' => _t('ContentSecurityPolicy.DIRECTIVE_FRAME_SRC', 'specifies valid sources for nested browsing contexts loading using elements such as <frame> and <iframe>'),
+            'connect-src' => _t('ContentSecurityPolicy.DIRECTIVE_CONNECT_SRC', 'restricts the URLs which can be loaded using script interfaces (Restricted APIs: <a ping>, Fetch,  XHR, WebSocket, EventSource)'),
+            'font-src' => _t('ContentSecurityPolicy.DIRECTIVE_FONT_SRC', 'specifies valid sources for fonts loaded using @font-face'),
+            'form-action' => _t('ContentSecurityPolicy.DIRECTIVE_FORM_ACTION', 'restricts the URLs which can be used as the target of a form submissions from a given context'),
+            'frame-ancestors' => _t('ContentSecurityPolicy.DIRECTIVE_FRAME_ANCESTORS', 'specifies valid parents that may embed a page using <frame>, <iframe>, <object>, <embed>, or <applet>'),
+            'img-src' => _t('ContentSecurityPolicy.DIRECTIVE_IMG_SRC', 'specifies valid sources of images and favicons'),
+            'media-src' => _t('ContentSecurityPolicy.DIRECTIVE_MEDIA_SRC', 'specifies valid sources for loading media using the <audio> and <video> elements'),
+            'object-src' => _t('ContentSecurityPolicy.DIRECTIVE_OBJECT_SRC', 'specifies valid sources for the <object>, <embed>, and <applet> elements'),
+            'script-src' => _t('ContentSecurityPolicy.DIRECTIVE_SCRIPT_SRC', 'Specifies valid sources for JavaScript'),
+            'style-src' => _t('ContentSecurityPolicy.DIRECTIVE_STYLE_SRC', 'specifies valid sources for sources for stylesheets'),
+            'upgrade-insecure-requests' => _t('ContentSecurityPolicy.DIRECTIVE_UPGRADE_INSECURE_REQUESTS', 'instructs user agents to treat all of a site\'s insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS)'),
+            'worker-src' => _t('ContentSecurityPolicy.DIRECTIVE_WORKER_SRC', 'specifies valid sources for Worker, SharedWorker, or ServiceWorker scripts'),
+            'prefetch-src' => _t('ContentSecurityPolicy.DIRECTIVE_PREFETCH_SRC', 'Specifies valid sources to be prefetched or prerendered'),
+            'webrtc-src' => _t('ContentSecurityPolicy.DIRECTIVE_WEBRTC_SRC', 'specifies valid sources for WebRTC connections'),
+            'manifest-src' => _t('ContentSecurityPolicy.DIRECTIVE_MANIFEST_SRC', 'specifies valid sources of application manifest files'),
+            'plugin-types' => _t('ContentSecurityPolicy.DIRECTIVE_PLUGIN_TYPES', 'restricts the set of plugins that can be embedded into a document by limiting the types of resources which can be loaded'),
+            'sandbox' => _t('ContentSecurityPolicy.DIRECTIVE_SANDBOX', 'enables a sandbox for the requested resource similar to the <iframe> sandbox attribute'),
+            'block-all-mixed-content' => _t('ContentSecurityPolicy.DIRECTIVE_BLOCK_ALL_MIXED_CONTENT', 'prevents loading any assets using HTTP when the page is loaded using HTTPS'),
+            'require-sri-for' => _t('ContentSecurityPolicy.DIRECTIVE_REQUIRE_SRI_FOR', 'requires the use of Sub-Resource Integrity (SRI) for scripts or styles on the page')
         ];
 
         ksort($keys);
@@ -145,7 +144,16 @@ class Directive extends DataObject implements PermissionProvider
 
         $fields->addFieldToTab(
             'Root.Main',
-            LiteralField::create('DirectiveHelper', '<p class="message notice">Prior to adding a directive, you should consult the <a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy">Content Security Policy MDN documentation</a><p>'),
+            LiteralField::create(
+                'DirectiveHelper',
+                '<p class="message notice">'
+                 . _t('ContentSecurityPolicy.DIRECTIVE_HELPER',
+                        'Prior to adding a directive, you should consult the '
+                        . 'Content Security Policy MDN documentation at '
+                        . 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy'
+                )
+                . '<p>'
+            ),
             'Key'
         );
 
