@@ -91,19 +91,22 @@ class ControllerExtension extends Extension
 
         // check for Page specific policies
         if ($this->owner instanceof ContentController && ($data = $this->owner->data())) {
-            $page_policy = Policy::getPagePolicy($data, $is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
-            if (!empty($page_policy->ID)) {
-                if (!empty($policy->ID)) {
-                    /**
-                     * SS_HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
-                     * Workaround is to set the page policy for merging when HeaderValues() is called
-                     * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies
-                     * Ref: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-                     */
-                    $policy->SetMergeFromPolicy($page_policy);
-                } else {
-                    // the page policy is *the* policy
-                    $policy = $page_policy;
+            // RULE: Ensure data is of instance of SiteTree - avoid other types i.e. ElementForm
+            if ($this->owner instanceof SiteTree) {
+                $page_policy = Policy::getPagePolicy($data, $is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
+                if (!empty($page_policy->ID)) {
+                    if (!empty($policy->ID)) {
+                        /**
+                         * SS_HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
+                         * Workaround is to set the page policy for merging when HeaderValues() is called
+                         * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies
+                         * Ref: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+                         */
+                        $policy->SetMergeFromPolicy($page_policy);
+                    } else {
+                        // the page policy is *the* policy
+                        $policy = $page_policy;
+                    }
                 }
             }
         }
