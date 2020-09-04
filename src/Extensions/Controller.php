@@ -93,7 +93,7 @@ class ControllerExtension extends Extension
         // check for Page specific policies
         if ($this->owner instanceof ContentController && ($data = $this->owner->data())) {
             // RULE: Ensure data is of instance of SiteTree - avoid other types i.e. ElementForm
-            if ($this->owner instanceof SiteTree) {
+            if ($this->owner->data() instanceof SiteTree) {
                 $page_policy = Policy::getPagePolicy($data, $is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
                 if (!empty($page_policy->ID)) {
                     if (!empty($policy->ID)) {
