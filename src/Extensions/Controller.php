@@ -11,6 +11,7 @@ use SilverStripe\Versioned\Versioned;
 use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\CMS\Controllers\ContentController;
 use SilverStripe\CMS\Controllers\ModelAsController;
+use SilverStripe\CMS\Model\SiteTree;
 
 /**
  * Provides an extension method so that the Controller can set the relevant CSP header
