@@ -1,8 +1,12 @@
 ## Reporting Services
 
-There are a number of services that can be used to collect CSP reports, one example is report-uri.com.
+You can choose to receive violation reports when they occur at a reporting service that can handle CSP reports.
 
-> The NSW Department of Premier and Cabinet does not make any service recommendations, this information is provided as a guide only and you are free to use whichever service you find suitable.
+The module provides its own controller for receiving violation reports - be aware that enabling local reporting could cause load issues on higher traffic websites.
+
+There are a number of external services that can be used to collect CSP reports, one example is report-uri.com.
+
+> NSWDPC does not make any service recommendations, this information is provided as a guide only and you are free to use whichever service you find suitable.
 
 ### Configuring Report URI
 
@@ -27,7 +31,7 @@ This will log violations to report-uri.com which will appear in the Reporting sc
 When you are comfortable your website will operate correctly with the Policy in place, you can switch to using the 'Enforce' URL and turn off "Report Only" in the module admin screen for the policy.
 
 
-##$ Other services for reporting
+### Other services for reporting
 
 + [https://github.com/seek-oss/csp-server - CSP (Content Security Policy) reports server which forwards reports to Elasticsearch.](https://github.com/seek-oss/csp-server)
 + [ttps://docs.sentry.io/error-reporting/security-policy-reporting/ - Sentry Security Policy Reporting](https://docs.sentry.io/error-reporting/security-policy-reporting/)

@@ -18,11 +18,20 @@ This is the Silverstripe 4.x version of the module, with releases tagged as v0.2
 
 The Silverstripe 3.x version with releases tagged as v0.1. While none are planned, any future releases of the `ss3` branch will remain at 0.1.x
 
+## Installation
+
+The only supported method of installing this module is via composer:
+
+```
+composer require nswdpc/silverstripe-csp
+```
+
 ## Instructions
 
 > :warning: An incorrectly implemented CSP can have negative effects for valid visitors to your website.
 
-0. Read the good-to-know section below
+0. Read the [initial documentation](./docs/en/00_index.md)
+0. Read the [good-to-know section](./docs/en/01_good_to_know.md)
 0. Install the module on a development instance of your website
 0. Add at least one Policy record in the "CSP" administration section.
     * Set it to 'report only'
@@ -49,17 +58,15 @@ This means that you can't (currently) relax the base policy restrictions from wi
 
 ## Using a nonce
 
-See [using a nonce](./01_using_a_nonce.md)
+See [using a nonce](./docs/en/01_using_a_nonce.md)
 
 ## Good-to-know
 
-See [good-to-know](./01_good_to_know.md)
+See [good-to-know](./docs/en/01_good_to_know.md)
 
 ## Violation Reports
 
-You can choose to receive violation reports when they occur at a reporting service that can handle CSP reports.
-
-The module provides its own controller for receiving violation reports - be aware that enabling local reporting could cause load issues on higher traffic websites.
+See [good-to-know](./docs/en/05_reporturi_and_other_services.md)
 
 ## Minimum CSP Level
 
