@@ -58,7 +58,7 @@ This means that you can't (currently) relax the base policy restrictions from wi
 
 ## Using a nonce
 
-See [using a nonce](./docs/en/01_using_a_nonce.md)
+See [using a nonce](./docs/en/10_using_a_nonce.md)
 
 ## Good-to-know
 
@@ -77,7 +77,7 @@ Refer to the following for changes between levels:
 
 ## Additional Help
 
-See [further reading](./docs/en/01_index.md#further-reading)
+See [further reading](./docs/en/00_index.md#further-reading)
 
 ## Browser Compatibility
 
