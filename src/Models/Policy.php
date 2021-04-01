@@ -21,15 +21,56 @@ use SilverStripe\CMS\Model\SiteTree;
  */
 class Policy extends DataObject implements PermissionProvider
 {
+
+    /**
+     * @var string
+     */
     private static $table_name = 'CspPolicy';
 
+    /**
+     * @var string
+     */
     private static $singular_name = 'Policy';
+
+    /**
+     * @var string
+     */
     private static $plural_name = 'Policies';
 
+    /**
+     * @var bool
+     */
     private static $include_report_to = false;// possible issue in Chrome when the report-to directive is set, seems the report-uri directive does not work!
+
+    /**
+     * @var bool
+     */
     private static $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
+
+    /**
+     * @var array
+     */
     private static $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
 
+    /**
+     * @var bool
+     */
+    private static $include_subdomains = true;// include subdomains in NEL
+
+    /**
+     * @var int
+     */
+    private static $nonce_length = 16;// the minimum length to create 128 bit nonce value
+
+    /**
+     * @var string
+     */
+    private static $nonce_injection_method = 'requirements';// the minimum length to create 128 bit nonce value
+
+    /**
+     * @var int
+     */
+    private static $max_age =  10886400;
 
     private $merge_from_policy;// at runtime set a policy to merge other directives from, into this policy
 
@@ -43,6 +84,9 @@ class Policy extends DataObject implements PermissionProvider
     const HEADER_CSP = 'Content-Security-Policy';
     const HEADER_REPORT_TO = 'Report-To';
     const HEADER_NEL = 'NEL';
+
+    const NONCE_INJECT_VIA_REQUIREMENTS = 'requirements';
+    const NONCE_INJECT_VIA_MIDDLEWARE = 'middleware';
 
     /**
      * Database fields

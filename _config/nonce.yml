@@ -8,3 +8,9 @@ SilverStripe\Core\Injector\Injector:
     properties:
       Middlewares:
         CSPMiddleware: '%$NSWDPC\Utilities\ContentSecurityPolicy\CSPMiddleware'
+---
+Name: csp_requirements
+---
+SilverStripe\Core\Injector\Injector:
+  SilverStripe\View\Requirements_Backend:
+    class: NSWDPC\Utilities\ContentSecurityPolicy\NonceRequirements_Backend

@@ -18,8 +18,7 @@ class CSPMiddleware implements HTTPMiddleware
 
     public function process(HTTPRequest $request, callable $delegate)
     {
-        $response = $this->applyCSP($request, $delegate);
-        return $response;
+        return $this->applyCSP($request, $delegate);
     }
 
     /**
@@ -45,36 +44,43 @@ class CSPMiddleware implements HTTPMiddleware
 
     /**
      * Apply the Content Security Policy changes, if any are required.
-     * @returns SilverStripe\Control\HTTPResponse
+     * If the middleware is not enabled, no changes are applied
+     * @return SilverStripe\Control\HTTPResponse
      */
-    protected function applyCSP(HTTPRequest $request, callable $delegate) {
+    protected function applyCSP(HTTPRequest $request, callable $delegate) : HTTPResponse {
+
         $response = $delegate($request);
-        $policy = $this->getPolicy($response);
-        if($policy) {
-            $parts = Policy::getNonceEnabledDirectives($policy);
-            if(!empty($parts)) {
-                // Creates a nonce
-                $nonce = new Nonce();
-                libxml_use_internal_errors(true);
-                $body = $response->getBody();
-                if(!$body) {
-                    return $response;
-                }
-                $dom = new DOMDocument();
-                $dom->loadHTML( $body , LIBXML_HTML_NODEFDTD );
-                if(!empty($parts['script-src'])) {
-                    $scripts = $dom->getElementsByTagName('script');
-                    $nonce->addToElements($scripts);
-                }
-                if(!empty($parts['style-src'])) {
-                    $styles = $dom->getElementsByTagName('style');
-                    $nonce->addToElements($styles);
-                }
-                $html = $dom->saveHTML();
-                $response->setBody($html);
-                libxml_clear_errors();
-            }
+
+        // check if enabled
+        if( Config::inst()->get( Policy::class, 'nonce_injection_method' ) != Policy::NONCE_INJECT_VIA_MIDDLEWARE ) {
+            return $response;
         }
+
+        // get the policy in use
+        $policy = $this->getPolicy($response);
+        if(!$policy) {
+            // no policy is set
+            return $response;
+        }
+
+        \libxml_use_internal_errors(true);
+        $body = $response->getBody();
+        if(!$body) {
+            return $response;
+        }
+
+        // apply nonce to these tags
+        $tags = ['script','style'];
+        $dom = new DOMDocument();
+        $dom->loadHTML( $body , LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
+        foreach($tags as $tag) {
+            $elements = $dom->getElementsByTagName($tag);
+            Nonce::addToElements($elements);
+        }
+        $html = $dom->saveHTML();
+        $response->setBody($html);
+        \libxml_clear_errors();
+
         return $response;
     }
 

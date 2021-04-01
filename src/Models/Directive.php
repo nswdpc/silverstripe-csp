@@ -246,9 +246,8 @@ class Directive extends DataObject implements PermissionProvider
         $value .= ($this->AllowDataUri == 1 ? " data:" : "");
         // Add the nonce if available and enabled for this directive
         if($this->UseNonce == 1) {
-            $nonce = new Nonce();
-            $nonce_value = $nonce->get();
-            $value .= " 'nonce-{$nonce_value}'";
+            $nonce = Nonce::getNonce();
+            $value .= " 'nonce-{$nonce}'";
         }
         $value .= " " . $this->getValuesFromRules();
         $value = trim($value);
