@@ -30,8 +30,8 @@ class ControllerExtension extends Extension
         // ADMIN check
         $is_in_admin = $this->owner instanceof LeftAndMain;
         if ($is_in_admin) {
-            $run_in_admin = Config::inst()->get(Policy::class, 'run_in_admin');
-            return $run_in_admin;
+            $run_in_modeladmin = Config::inst()->get(Policy::class, 'run_in_modeladmin');
+            return $run_in_modeladmin;
         }
 
         // Allow certain controllers to remove headers (as in the request is 'whitelisted')
@@ -84,9 +84,8 @@ class ControllerExtension extends Extension
         // only get enabled policy/directives
         $enabled_policy = $enabled_directives = true;
 
-        // return the nonce for this request
+        // set a CSP nonce for this request
         $nonce = new Nonce();
-        $nonce->get();
 
         $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
