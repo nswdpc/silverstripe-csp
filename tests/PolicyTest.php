@@ -1,12 +1,13 @@
 <?php
 
-namespace NSWDPC\Utilities\ContentSecurityPolicy;
+namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
 
 class PolicyTest extends SapphireTest
 {
+
     protected $usesDatabase = true;
 
     private $include_report_to = false;

@@ -15,6 +15,16 @@
             "role": "Developer"
         }
     ],
+    "autoload": {
+        "psr-4": {
+            "NSWDPC\\Utilities\\ContentSecurityPolicy\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "NSWDPC\\Utilities\\ContentSecurityPolicy\\Tests\\": "tests/"
+        }
+    },
     "require": {
         "ext-xml": "*",
         "silverstripe/framework": "^4",

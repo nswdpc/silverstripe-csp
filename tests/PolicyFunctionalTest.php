@@ -1,6 +1,6 @@
 <?php
 
-namespace NSWDPC\Utilities\ContentSecurityPolicy;
+namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
 use SilverStripe\Control\Controller;
 use SilverStripe\Dev\FunctionalTest;
