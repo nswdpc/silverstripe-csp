@@ -62,3 +62,4 @@ In production you can use a reporting tool such as report-uri.com to handle repo
 + [Chrome Content Security Policy notes](https://developer.chrome.com/extensions/contentSecurityPolicy)
 + [W3C CSP Level 2 Recommendation](https://www.w3.org/TR/CSP2/)
 + [W3C CSP Level 3 Draft Spec](https://www.w3.org/TR/CSP3/)
+* [Content Security Policy (CSP) Quick Reference Guide](https://content-security-policy.com/)

@@ -1,22 +1,29 @@
-# SilverStripe Content Security Policy module
+# Content Security Policy (CSP) module for Silverstripe websites
+
+> Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement to distribution of malware.
+
+Source: https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
 
 This module provides the ability to:
 
-+ Create one or more CSP records within the administration area and make one of those the base policy for use on the website
-+ Set a CSP record to be report only
++ Create one or more CSP records within the administration area of your website and make one of those the base policy for use on the website
++ Set a CSP record to be [report only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
 + Collect CSP Violation reports internally via a controller or via a specific URL
 + Add page specific CSP records, which work with or without the base policy
 + Add a per-request nonce
 
 ## Versioning
+
 This is the Silverstripe 4.x version of the module, with releases tagged as v0.2 and up
 
-The Silverstripe 3.x version with releases tagged as v0.1 - any future versions will remain at 0.1.x
+The Silverstripe 3.x version with releases tagged as v0.1. While none are planned, any future releases of the `ss3` branch will remain at 0.1.x
 
 ## Instructions
 
-0. Read the gotchas section below
-0. Install the module
+> :warning: An incorrectly implemented CSP can have negative effects for valid visitors to your website.
+
+0. Read the good-to-know section below
+0. Install the module on a development instance of your website
 0. Add at least one Policy record in the "CSP" administration section.
     * Set it to 'report only'
     * Mark it as the 'base policy'
@@ -27,6 +34,8 @@ The Silverstripe 3.x version with releases tagged as v0.1 - any future versions 
 0. Watch for violation reports or look at your browser dev console
 
 When you are pleased with the settings, check the "Use on published website" setting and save.
+
+After UAT is complete, implement the same process on your production website. You should run the policy as report-only and monitor reports, initially.
 
 ## Page specific policies
 
@@ -40,53 +49,11 @@ This means that you can't (currently) relax the base policy restrictions from wi
 
 ## Using a nonce
 
-The module will set a nonce ('number once') per request, which will be applied to relevant elements in the page prior to output. This is a handy way to whitelist inline trusted scripts that are added by modules.
+See [using a nonce](./01_using_a_nonce.md)
 
-In order to use the nonce in the relevant elements, the directive value "Use Nonce" must be checked in the Directive's admin screen.
+## Good-to-know
 
-### Examples
-Before nonce
-```
-<script>var = 'foo';</script>
-```
-
-After nonce
-```
-<script nonce="request_nonce">var = 'foo';</script>
-```
-
-Application of the nonce occurs in middleware regardless of the Requirements backend used.
-
-Only inline scripts and style elements added by the Requirements API will get the nonce attribute added.
-
-Any script added in a template will not receive a nonce, to whitelist these scripts you should add a matching SHA256, SHA384 or SHA512 hash for the script (of everything between the <script></script> tags) to whitelist these scripts.
-
-If inline scripts are injected into your page, supporting browsers will block their execution.
-
-## Gotchas
-
-### unsafe-eval in the /admin
-The Silverstripe Admin requires the CSP directive ```'unsafe-eval'``` for ```script-src```. [It's wise to not allow unsafe-eval in a policy](https://developers.google.com/web/fundamentals/security/csp/#eval_too) - but if this is not set in a policy, the admin will not load.
-
-To avoid getting locked out of the admin, set the ```run_in_admin``` config value to ```false``` - note that this will stop the policy from being delivered in any controller that is a child of ```LeftAndMain```
-
-The configuration value ```run_in_admin``` is shipped as false by default.
-
-### Whitelisting controllers
-
-You can whitelist certain controllers in module config. This will block the policy from being delivered in those controllers.
-
-> Override module configuration in your project configuration.
-
-### Using meta tags
-
-You can choose to deliver the CSP via meta tags.
-
-Choosing this option will cause certain features to be unavailable
-* The ```report-uri``` and ```report-to``` directives are not supported in meta tags and will not be present
-* The ```Content-Security-Policy-Report-Only``` header is not supported, currently.
-
-The only way to received policy violation reports is via HTTP Header delivery method.
+See [good-to-know](./01_good_to_know.md)
 
 ## Violation Reports
 
@@ -96,31 +63,36 @@ The module provides its own controller for receiving violation reports - be awar
 
 ## Minimum CSP Level
 
-Refer to the following for changes between levels
+Refer to the following for changes between levels:
+
 + [Changes from Level 1 to 2](https://www.w3.org/TR/CSP2/#changes-from-level-1)
 + [Changes from Level 2 to 3](https://www.w3.org/TR/CSP3/#changes-from-level-2)
 
 ## Additional Help
 
-The following developer documention URLs provide a wealth of information regarding CSP and web browser support:
-* [Google Developer Docs - CSP](https://developers.google.com/web/fundamentals/security/csp/)
-* [MDN docs - CSP](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)
-* [Content Security Policy (CSP) Quick Reference Guide](https://content-security-policy.com/)
+See [further reading](./docs/en/01_index.md#further-reading)
 
 ## Browser Compatibility
 
-MDN provides an [extensive browser support matrix](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP#Browser_compatibility), as does [Can I Use](https://caniuse.com/#feat=contentsecuritypolicy)
+See [browser support](./docs/en/02_browser_support.md)
 
-Note that Internet Explorer will never get support for nearly all CSP directives.
-
-## Authors
+## Maintainers
 
 + [dpcdigital@NSWDPC:~$](https://dpc.nsw.gov.au)
 
-## Bugs
 
-Please report bugs to the Github issues list
+## Bugtracker
 
-## License
+We welcome bug reports, pull requests and feature requests on the Github Issue tracker for this project.
 
-BSD-3 clause
+Please review the [code of conduct](./code-of-conduct.md) prior to opening a new issue.
+
+## Security
+
+If you have found a security issue with this module, please email digital[@]dpc.nsw.gov.au in the first instance, detailing your findings.
+
+## Development and contribution
+
+If you would like to make contributions to the module please ensure you raise a pull request and discuss with the module maintainers.
+
+Please review the [code of conduct](./code-of-conduct.md) prior to completing a pull request.

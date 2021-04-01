@@ -1,4 +1,33 @@
-## Using a nonce and/or script/style hash
+# Using a nonce
+
+## Background
+
+The module will set a nonce ('number once') per request, which will be applied to relevant elements in the page prior to output. This is a handy way to whitelist inline trusted scripts that are added by modules.
+
+In order to use the nonce in the relevant elements, the directive value "Use Nonce" must be checked in the Directive's administration screen.
+
+### Examples
+
+Before nonce
+```
+<script>var = 'foo';</script>
+```
+
+After nonce
+```
+<script nonce="request_nonce">var = 'foo';</script>
+```
+
+Application of the nonce occurs in middleware regardless of the Requirements backend used.
+
+Only inline scripts and style elements added by the Requirements API will get the nonce attribute added.
+
+Any script added in a template will not receive a nonce, to whitelist these scripts you should add a matching SHA256, SHA384 or SHA512 hash for the script (of everything between the <script></script> tags) to whitelist these scripts.
+
+> If inline scripts are injected into your page, supporting browsers will block their execution.
+
+
+## Further information
 
 Most websites will make use of inline scripts to perform certain actions. This can be as simple as an onload attribute in an ```<img>``` tag or  use of Google Tag Manager.
 
@@ -14,21 +43,7 @@ To work with inline scripts, either:
 + use a nonce (**n**umber **once**) on all approved scripts
 + use the `strict-dynamic` directive
 
-### Using a nonce
-
-> Nonce support can currently be found in the feature-nonce branch
-
-Currently on the ```feature-nonce``` branch under development, the module supports adding a nonce to the policy by default.
-
-You can ensure certain directives use the nonce by checking the "Use Nonce" checkbox in the relevant Directive admin screen.
-
-On output, the nonce will added to all script, link and style tags, provided that their relevant directives have the "Use Nonce" checkbox checked.
-
-This is done via HTTP middleware in Silverstripe 4 rather than via a Requirements backend and as such is able to add the nonce to all relevant elements in the page, even if they are added via module templates or in a module admin screen.
-
-> Inline scripts that are added dynamically will not have the nonce of the current request and will be blocked. If you use a service such as Google Tag Manager, this is something to be aware of.
-
-### Using a hash
+### Alternative: using an integrity hash
 
 CSP allows you to use a hash of the contents of a script or style tag to be added to the relevant directive, such that inline resources matching the hash are allowed to run.
 
@@ -58,6 +73,7 @@ sha256-TtP3pUooIY6AQqO/ARoT0XwDLJ5XkPvFN7Pr5uJynHk=
 ```
 
 When generating a value, note the following information from the CSP spec:
+
 >  When generating the hash, don't include the ```<script>``` or ```<style>``` tags and note that capitalisation and whitespace matter, including leading or trailing whitespace
 
 Once you have obtained the hash value, it can be added to the relevant directive.
