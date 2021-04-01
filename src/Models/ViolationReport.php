@@ -2,7 +2,8 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use Silverstripe\ORM\DataObject;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\ReadonlyTransformation;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;

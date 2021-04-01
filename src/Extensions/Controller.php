@@ -2,7 +2,7 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use Silverstripe\Core\Extension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Control\Director;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Admin\ModelAdmin;
@@ -82,7 +82,7 @@ class ControllerExtension extends Extension
         $is_live = ($stage == Versioned::LIVE);
 
         // only get enabled policy/directives
-        $enabled_policy = $enabled_directives = 1;
+        $enabled_policy = $enabled_directives = true;
 
         // return the nonce for this request
         $nonce = new Nonce();
@@ -98,12 +98,12 @@ class ControllerExtension extends Extension
                 if (!empty($page_policy->ID)) {
                     if (!empty($policy->ID)) {
                         /**
-                         * SS_HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
+                         * HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
                          * Workaround is to set the page policy for merging when HeaderValues() is called
                          * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies
                          * Ref: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
                          */
-                        $policy->SetMergeFromPolicy($page_policy);
+                        $policy->setMergeFromPolicy($page_policy);
                     } else {
                         // the page policy is *the* policy
                         $policy = $page_policy;

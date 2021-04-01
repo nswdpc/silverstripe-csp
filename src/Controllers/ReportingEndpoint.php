@@ -50,10 +50,17 @@ Array
  */
 class ReportingEndpoint extends Controller
 {
+
+    /**
+     * @var array
+     */
     private static $allowed_actions = [
         'report'
     ];
 
+    /**
+     * @var array
+     */
     private static $url_handlers = [
         'v1/report' => 'report'
     ];

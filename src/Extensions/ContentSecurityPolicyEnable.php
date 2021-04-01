@@ -2,7 +2,7 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use Silverstripe\Core\Extension;
+use SilverStripe\Core\Extension;
 
 /**
  * Apply this to relevant controller types to enable CSP header delivery

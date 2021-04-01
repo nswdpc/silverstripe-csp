@@ -347,7 +347,7 @@ class Policy extends DataObject implements PermissionProvider
      * According to MDN "Adding additional policies can only further restrict the capabilities of the protected resource"
      * @param Policy the policy to merge directives from, into this Policy
      */
-    public function SetMergeFromPolicy(Policy $merge_from_policy)
+    public function setMergeFromPolicy(Policy $merge_from_policy)
     {
         $this->merge_from_policy = $merge_from_policy;
     }
@@ -428,6 +428,7 @@ class Policy extends DataObject implements PermissionProvider
      * Header values
      * @returns array
      * @param boolean $enabled
+     * @param string $method
      * @param boolean $pretty
      */
     public function HeaderValues($enabled = 1, $method = self::POLICY_DELIVERY_METHOD_HEADER, $pretty = false)
