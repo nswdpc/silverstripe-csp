@@ -66,7 +66,7 @@ See [good-to-know](./docs/en/01_good_to_know.md)
 
 ## Violation Reports
 
-See [good-to-know](./docs/en/05_reporturi_and_other_services.md)
+See [reporting](./docs/en/05_reporturi_and_other_services.md)
 
 ## Minimum CSP Level
 
