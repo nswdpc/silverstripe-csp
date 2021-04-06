@@ -75,6 +75,12 @@ class Policy extends DataObject implements PermissionProvider
      */
     private static $max_age =  10886400;
 
+    /**
+     * Set to true to override the result of  self::checkCanApply()
+     * @var boolean
+     */
+    private static $override_apply = false;
+
     private $merge_from_policy;// at runtime set a policy to merge other directives from, into this policy
 
     const POLICY_DELIVERY_METHOD_HEADER = 'Header';
@@ -626,6 +632,11 @@ class Policy extends DataObject implements PermissionProvider
 
         if(!Controller::has_curr()) {
             return false;
+        }
+
+        $override = Config::inst()->get(Policy::class, 'override_apply');
+        if($override) {
+            return true;
         }
 
         $controller = Controller::curr();

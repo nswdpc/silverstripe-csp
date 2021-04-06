@@ -4,8 +4,9 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
 use NSWDPC\Utilities\ContentSecurityPolicy\Nonce;
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
-use SilverStripe\Dev\SapphireTest;
+use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Dev\SapphireTest;
 
 class NonceTest extends SapphireTest {
 
@@ -45,5 +46,31 @@ class NonceTest extends SapphireTest {
         $value = Nonce::getNonce();
         $this->assertEquals(strlen($value), $length, "Nonce should not be {$length} chrs");
 
+    }
+
+    /**
+     * Test application of attributes
+     */
+    public function testApplyAttributes() {
+
+        Config::inst()->update( Policy::class, 'override_apply', false);
+
+        $this->assertFalse( Policy::checkCanApply(), 'Policy should NOT be applicable' );
+
+        Config::inst()->update( Policy::class, 'override_apply', true);
+
+        $this->assertTrue( Policy::checkCanApply(), 'Policy should be applicable' );
+
+        $attributes = [
+            'type' => 'text/css',
+            'media' => 'screen'
+        ];
+
+        $nonce = new Nonce(true);
+        $nonceValue = Nonce::getNonce();
+        Nonce::addToAttributes('style', $attributes);
+
+        $this->assertTrue( array_key_exists('nonce', $attributes) );
+        $this->assertEquals( $nonceValue, $attributes['nonce'] );
     }
 }
