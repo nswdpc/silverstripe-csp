@@ -21,43 +21,6 @@ use SilverStripe\CMS\Model\SiteTree;
 class ControllerExtension extends Extension
 {
 
-    /**
-     * Check to see if the current Controller allows a CSP header
-     */
-    private function checkCanRun()
-    {
-
-        // ADMIN check
-        $is_in_admin = $this->owner instanceof LeftAndMain;
-        if ($is_in_admin) {
-            $run_in_modeladmin = Config::inst()->get(Policy::class, 'run_in_modeladmin');
-            return $run_in_modeladmin;
-        }
-
-        // Allow certain controllers to remove headers (as in the request is 'whitelisted')
-        $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
-        if (is_array($whitelisted_controllers) && in_array(get_class($this->owner), $whitelisted_controllers)) {
-            return false;
-        }
-
-        if ($this->owner instanceof ContentController) {
-            // all ContentControllers are enabled
-            return true;
-        }
-
-        /**
-         * Any controller that implements this method can return it
-         * This can be accessed either via a trait or via applying the ContentSecurityPolicyEnable extension to a Controller type
-         */
-        if (method_exists($this->owner, 'EnableContentSecurityPolicy')
-            || $this->owner->hasMethod('EnableContentSecurityPolicy')) {
-            return $this->owner->EnableContentSecurityPolicy();
-        }
-
-        // Do not enable by default on all controllers
-        return false;
-    }
-
     public function onAfterInit()
     {
 
@@ -67,7 +30,7 @@ class ControllerExtension extends Extension
         }
 
         // check if we can proceed
-        if (!$this->checkCanRun()) {
+        if (!Policy::checkCanApply()) {
             return;
         }
 

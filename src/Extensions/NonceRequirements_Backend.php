@@ -4,93 +4,134 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use SilverStripe\View\Requirements_Backend;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\View\HTML;
 
 class NonceRequirements_Backend extends Requirements_Backend
 {
 
     /**
-     * @var \DOMDocument
+     * Update the given HTML content with the appropriate include tags for the registered
+     * requirements. Needs to receive a valid HTML/XHTML template in the $content parameter,
+     * including a head and body tag.
+     *
+     * @param string $content HTML content that has already been parsed from the $templateFile
+     *                             through {@link SSViewer}
+     * @return string HTML content augmented with the requirements tags
      */
-    protected $domDocument = null;
-
-    /**
-     * @return DOMDocument
-     */
-    protected function getDOMDocument() : \DOMDocument {
-        if(!$this->domDocument) {
-            $this->domDocument = new \DOMDocument();
+    public function includeInHTML($content)
+    {
+        if (func_num_args() > 1) {
+            Deprecation::notice(
+                '5.0',
+                '$templateFile argument is deprecated. includeInHTML takes a sole $content parameter now.'
+            );
+            $content = func_get_arg(1);
         }
-        return $this->domDocument;
-    }
 
-    /**
-     * Given an HTML string containing script, style or link tags
-     * apply the nonce value to each tag
-     */
-    protected function applyNonce(string $html) : string {
-        // check if enabled
-        if( Config::inst()->get( Policy::class, 'nonce_injection_method') != Policy::NONCE_INJECT_VIA_REQUIREMENTS ) {
-            return $html;
+        // Skip if content isn't injectable, or there is nothing to inject
+        $tagsAvailable = preg_match('#</head\b#', $content);
+        $hasFiles = $this->css || $this->javascript || $this->customCSS || $this->customScript || $this->customHeadTags;
+        if (!$tagsAvailable || !$hasFiles) {
+            return $content;
         }
-        $html = trim($html);
-        \libxml_use_internal_errors(true);
-        $dom = $this->getDOMDocument();
-        $id = bin2hex(random_bytes(4));
-        // document prefix and suffix
-        // use a random ID comment to avoid collisions in str_replace
-        $prefix = "<html><!-- {$id} --><body>";
-        $suffix = "</body><!-- {$id} --></html>";
-        // create an html document out of the fragment
-        $document = $prefix . $html . $suffix;
-        $dom->loadHTML( $document, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD );
-        $tags = ['script','style'];
-        $modified = false;
-        foreach($tags as $tag) {
-            $elements = $dom->getElementsByTagName($tag);
-            if($elements->length > 0) {
-                $modified = true;
-                Nonce::addToElements( $elements );
+        $requirements = '';
+        $jsRequirements = '';
+
+        // Combine files - updates $this->javascript and $this->css
+        $this->processCombinedFiles();
+
+        // Script tags for js links
+        foreach ($this->getJavascript() as $file => $attributes) {
+            // Build html attributes
+            $htmlAttributes = [
+                'type' => isset($attributes['type']) ? $attributes['type'] : "application/javascript",
+                'src' => $this->pathForFile($file),
+            ];
+            if (!empty($attributes['async'])) {
+                $htmlAttributes['async'] = 'async';
             }
+            if (!empty($attributes['defer'])) {
+                $htmlAttributes['defer'] = 'defer';
+            }
+            if (!empty($attributes['integrity'])) {
+                $htmlAttributes['integrity'] = $attributes['integrity'];
+            }
+            if (!empty($attributes['crossorigin'])) {
+                $htmlAttributes['crossorigin'] = $attributes['crossorigin'];
+            }
+            $tag = 'script';
+            Nonce::addToAttributes($tag, $htmlAttributes);
+            $jsRequirements .= HTML::createTag($tag, $htmlAttributes);
+            $jsRequirements .= "\n";
         }
-        if($modified) {
-            $html = $dom->saveHTML();
-            // ensure the surrounding html and body tags are removed
-            $html = str_replace([$prefix, $suffix], "", $html);
+
+        // Add all inline JavaScript *after* including external files they might rely on
+        foreach ($this->getCustomScripts() as $script) {
+            $attributes = [
+                'type' => 'application/javascript'
+            ];
+            $tag = 'script';
+            Nonce::addToAttributes($tag, $attributes);
+            $jsRequirements .= HTML::createTag(
+                $tag,
+                $attributes,
+                "//<![CDATA[\n{$script}\n//]]>"
+            );
+            $jsRequirements .= "\n";
         }
-        \libxml_clear_errors();
-        return $html;
-    }
 
-    /**
-     * @inheritDoc
-     * Add the nonce attribute to the HTML passed in prior to adding to content
-     */
-    protected function insertScriptsIntoBody($html, $content)
-    {
-        $html = $this->applyNonce($html);
-        $content = parent::insertScriptsIntoBody($html, $content);
-        return $content;
-    }
+        // CSS file links
+        foreach ($this->getCSS() as $file => $params) {
+            $htmlAttributes = [
+                'rel' => 'stylesheet',
+                'type' => 'text/css',
+                'href' => $this->pathForFile($file),
+            ];
+            if (!empty($params['media'])) {
+                $htmlAttributes['media'] = $params['media'];
+            }
+            if (!empty($params['integrity'])) {
+                $htmlAttributes['integrity'] = $params['integrity'];
+            }
+            if (!empty($params['crossorigin'])) {
+                $htmlAttributes['crossorigin'] = $params['crossorigin'];
+            }
+            $tag = 'link';
+            Nonce::addToAttributes($tag, $htmlAttributes);
+            $requirements .= HTML::createTag($tag, $htmlAttributes);
+            $requirements .= "\n";
+        }
 
-    /**
-     * @inheritDoc
-     * Add the nonce attribute to the HTML passed in prior to adding to content
-     */
-    protected function insertTagsIntoHead($html, $content)
-    {
-        $html = $this->applyNonce($html);
-        $content = parent::insertTagsIntoHead($html, $content);
-        return $content;
-    }
+        // Literal custom CSS content
+        foreach ($this->getCustomCSS() as $css) {
+            $attributes = [
+                'type' => 'text/css'
+            ];
+            $tag = 'style';
+            Nonce::addToAttributes($tag, $attributes);
+            $requirements .= HTML::createTag(
+                $tag,
+                $attributes,
+                "\n{$css}\n"
+            );
+            $requirements .= "\n";
+        }
 
-    /**
-     * @inheritDoc
-     * Add the nonce attribute to the HTML passed in prior to adding to content
-     */
-    protected function insertScriptsAtBottom($html, $content)
-    {
-        $html = $this->applyNonce($html);
-        $content = parent::insertScriptsAtBottom($html, $content);
+        foreach ($this->getCustomHeadTags() as $customHeadTag) {
+            $requirements .= "{$customHeadTag}\n";
+        }
+
+        // Inject CSS  into body
+        $content = $this->insertTagsIntoHead($requirements, $content);
+
+        // Inject scripts
+        if ($this->getForceJSToBottom()) {
+            $content = $this->insertScriptsAtBottom($jsRequirements, $content);
+        } elseif ($this->getWriteJavascriptToBody()) {
+            $content = $this->insertScriptsIntoBody($jsRequirements, $content);
+        } else {
+            $content = $this->insertTagsIntoHead($jsRequirements, $content);
+        }
         return $content;
     }
 

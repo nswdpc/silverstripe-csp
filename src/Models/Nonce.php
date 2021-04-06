@@ -57,6 +57,18 @@ class Nonce
     }
 
     /**
+     * Add nonce to an array of HTML attributes
+     * @param string $tag
+     * @param array $attributes
+     * @return void
+     */
+    public static function addToAttributes(string $tag, array &$attributes) {
+        if(Policy::checkCanApply()) {
+            $attributes['nonce'] = self::getNonce();
+        }
+    }
+
+    /**
      * Add nonce to HTML nodes
      * @param DOMNodeList $list
      * @return void

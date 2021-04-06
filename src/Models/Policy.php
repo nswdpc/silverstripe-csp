@@ -2,6 +2,8 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
+use SilverStripe\Control\Controller;
+use SilverStripe\Core\Config\Config;
 use Silverstripe\Core\Convert;
 use Silverstripe\ORM\DataObject;
 use Silverstripe\Forms\LiteralField;
@@ -13,6 +15,7 @@ use Silverstripe\Forms\OptionsetField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use SilverStripe\ORM\DB;
+use SilverStripe\CMS\Controllers\ContentController;
 use SilverStripe\CMS\Model\SiteTree;
 
 /**
@@ -613,6 +616,46 @@ class Policy extends DataObject implements PermissionProvider
             }
         }
         return $directives;
+    }
+
+    /**
+     * Check if the policy can be applied based on configuration and the state of the current request
+     * @return bool
+     */
+    public static function checkCanApply() : bool {
+
+        if(!Controller::has_curr()) {
+            return false;
+        }
+
+        $controller = Controller::curr();
+
+        // check if the controller is part of the administration area
+        // and whether to apply the policy or not
+        if ($controller instanceof LeftAndMain) {
+            return Config::inst()->get(Policy::class, 'run_in_modeladmin');
+        }
+
+        // Allow certain controllers to remove headers (as in the request is 'whitelisted')
+        // @todo this should be renamed to "bypass" or similar
+        $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
+        if (is_array($whitelisted_controllers) && in_array(get_class($controller), $whitelisted_controllers)) {
+            return false;
+        }
+
+        // all ContentControllers are enabled
+        if ($controller instanceof ContentController) {
+            return true;
+        }
+
+        // Any controller that implements this method can determine whether to apply the policy or not
+        if (method_exists($controller, 'EnableContentSecurityPolicy')
+            || $controller->hasMethod('EnableContentSecurityPolicy')) {
+            return $controller->EnableContentSecurityPolicy();
+        }
+
+        // Do not enable by default on all controllers
+        return false;
     }
 
     public function canView($member = null)
