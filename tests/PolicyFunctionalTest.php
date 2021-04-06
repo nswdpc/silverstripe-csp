@@ -2,6 +2,10 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
+use NSWDPC\Utilities\ContentSecurityPolicy\Directive;
+use NSWDPC\Utilities\ContentSecurityPolicy\Nonce;
+use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
+use NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension;
 use SilverStripe\Control\Controller;
 use SilverStripe\Dev\FunctionalTest;
 use Silverstripe\CMS\Model\SiteTree;
@@ -649,10 +653,9 @@ class PolicyFunctionalTest extends FunctionalTest
 
             $result = $test->get('home/');// nonce created here
 
-            $nonce = new Nonce();// get the nonce created
-            $nonce->get();
-
-            $this->assertNotEmpty($nonce->get(), "Generated nonce is empty");
+            // $nonce = new Nonce(true);
+            $nonceValue = Nonce::getNonce();// get the nonce created
+            $this->assertNotEmpty($nonceValue, "Generated nonce is empty");
 
             $test->assertTrue($result instanceof HttpResponse);
 
@@ -669,8 +672,8 @@ class PolicyFunctionalTest extends FunctionalTest
             $test->assertTrue( array_key_exists('script-src', $enabled_directives), 'script-src does not have a nonce' );
             $test->assertTrue( array_key_exists('style-src', $enabled_directives), 'style-src does not have a nonce' );
 
-            $test->assertTrue( strpos($parts['script-src'], "'nonce-{$nonce}'") !== false, "Unmatched nonce {$nonce} in script-src {$parts['script-src']}" );
-            $test->assertTrue( strpos($parts['style-src'], "'nonce-{$nonce}'") !== false, "Unmatched nonce {$nonce} in style-src {$parts['style-src']}" );
+            $test->assertTrue( strpos($parts['script-src'], "'nonce-{$nonceValue}'") !== false, "Unmatched nonce {$nonceValue} in script-src {$parts['script-src']}" );
+            $test->assertTrue( strpos($parts['style-src'], "'nonce-{$nonceValue}'") !== false, "Unmatched nonce {$nonceValue} in style-src {$parts['style-src']}" );
 
             try {
 
@@ -686,10 +689,10 @@ class PolicyFunctionalTest extends FunctionalTest
                 $styles = $dom->getElementsByTagName('style');
 
                 $expected_nonces += $scripts->length;
-                $found_nonces += $this->verifyElements($scripts, $nonce);
+                $found_nonces += $this->verifyElements($scripts);
 
                 $expected_nonces += $styles->length;
-                $found_nonces += $this->verifyElements($styles, $nonce);
+                $found_nonces += $this->verifyElements($styles);
 
             } catch (Exception $e) {
                 $test->assertTrue(false, "Exception:" . $e->getMessage());
@@ -700,11 +703,11 @@ class PolicyFunctionalTest extends FunctionalTest
     }
 
     /**
-     * Given an {@link DOMNodeList} list of nodes, verify that each one has a nonce
+     * Given an {@link DOMNodeList} list of nodes, verify that each one has the current nonce
      */
-    private function verifyElements(DOMNodeList $nodelist, Nonce $nonce) {
+    private function verifyElements(DOMNodeList $nodelist) {
         $found_nonces = 0;
-        $nonce_value = $nonce->get();// the current nonce
+        $nonce_value = Nonce::getNonce();// the current nonce
         foreach($nodelist as $element) {
             /**
              * verify that every element having a nonce attribute,

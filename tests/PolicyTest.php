@@ -2,6 +2,10 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
+use NSWDPC\Utilities\ContentSecurityPolicy\Directive;
+use NSWDPC\Utilities\ContentSecurityPolicy\Nonce;
+use NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint;
+use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
 
