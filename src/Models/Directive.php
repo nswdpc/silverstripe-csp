@@ -70,7 +70,7 @@ class Directive extends DataObject implements PermissionProvider
 
     public function getTitle()
     {
-        return substr($this->Key . " " . $this->getDirectiveValue(), 0, 100) . "...";
+        return substr($this->Key . " " . $this->getDirectiveValue(true), 0, 100) . "...";
     }
 
     /**
@@ -200,7 +200,7 @@ class Directive extends DataObject implements PermissionProvider
 
         $fields->addFieldToTab(
             'Root.Main',
-            TextareaField::create('LiteralRules', 'Current directive value', htmlspecialchars($this->getDirectiveValue())),
+            TextareaField::create('LiteralRules', 'Current directive value', htmlspecialchars($this->getDirectiveValue(true))),
             'Rules'
         );
 
@@ -239,14 +239,20 @@ class Directive extends DataObject implements PermissionProvider
     * Returns the directive value for use in a header
     * @returns string
     */
-    public function getDirectiveValue()
+    public function getDirectiveValue(bool $useFakeNonce = false)
     {
         $value = ($this->IncludeSelf == 1 ? "'self'" : "");
         $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
         $value .= ($this->AllowDataUri == 1 ? " data:" : "");
         // Add the nonce if available and enabled for this directive
         if($this->UseNonce == 1) {
-            $nonce = Nonce::getNonce();
+            if($useFakeNonce) {
+                // for display in CMS or similar
+                $nonce = _t(__CLASS__ . ".SAMPLE_NONCE_ONLY", "sampleonly");
+            } else {
+                // use the nonce init'd in the controller
+                $nonce = Nonce::getNonce();
+            }
             $value .= " 'nonce-{$nonce}'";
         }
         $value .= " " . $this->getValuesFromRules();
