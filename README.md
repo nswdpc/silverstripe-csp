@@ -12,6 +12,10 @@ This module provides the ability to:
 + Add page specific CSP records, which work with or without the base policy
 + Add a per-request nonce
 
+Once a CSP is in place and working, any assets loads that do not meet policy requirements will be blocked from loading, with warnings similar to this in the browser dev console:
+
+<code>Refused to load the script 'https://badactor.example.com/eval.js' because it violates the following Content Security Policy directive: "script-src 'self' 'nonce-example' https://cdnjs.cloudflare.com/".</code>
+
 ## Versioning
 
 This is the Silverstripe 4.x version of the module, with releases tagged as v0.2 and up
