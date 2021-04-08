@@ -2,8 +2,11 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
-use SilverStripe\Dev\SapphireTest;
+use NSWDPC\Utilities\ContentSecurityPolicy\Nonce;
+use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
+use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Dev\SapphireTest;
 
 class NonceTest extends SapphireTest {
 
@@ -13,9 +16,9 @@ class NonceTest extends SapphireTest {
         $length = round($min_length / 2);
         Config::inst()->update( Policy::class, 'nonce_length', $length);
         $nonce = new Nonce(true);
-        $this->assertNotEmpty($nonce->get(), "Nonce is empty");
+        $this->assertNotEmpty(Nonce::getNonce(), "Nonce is empty");
         // nonce should be a minimum of 32 chrs
-        $value = $nonce->get();
+        $value = Nonce::getNonce();
         $this->assertNotEquals(strlen($value), $length, "Nonce should not be {$length} chrs, {$min_length} chr minimum");
     }
 
@@ -26,8 +29,8 @@ class NonceTest extends SapphireTest {
         $length = $min_length;
         Config::inst()->update( Policy::class, 'nonce_length', $length);
         $nonce = new Nonce(true);
-        $this->assertNotEmpty($nonce->get(), "Nonce is empty");
-        $value = $nonce->get();
+        $this->assertNotEmpty(Nonce::getNonce(), "Nonce is empty");
+        $value = Nonce::getNonce();
         $this->assertEquals(strlen($value), $length, "Nonce should be {$length} chrs");
 
     }
@@ -39,9 +42,35 @@ class NonceTest extends SapphireTest {
         $length = ($min_length * 2);
         Config::inst()->update( Policy::class, 'nonce_length', $length);
         $nonce = new Nonce(true);
-        $this->assertNotEmpty($nonce->get(), "Nonce is empty");
-        $value = $nonce->get();
+        $this->assertNotEmpty(Nonce::getNonce(), "Nonce is empty");
+        $value = Nonce::getNonce();
         $this->assertEquals(strlen($value), $length, "Nonce should not be {$length} chrs");
 
+    }
+
+    /**
+     * Test application of attributes
+     */
+    public function testApplyAttributes() {
+
+        Config::inst()->update( Policy::class, 'override_apply', false);
+
+        $this->assertFalse( Policy::checkCanApply(), 'Policy should NOT be applicable' );
+
+        Config::inst()->update( Policy::class, 'override_apply', true);
+
+        $this->assertTrue( Policy::checkCanApply(), 'Policy should be applicable' );
+
+        $attributes = [
+            'type' => 'text/css',
+            'media' => 'screen'
+        ];
+
+        $nonce = new Nonce(true);
+        $nonceValue = Nonce::getNonce();
+        Nonce::addToAttributes('style', $attributes);
+
+        $this->assertTrue( array_key_exists('nonce', $attributes) );
+        $this->assertEquals( $nonceValue, $attributes['nonce'] );
     }
 }

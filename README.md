@@ -8,9 +8,13 @@ This module provides the ability to:
 
 + Create one or more CSP records within the administration area of your website and make one of those the base policy for use on the website
 + Set a CSP record to be [report only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
-+ Collect CSP Violation reports internally via a controller or via a specific URL
++ Collect CSP Violation reports internally via a controller or via a specific URL/service
 + Add page specific CSP records, which work with or without the base policy
 + Add a per-request nonce
+
+Once a CSP is in place and working, any assets loads that do not meet policy requirements will be blocked from loading, with warnings similar to this in the browser dev console:
+
+<code>Refused to load the script 'https://badactor.example.com/eval.js' because it violates the following Content Security Policy directive: "script-src 'self' 'nonce-example' https://cdnjs.cloudflare.com/".</code>
 
 ## Versioning
 
@@ -32,7 +36,7 @@ composer require nswdpc/silverstripe-csp
 
 0. Read the [initial documentation](./docs/en/00_index.md)
 0. Read the [good-to-know section](./docs/en/01_good_to_know.md)
-0. Install the module on a development instance of your website
+0. Install the module on a development instance of your website and [configure it]((./docs/en/00_index.md#configuration))
 0. Add at least one Policy record in the "CSP" administration section.
     * Set it to 'report only'
     * Mark it as the 'base policy'

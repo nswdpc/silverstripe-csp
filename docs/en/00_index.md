@@ -2,6 +2,43 @@
 
 > For an overview of the module, view the README.md in the module root.
 
+### Configuration
+
+The default configuration for the module is as-folows (with inline comments)
+
+```yaml
+---
+Name: csp_configuration
+---
+NSWDPC\Utilities\ContentSecurityPolicy\Policy:
+  # the length of the nonce attribute value, 16 should be considered the minimum
+  nonce_length: 16
+  # how to inject the nonce - via a 'requirements' backend or via 'middleware' (see below)
+  nonce_injection_method: 'requirements'
+  # where to send reports to a URL/Service
+  include_report_to: false
+  # whether to deliver the CSP in LeftAndMain controllers (not recommended at the moment)
+  run_in_modeladmin: false
+  # the maximum time a browser should send warning reports to a Reporting endpoint
+  max_age: 10886400
+  # include all subdomains of the domain when reporting errors
+  include_subdomains: true
+  # an array of controller classnames that can bypass a CSP
+  # confusing naming to be updated in a future release
+  whitelisted_controllers: []
+NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
+  # remove internally collected reports older than this amount of HOURS
+  older_than: 1
+```
+
+#### About the `nonce_injection_method`
+
++ Value = 'requirements' uses an injected Requirements_Backend to add the nonce as an attribute to assets required via the Requirements API
++ Value = 'middleware' uses DOMDocument to add the nonce attribute to applicable elements in the page, prior to it being delivered.
+
+In the future, the 'requirements' method will become the only option.
+
+## Post-installation
 
 Once the module is installed, a "CSP" menu entry will be available to certain users in the administration area.
 
@@ -18,9 +55,9 @@ As an administrator, you can modify the members who have access to this by assig
 + **Is Base Policy** - check to make this the site-wide policy
 + **Report Only** - adds the header "Content-Security-Policy-Report-Only", the policy will report to the browser's dev console and log to an endpoint if you have one configured. Reporting is not available when using meta tags to deliver CSP rules.
 + **Send violation reports** - when checked, adds the Report-To header and report-uri directive to the policy
-+ **Reporting URL** - add the reporting URL for logging violations, this can be left empty to report back to the website (not recommended). You can add, for instance, a report-uri.com logging URL here.
-+ **Enable NEL** - turned on Network Error Logging via the NEL header
-+ **NEL Reporting URL** - adds the NEL logging URL to the Report-To header
++ **Set a reporting URL** - add the reporting URL for logging violations, this can be left empty to report back to the website (not recommended). You can add, for instance, a report-uri.com logging URL here.
++ **Enable Network Error Logging (NEL)** - turned on Network Error Logging via the NEL header
++ **Set an NEL/Reporting API reporting URL** - adds the NEL logging URL to the Report-To header
 + **Delivery Method** -  Via an HTTP header (recommended) or a metatag. The module may remove the Metatag option in the future to simplify code.
 
 To start with, add a policy with the "Enabled" box unchecked. Once the policy is configured you can then add directives to it.
@@ -45,7 +82,7 @@ In this section add directive names in the left field. The right field can be us
 + **Unsafe Inline** - allows inline scripts to be run, this is not recommended. See the ['Using a nonce'](./10_using_a_nonce.md) documentation page for more information
 + **Allow Data URI** - adds the ```data:``` value to the directive, e.g allowing images to be loaded from base64 encoded data.
 + **Enabled** - enables the directive
-+ **Use Nonce** - Adds a system generated nonce value to supporting directives. See the ['Using a nonce'](./10_using_a_nonce.md) documentation page for more information
++ **Use Nonce** - Adds a per-request, system generated nonce value to supporting directives. See the ['Using a nonce'](./10_using_a_nonce.md) documentation page for more information
 
 ### Violation Reports
 

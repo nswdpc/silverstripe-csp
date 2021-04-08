@@ -2,6 +2,8 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
+use SilverStripe\Control\Controller;
+use SilverStripe\Core\Config\Config;
 use Silverstripe\Core\Convert;
 use Silverstripe\ORM\DataObject;
 use Silverstripe\Forms\LiteralField;
@@ -13,6 +15,7 @@ use Silverstripe\Forms\OptionsetField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use SilverStripe\ORM\DB;
+use SilverStripe\CMS\Controllers\ContentController;
 use SilverStripe\CMS\Model\SiteTree;
 
 /**
@@ -21,15 +24,62 @@ use SilverStripe\CMS\Model\SiteTree;
  */
 class Policy extends DataObject implements PermissionProvider
 {
+
+    /**
+     * @var string
+     */
     private static $table_name = 'CspPolicy';
 
+    /**
+     * @var string
+     */
     private static $singular_name = 'Policy';
+
+    /**
+     * @var string
+     */
     private static $plural_name = 'Policies';
 
+    /**
+     * @var bool
+     */
     private static $include_report_to = false;// possible issue in Chrome when the report-to directive is set, seems the report-uri directive does not work!
+
+    /**
+     * @var bool
+     */
     private static $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
+
+    /**
+     * @var array
+     */
     private static $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
 
+    /**
+     * @var bool
+     */
+    private static $include_subdomains = true;// include subdomains in NEL
+
+    /**
+     * @var int
+     */
+    private static $nonce_length = 16;// the minimum length to create 128 bit nonce value
+
+    /**
+     * @var string
+     */
+    private static $nonce_injection_method = 'requirements';// the minimum length to create 128 bit nonce value
+
+    /**
+     * @var int
+     */
+    private static $max_age =  10886400;
+
+    /**
+     * Set to true to override the result of  self::checkCanApply()
+     * @var boolean
+     */
+    private static $override_apply = false;
 
     private $merge_from_policy;// at runtime set a policy to merge other directives from, into this policy
 
@@ -43,6 +93,9 @@ class Policy extends DataObject implements PermissionProvider
     const HEADER_CSP = 'Content-Security-Policy';
     const HEADER_REPORT_TO = 'Report-To';
     const HEADER_NEL = 'NEL';
+
+    const NONCE_INJECT_VIA_REQUIREMENTS = 'requirements';
+    const NONCE_INJECT_VIA_MIDDLEWARE = 'middleware';
 
     /**
      * Database fields
@@ -569,6 +622,51 @@ class Policy extends DataObject implements PermissionProvider
             }
         }
         return $directives;
+    }
+
+    /**
+     * Check if the policy can be applied based on configuration and the state of the current request
+     * @return bool
+     */
+    public static function checkCanApply() : bool {
+
+        if(!Controller::has_curr()) {
+            return false;
+        }
+
+        $override = Config::inst()->get(Policy::class, 'override_apply');
+        if($override) {
+            return true;
+        }
+
+        $controller = Controller::curr();
+
+        // check if the controller is part of the administration area
+        // and whether to apply the policy or not
+        if ($controller instanceof LeftAndMain) {
+            return Config::inst()->get(Policy::class, 'run_in_modeladmin');
+        }
+
+        // Allow certain controllers to remove headers (as in the request is 'whitelisted')
+        // @todo this should be renamed to "bypass" or similar
+        $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
+        if (is_array($whitelisted_controllers) && in_array(get_class($controller), $whitelisted_controllers)) {
+            return false;
+        }
+
+        // all ContentControllers are enabled
+        if ($controller instanceof ContentController) {
+            return true;
+        }
+
+        // Any controller that implements this method can determine whether to apply the policy or not
+        if (method_exists($controller, 'EnableContentSecurityPolicy')
+            || $controller->hasMethod('EnableContentSecurityPolicy')) {
+            return $controller->EnableContentSecurityPolicy();
+        }
+
+        // Do not enable by default on all controllers
+        return false;
     }
 
     public function canView($member = null)

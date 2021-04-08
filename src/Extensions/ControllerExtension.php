@@ -21,43 +21,6 @@ use SilverStripe\CMS\Model\SiteTree;
 class ControllerExtension extends Extension
 {
 
-    /**
-     * Check to see if the current Controller allows a CSP header
-     */
-    private function checkCanRun()
-    {
-
-        // ADMIN check
-        $is_in_admin = $this->owner instanceof LeftAndMain;
-        if ($is_in_admin) {
-            $run_in_admin = Config::inst()->get(Policy::class, 'run_in_admin');
-            return $run_in_admin;
-        }
-
-        // Allow certain controllers to remove headers (as in the request is 'whitelisted')
-        $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
-        if (is_array($whitelisted_controllers) && in_array(get_class($this->owner), $whitelisted_controllers)) {
-            return false;
-        }
-
-        if ($this->owner instanceof ContentController) {
-            // all ContentControllers are enabled
-            return true;
-        }
-
-        /**
-         * Any controller that implements this method can return it
-         * This can be accessed either via a trait or via applying the ContentSecurityPolicyEnable extension to a Controller type
-         */
-        if (method_exists($this->owner, 'EnableContentSecurityPolicy')
-            || $this->owner->hasMethod('EnableContentSecurityPolicy')) {
-            return $this->owner->EnableContentSecurityPolicy();
-        }
-
-        // Do not enable by default on all controllers
-        return false;
-    }
-
     public function onAfterInit()
     {
 
@@ -67,7 +30,7 @@ class ControllerExtension extends Extension
         }
 
         // check if we can proceed
-        if (!$this->checkCanRun()) {
+        if (!Policy::checkCanApply()) {
             return;
         }
 
@@ -84,9 +47,8 @@ class ControllerExtension extends Extension
         // only get enabled policy/directives
         $enabled_policy = $enabled_directives = true;
 
-        // return the nonce for this request
+        // set a CSP nonce for this request
         $nonce = new Nonce();
-        $nonce->get();
 
         $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
