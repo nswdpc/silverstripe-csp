@@ -64,7 +64,21 @@ class Nonce
      */
     public static function addToAttributes(string $tag, array &$attributes) {
         if(Policy::checkCanApply()) {
-            $attributes['nonce'] = self::getNonce();
+            // inline scripts and style tags get the nonce
+            switch($tag) {
+                case 'script':
+                    if(!empty($attributes['src'])) {
+                        // no nonce
+                        break;
+                    }
+                    // else
+                case 'style':
+                    $attributes['nonce'] = self::getNonce();
+                    break;
+                default:
+                    // no nonce
+                    break;
+            }
         }
     }
 
