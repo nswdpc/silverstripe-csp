@@ -27,16 +27,16 @@ class Nonce
     /**
      * @param boolean $recreate force recreation of a nonce, this is generally only used in tests
      */
-    public function __construct($recreate = false) {
-        $length = intval(Config::inst()->get( Policy::class, 'nonce_length'));
-        if($length < self::MIN_LENGTH) {
+    public function __construct($recreate = false)
+    {
+        $length = intval(Config::inst()->get(Policy::class, 'nonce_length'));
+        if ($length < self::MIN_LENGTH) {
             $length = self::MIN_LENGTH;
         }
-        if($recreate) {
-            self::$nonce = '';
-        }
         self::$length = $length;
-        self::create();
+        if (self::$nonce === '' || $recreate) {
+            self::create();
+        }
     }
 
     /**
