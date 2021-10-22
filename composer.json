@@ -37,7 +37,6 @@
         "phpstan/phpstan-phpunit": "^0.12.18",
         "squizlabs/php_codesniffer": "^3.0",
         "friendsofphp/php-cs-fixer": "^2.18",
-        "codeception/codeception" : "^2.5 | ^3 | ^4",
         "symbiote/silverstripe-phpstan": "^4"
     }
 }
