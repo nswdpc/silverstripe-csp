@@ -628,10 +628,13 @@ class Policy extends DataObject implements PermissionProvider
      * Check if the policy can be applied based on configuration and the state of the current request
      * @return bool
      */
-    public static function checkCanApply() : bool {
+    public static function checkCanApply(Controller $controller = null) : bool {
 
-        if(!Controller::has_curr()) {
-            return false;
+        if(!$controller) {
+            if(!Controller::has_curr()) {
+                return false;
+            }
+            $controller = Controller::curr();
         }
 
         $override = Config::inst()->get(Policy::class, 'override_apply');
@@ -639,18 +642,14 @@ class Policy extends DataObject implements PermissionProvider
             return true;
         }
 
-        $controller = Controller::curr();
-
         // check if the controller is part of the administration area
         // and whether to apply the policy or not
         if ($controller instanceof LeftAndMain) {
             return Config::inst()->get(Policy::class, 'run_in_modeladmin');
         }
 
-        // Allow certain controllers to remove headers (as in the request is 'whitelisted')
-        // @todo this should be renamed to "bypass" or similar
-        $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
-        if (is_array($whitelisted_controllers) && in_array(get_class($controller), $whitelisted_controllers)) {
+        // Configured controllers with no CSP
+        if(self::controllerWithoutCsp($controller)) {
             return false;
         }
 
@@ -666,6 +665,20 @@ class Policy extends DataObject implements PermissionProvider
         }
 
         // Do not enable by default on all controllers
+        return false;
+    }
+
+    /**
+     * Return whether the provided controller is configured to have no CSP
+     */
+    public static function controllerWithoutCsp(Controller $controller) : bool {
+        // Allow certain controllers to remove headers (as in the request is 'whitelisted')
+        // @deprecated and will be renamed in a future release
+        $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
+        if (is_array($whitelisted_controllers) && in_array(get_class($controller), $whitelisted_controllers)) {
+            return true;
+        }
+
         return false;
     }
 

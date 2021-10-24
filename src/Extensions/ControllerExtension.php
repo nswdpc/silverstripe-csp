@@ -24,31 +24,31 @@ class ControllerExtension extends Extension
     public function onAfterInit()
     {
 
-        // Don't go in a loop reporting to the Reporting Endpoint controller from the Reporting Endpoint controller!
-        if ($this->owner instanceof ReportingEndpoint) {
-            return;
-        }
-
-        // check if we can proceed
-        if (!Policy::checkCanApply()) {
-            return;
-        }
-
+        // No response handling
         $response = $this->owner->getResponse();
         if ($response && !($response instanceof HTTPResponse)) {
             return;
         }
 
-        $stage = Versioned::get_stage();
+        // Don't go in a loop reporting to the Reporting Endpoint controller from the Reporting Endpoint controller!
+        if ($this->owner instanceof ReportingEndpoint) {
+            return;
+        }
+
+        // check if a policy can be applied
+        if (!$canApply = Policy::checkCanApply($this->owner)) {
+            return;
+        }
 
         // check if request on the Live stage
+        $stage = Versioned::get_stage();
         $is_live = ($stage == Versioned::LIVE);
 
         // only get enabled policy/directives
         $enabled_policy = $enabled_directives = true;
 
-        // set a CSP nonce for this request
-        $nonce = new Nonce();
+        // Set the CSP nonce for this request
+        Nonce::getNonce();
 
         $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
 

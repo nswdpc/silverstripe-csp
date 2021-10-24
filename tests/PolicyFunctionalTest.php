@@ -4,6 +4,8 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 
+require_once(dirname(__FILE__) . '/AbstractPolicyFunctionalTest.php');
+
 /**
  * Functional test using Requirements)_Backend as the nonce injection solution
  */

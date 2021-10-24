@@ -17,35 +17,20 @@ class Nonce
      */
     private static $nonce = '';
 
-    /**
-     * @var int
-     */
-    private static $length;
-
     const MIN_LENGTH = 16;
 
     /**
-     * @param boolean $recreate force recreation of a nonce, this is generally only used in tests
+     * To create the nonce or get the current nonce value, call Nonce::getNonce()
      */
-    public function __construct($recreate = false) {
-        $length = intval(Config::inst()->get( Policy::class, 'nonce_length'));
-        if($length < self::MIN_LENGTH) {
-            $length = self::MIN_LENGTH;
-        }
-        if($recreate) {
-            self::$nonce = '';
-        }
-        self::$length = $length;
-        self::create();
-    }
+    private function __construct() {}
 
     /**
      * Create a nonce
      * @return void
      */
-    private static function create()
+    private static function create($length)
     {
-        self::$nonce = bin2hex(random_bytes(self::$length / 2));
+        self::$nonce = bin2hex(random_bytes($length / 2));
     }
 
     /**
@@ -53,7 +38,25 @@ class Nonce
      * @return string
      */
     public static function getNonce() : string {
+        // Return existing nonce
+        if(self::$nonce) {
+            return self::$nonce;
+        }
+        // Create the nonce
+        $length = intval(Config::inst()->get( Policy::class, 'nonce_length'));
+        if($length < self::MIN_LENGTH) {
+            $length = self::MIN_LENGTH;
+        }
+        self::create($length);
         return self::$nonce;
+    }
+
+    /**
+     * Clear the nonce value
+     * This is only used in tests
+     */
+    public static function clear() {
+        self::$nonce = '';
     }
 
     /**
@@ -95,7 +98,7 @@ class Nonce
             }
             if(self::applicableElement($domElement)) {
                 $textContent = htmlspecialchars($domElement->textContent);
-                $domElement->setAttribute('nonce', self::$nonce);
+                $domElement->setAttribute('nonce', self::getNonce());
             }
         }
     }
