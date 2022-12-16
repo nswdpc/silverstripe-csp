@@ -74,15 +74,20 @@ The list of available directives is [defined at MDN](https://developer.mozilla.o
 
 The value of the directive will be the URLs and other rules that make up the allowed sources.
 
-### Rules and Restrictions
+### Supported options
 
-In this section add directive names in the left field. The right field can be used for your own notes/reasoning for the rule.
+> If you have a requirement to use 'unsafe-eval', add it as an extra quoted value. See Extra values, below.
 
++ **Enabled** - enables the directive. Unchecking this allows you to remove a directive, temporarily, from a live policy
 + **Include Self** - adds the 'self' value to the directive
 + **Unsafe Inline** - allows inline scripts to be run, this is not recommended. See the ['Using a nonce'](./10_using_a_nonce.md) documentation page for more information
 + **Allow Data URI** - adds the ```data:``` value to the directive, e.g allowing images to be loaded from base64 encoded data.
-+ **Enabled** - enables the directive
 + **Use Nonce** - Adds a per-request, system generated nonce value to supporting directives. See the ['Using a nonce'](./10_using_a_nonce.md) documentation page for more information
+
+### Extra values
+
+In this section add extra values for the directives in the left field. The right field can be used for your own notes/reasoning for the rule, and to aid with historical context.
+
 
 ### Violation Reports
 

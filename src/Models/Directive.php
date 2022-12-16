@@ -3,6 +3,7 @@
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use Silverstripe\ORM\DataObject;
+use Silverstripe\Forms\HTMLReadonlyField;
 use Silverstripe\Forms\LiteralField;
 use Silverstripe\Forms\CompositeField;
 use Silverstripe\Forms\Textfield;
@@ -36,10 +37,10 @@ class Directive extends DataObject implements PermissionProvider
     private static $db = [
         'Key' => 'Varchar(255)',
         'Rules' => 'MultiValueField',
+        'Enabled' => 'Boolean',
         'IncludeSelf' => 'Boolean',
         'UnsafeInline' => 'Boolean',
         'AllowDataUri' => 'Boolean',
-        'Enabled' => 'Boolean',
         'UseNonce' => 'Boolean'
     ];
 
@@ -159,7 +160,8 @@ class Directive extends DataObject implements PermissionProvider
 
         $fields->dataFieldByName('IncludeSelf')->setDescription(_t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this directive"));
         $fields->dataFieldByName('AllowDataUri')->setDescription(_t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this directive"));
-        $fields->dataFieldByName('UnsafeInline')->setDescription(_t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive"));
+        $fields->dataFieldByName('UnsafeInline')->setDescription(_t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive."));
+        $fields->dataFieldByName('Enabled')->setDescription(_t('ContentSecurityPolicy.ENABLED_DIRECTIVE', "Enables this directive within linked policies"));
 
         $policies = $this->Policies()->count();
         if ($policies > 1) {
@@ -180,31 +182,30 @@ class Directive extends DataObject implements PermissionProvider
         $fields->addFieldToTab(
             'Root.Main',
             CompositeField::create(
-                    TextField::create('Key', 'Enter a directive'),
-                    DropdownField::create(
+                TextField::create(
+                    'Key',
+                    'Enter a directive'
+                ),
+                DropdownField::create(
                     'KeySelection',
                     _t('ContentSecurityPolicy.SELECT_PREDEFINED_DIRECTIVE', '...or select a pre-defined directive'),
                     $select_keys
                 )->setEmptyString('')
-                ),
+            )->setTitle(
+                _t('ContentSecurityPolicy.DIRECTIVE_NAME_LABEL', 'Directive')
+            ),
             'Rules'
         );
 
         $fields->addFieldToTab(
             'Root.Main',
-            KeyValueField::create('Rules', 'Rules & Restrictions')
-                ->setDescription('Add the rule on the left and a reason for adding the rule on the right')
-                ->setRightTitle('Some values, such as hashes, must be single-quoted'),
-            'IncludeSelf'
-        );
-
-        $fields->addFieldToTab(
-            'Root.Main',
-            TextareaField::create('LiteralRules', 'Current directive value', htmlspecialchars($this->getDirectiveValue(true))),
+            HTMLReadonlyField::create(
+                'LiteralRules',
+                'Current directive value',
+                htmlspecialchars( $this->getDirectiveValue(true ))
+            ),
             'Rules'
         );
-
-        $fields->makeFieldReadonly('LiteralRules');
 
 
         $fields->dataFieldByName('UseNonce')
@@ -213,6 +214,32 @@ class Directive extends DataObject implements PermissionProvider
                     . ' Only applicable to certain directives.'
         );
 
+        // Rules field
+        $fields->removeByName('Rules');
+        $fields->addFieldToTab(
+            'Root.Main',
+            CompositeField::create(
+                KeyValueField::create(
+                    'Rules',
+                    'Add the rule on the left and a reason for adding the rule on the right'
+                )->setDescription(
+                    'Some keywords, such as hashes, must be single-quoted'
+                ),
+                HTMLReadonlyField::create(
+                    'RulesExample',
+                    'Examples',
+                    '<div class="container"><table class="table table-striped table-bordered">'
+                    . '<tr><td>https://example.com</td><td>My reason for adding example.com</td></tr>'
+                    . '<tr><td>\'report-sample\'</td><td>Send a portion of the violating code to the report endpoint</td></tr>'
+                    . '<tr><td>\'sha256-xxxxxx\'</td><td>We need to allow this specific hash to enable an inline style</td></tr>'
+                    . '</table></div>'
+                )->setDescription(
+                    'A good resource for available values and format is https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/Sources'
+                )
+            )->setTitle(
+                'Extra values'
+            )
+        );
         return $fields;
     }
 
