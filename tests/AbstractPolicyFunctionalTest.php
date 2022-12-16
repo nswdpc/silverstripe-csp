@@ -38,13 +38,13 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     abstract protected function getInjectionMethod();
 
-    public function setUp()
+    public function setUp() : void
     {
         Config::inst()->update( Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
         parent::setUp();
     }
 
-    public function tearDown()
+    public function tearDown() : void
     {
         parent::tearDown();
     }

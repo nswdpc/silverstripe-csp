@@ -7,8 +7,8 @@
 $finder = PhpCsFixer\Finder::create()
             ->in(__DIR__);
 
-return PhpCsFixer\Config::create()
-        ->setRules([
+$config = new PhpCsFixer\Config();
+return $config->setRules([
             '@PSR2' => true,
             'array_indentation' => true,
             'array_syntax' => ['syntax' => 'short'],
