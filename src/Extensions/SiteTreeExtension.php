@@ -74,15 +74,14 @@ class SiteTreeExtension extends Extension
      */
     private function checkCanRun()
     {
-        $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
-        $controller = Controller::curr();
+        $controller = Controller::has_curr() ? Controller::curr() : false;
         if (!$controller) {
             // no current controller
             return false;
         }
 
-        if (is_array($whitelisted_controllers) && in_array(get_class($controller), $whitelisted_controllers)) {
-            // allow through without MetaTags
+        // Configured controllers with no CSP
+        if(Policy::controllerWithoutCsp($controller)) {
             return false;
         }
 
