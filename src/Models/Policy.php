@@ -77,7 +77,7 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * Set to true to override the result of  self::checkCanApply()
-     * @var boolean
+     * @var bool
      */
     private static $override_apply = false;
 
@@ -626,16 +626,10 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * Check if the policy can be applied based on configuration and the state of the current request
+     * @param Controller the controller to check against, if not supplied the current controller is used
      * @return bool
      */
-    public static function checkCanApply(Controller $controller = null) : bool {
-
-        if(!$controller) {
-            if(!Controller::has_curr()) {
-                return false;
-            }
-            $controller = Controller::curr();
-        }
+    public static function checkCanApply(Controller $controller) : bool {
 
         $override = Config::inst()->get(Policy::class, 'override_apply');
         if($override) {
