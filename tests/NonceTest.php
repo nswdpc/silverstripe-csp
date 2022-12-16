@@ -64,13 +64,15 @@ class NonceTest extends SapphireTest {
      */
     public function testApplyAttributes() {
 
+        $controller = Controller::curr();
+
         Config::inst()->update( Policy::class, 'override_apply', false);
 
-        $this->assertFalse( Policy::checkCanApply(), 'Policy should NOT be applicable' );
+        $this->assertFalse( Policy::checkCanApply($controller), 'Policy should NOT be applicable' );
 
         Config::inst()->update( Policy::class, 'override_apply', true);
 
-        $this->assertTrue( Policy::checkCanApply(), 'Policy should be applicable' );
+        $this->assertTrue( Policy::checkCanApply($controller), 'Policy should be applicable' );
 
         $attributes = [
             'type' => 'text/css',
