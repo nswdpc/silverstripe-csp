@@ -27,12 +27,12 @@
     },
     "require": {
         "ext-xml": "*",
-        "silverstripe/cms": "^4",
-        "symbiote/silverstripe-queuedjobs": "^4",
-        "symbiote/silverstripe-multivaluefield": "^5.0"
+        "silverstripe/cms": "^4.10.0",
+        "symbiote/silverstripe-queuedjobs": "^4.9.0",
+        "symbiote/silverstripe-multivaluefield": "^5.2.0"
     },
     "require-dev": {
-        "phpunit/phpunit": "^5.7",
-        "friendsofphp/php-cs-fixer": "^2.18"
+        "phpunit/phpunit": "^9.5",
+        "friendsofphp/php-cs-fixer": "^3"
     }
 }

@@ -16,14 +16,14 @@ class PolicyTest extends SapphireTest
 
     private $include_report_to = false;
 
-    public function setUp()
+    public function setUp() : void
     {
         parent::setUp();
         $this->include_report_to = Config::inst()->get(Policy::class, 'include_report_to');
         Config::inst()->update(Policy::class, 'include_report_to', true);
     }
 
-    public function tearDown()
+    public function tearDown() : void
     {
         parent::tearDown();
         Config::inst()->update(Policy::class, 'include_report_to', $this->include_report_to);

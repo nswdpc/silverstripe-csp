@@ -10,7 +10,7 @@ use SilverStripe\Dev\SapphireTest;
 
 class NonceTest extends SapphireTest {
 
-    public function setUp() {
+    public function setUp() : void {
         parent::setUp();
         // clear nonce for each test
         Nonce::clear();
