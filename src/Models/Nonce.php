@@ -7,7 +7,10 @@ use SilverStripe\View\Requirements;
 
 /**
  * Model handling creation and retrieval of a nonce
- * @author james.ellis@dpc.nsw.gov.au
+ *
+ * To create the nonce or get the current nonce value, call Nonce::getNonce()
+ *
+ * @author james
  */
 class Nonce
 {
@@ -18,11 +21,6 @@ class Nonce
     private static $nonce = '';
 
     const MIN_LENGTH = 16;
-
-    /**
-     * To create the nonce or get the current nonce value, call Nonce::getNonce()
-     */
-    private function __construct() {}
 
     /**
      * Create a nonce
