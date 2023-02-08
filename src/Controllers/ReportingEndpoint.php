@@ -53,6 +53,7 @@ class ReportingEndpoint extends Controller
 
     /**
      * @var array
+     * @config
      */
     private static $allowed_actions = [
         'report'
@@ -60,6 +61,7 @@ class ReportingEndpoint extends Controller
 
     /**
      * @var array
+     * @config
      */
     private static $url_handlers = [
         'v1/report' => 'report'

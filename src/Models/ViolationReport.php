@@ -15,18 +15,31 @@ use SilverStripe\Security\PermissionProvider;
  */
 class ViolationReport extends DataObject implements PermissionProvider
 {
+
+    /**
+     * @var string
+     * @config
+     */
     private static $table_name = 'CspViolationReport';
 
     /**
      * Singular name for CMS
      * @var string
+     * @config
      */
     private static $singular_name = 'Report';
+
+    /**
+     * Plural name for CMS
+     * @var string
+     * @config
+     */
     private static $plural_name = 'Reports';
 
     /**
      * Database fields
      * @var array
+     * @config
      */
     private static $db = [
         'DocumentUri' => 'Varchar(255)',
@@ -41,6 +54,11 @@ class ViolationReport extends DataObject implements PermissionProvider
         'UserAgent' => 'Varchar(255)',
     ];
 
+    /**
+     * Database indexes
+     * @var array
+     * @config
+     */
     private static $indexes = [
         'DocumentUri' => true,
         'LastEdited' => true,
@@ -51,6 +69,7 @@ class ViolationReport extends DataObject implements PermissionProvider
      * Defines summary fields commonly used in table columns
      * as a quick overview of the data for this dataobject
      * @var array
+     * @config
      */
     private static $summary_fields = [
         'ID' => '#',//for referring to report numbers
@@ -61,6 +80,10 @@ class ViolationReport extends DataObject implements PermissionProvider
         'ViolatedDirective' => 'Directive',
     ];
 
+    /**
+     * @var string
+     * @config
+     */
     private static $default_sort = 'Created DESC';
 
     /**

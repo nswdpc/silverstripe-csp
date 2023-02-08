@@ -5,7 +5,7 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
-use Silverstripe\Core\Extension;
+use SilverStripe\Core\Extension;
 use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\FieldList;
@@ -24,6 +24,7 @@ class SiteTreeExtension extends Extension
     /**
      * Has_one relationship
      * @var array
+     * @config
      */
     private static $has_one = [
         'CspPolicy' => Policy::class, // a page can have a CSP

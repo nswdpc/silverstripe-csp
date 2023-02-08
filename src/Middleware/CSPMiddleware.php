@@ -45,12 +45,11 @@ class CSPMiddleware implements HTTPMiddleware
     /**
      * Apply the Content Security Policy changes, if any are required.
      * If the middleware is not enabled, no changes are applied
-     * @return SilverStripe\Control\HTTPResponse
+     * @return \SilverStripe\Control\HTTPResponse
      */
     protected function applyCSP(HTTPRequest $request, callable $delegate) : HTTPResponse {
 
         $response = $delegate($request);
-
         // check if enabled
         if( Config::inst()->get( Policy::class, 'nonce_injection_method' ) != Policy::NONCE_INJECT_VIA_MIDDLEWARE ) {
             return $response;

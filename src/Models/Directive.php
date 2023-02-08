@@ -2,13 +2,14 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use Silverstripe\ORM\DataObject;
-use Silverstripe\Forms\HTMLReadonlyField;
-use Silverstripe\Forms\LiteralField;
-use Silverstripe\Forms\CompositeField;
-use Silverstripe\Forms\Textfield;
-use Silverstripe\Forms\TextareaField;
-use Silverstripe\Forms\DropdownField;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\HTMLReadonlyField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\CompositeField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\TextareaField;
+use SilverStripe\Forms\DropdownField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use Symbiote\MultiValueField\Fields\KeyValueField;
@@ -19,20 +20,33 @@ use Symbiote\MultiValueField\Fields\KeyValueField;
  */
 class Directive extends DataObject implements PermissionProvider
 {
+
+    /**
+     * @config
+     */
     private static $table_name = 'CspDirective';
 
+    /**
+     * @config
+     */
     private static $singular_name = 'Directive';
+
+    /**
+     * @config
+     */
     private static $plural_name = 'Directives';
 
     /**
      * Default sort ordering
      * @var string
+     * @config
      */
     private static $default_sort = 'Key ASC';
 
     /**
      * Database fields
      * @var array
+     * @config
      */
     private static $db = [
         'Key' => 'Varchar(255)',
@@ -48,6 +62,7 @@ class Directive extends DataObject implements PermissionProvider
      * Defines summary fields commonly used in table columns
      * as a quick overview of the data for this dataobject
      * @var array
+     * @config
      */
     private static $summary_fields = [
         'ID' => '#',
@@ -64,6 +79,7 @@ class Directive extends DataObject implements PermissionProvider
     /**
      * Many_many relationship
      * @var array
+     * @config
      */
     private static $belongs_many_many = [
         'Policies' => Policy::class,
