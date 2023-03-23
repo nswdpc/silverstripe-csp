@@ -473,7 +473,7 @@ class Policy extends DataObject implements PermissionProvider
             if ($create_directives) {
                 foreach ($create_directives as $create_directive) {
                     // get the Directive value
-                    $value = $directive->getDirectiveValue();
+                    $value = $create_directive->getDirectiveValue();
                     // add the Key then value to the policy
                     $policy .= $this->KeyValue($create_directive, $value, $pretty);
                 }
