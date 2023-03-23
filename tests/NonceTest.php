@@ -17,7 +17,7 @@ class NonceTest extends SapphireTest {
     }
 
     public function testNonceStaysTheSame() {
-        Config::inst()->update( Policy::class, 'nonce_length', Nonce::MIN_LENGTH);
+        Config::modify()->set( Policy::class, 'nonce_length', Nonce::MIN_LENGTH);
         $nonce = Nonce::getNonce();
         $this->assertNotEmpty($nonce, "Nonce is empty");
         $nonce2 = Nonce::getNonce();
@@ -28,7 +28,7 @@ class NonceTest extends SapphireTest {
         $min_length = Nonce::MIN_LENGTH;
         // set an 8 chr nonce length
         $length = round($min_length / 2);
-        Config::inst()->update( Policy::class, 'nonce_length', $length);
+        Config::modify()->set( Policy::class, 'nonce_length', $length);
         $nonce = Nonce::getNonce();
         $this->assertNotEmpty($nonce, "Nonce is empty");
         // nonce should be a minimum of 32 chrs
@@ -40,7 +40,7 @@ class NonceTest extends SapphireTest {
 
         // set a $min_length chr nonce length
         $length = $min_length;
-        Config::inst()->update( Policy::class, 'nonce_length', $length);
+        Config::modify()->set( Policy::class, 'nonce_length', $length);
         $nonce = Nonce::getNonce();
         $this->assertNotEmpty($nonce, "Nonce is empty");
         $this->assertEquals(strlen($nonce), $length, "Nonce should be {$length} chrs");
@@ -52,7 +52,7 @@ class NonceTest extends SapphireTest {
 
         // set a $min_length chr nonce length
         $length = ($min_length * 2);
-        Config::inst()->update( Policy::class, 'nonce_length', $length);
+        Config::modify()->set( Policy::class, 'nonce_length', $length);
         $nonce = Nonce::getNonce();
         $this->assertNotEmpty($nonce, "Nonce is empty");
         $this->assertEquals(strlen($nonce), $length, "Nonce should not be {$length} chrs");
@@ -66,11 +66,11 @@ class NonceTest extends SapphireTest {
 
         $controller = Controller::curr();
 
-        Config::inst()->update( Policy::class, 'override_apply', false);
+        Config::modify()->set( Policy::class, 'override_apply', false);
 
         $this->assertFalse( Policy::checkCanApply($controller), 'Policy should NOT be applicable' );
 
-        Config::inst()->update( Policy::class, 'override_apply', true);
+        Config::modify()->set( Policy::class, 'override_apply', true);
 
         $this->assertTrue( Policy::checkCanApply($controller), 'Policy should be applicable' );
 

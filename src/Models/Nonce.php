@@ -17,6 +17,7 @@ class Nonce
 
     /**
      * @var string
+     * @config
      */
     private static $nonce = '';
 
@@ -83,11 +84,15 @@ class Nonce
 
     /**
      * Add nonce to HTML nodes
-     * @param DOMNodeList $list
+     * @note a \DOMNodeList can contain items that extend \DOMNode but only \DOMElement provides get/setAttribute methods
+     * @param \DOMNodeList $domNodeList
      * @return void
      */
     public static function addToElements(\DOMNodeList &$domNodeList) {
         foreach($domNodeList as $domElement) {
+            if(!($domElement instanceof \DOMElement)) {
+                continue;
+            }
             $nonce = trim($domElement->getAttribute('nonce'));
             if($nonce) {
                 continue;
@@ -102,7 +107,7 @@ class Nonce
     /**
      * Inline script and all style elements are given a nonce
      * Elements referencing an external resource should have their hosts referenced in the CSP script-src directive
-     * @param DOMElement $element
+     * @param \DOMElement $domElement
      * @return bool
      */
     protected static function applicableElement(\DOMElement $domElement) : bool {

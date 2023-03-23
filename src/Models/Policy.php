@@ -2,16 +2,18 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
+use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
-use Silverstripe\Core\Convert;
-use Silverstripe\ORM\DataObject;
-use Silverstripe\Forms\LiteralField;
-use Silverstripe\Forms\CompositeField;
-use Silverstripe\Forms\Textfield;
-use Silverstripe\Forms\DropdownField;
-use Silverstripe\Forms\HeaderField;
-use Silverstripe\Forms\OptionsetField;
+use SilverStripe\Core\Convert;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\CompositeField;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\DropdownField;
+use SilverStripe\Forms\HeaderField;
+use SilverStripe\Forms\OptionsetField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use SilverStripe\ORM\DB;
@@ -27,57 +29,68 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * @var string
+     * @config
      */
     private static $table_name = 'CspPolicy';
 
     /**
      * @var string
+     * @config
      */
     private static $singular_name = 'Policy';
 
     /**
      * @var string
+     * @config
      */
     private static $plural_name = 'Policies';
 
     /**
      * @var bool
+     * @config
      */
     private static $include_report_to = false;// possible issue in Chrome when the report-to directive is set, seems the report-uri directive does not work!
 
     /**
      * @var bool
+     * @config
      */
     private static $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
 
     /**
      * @var array
+     * @config
      */
     private static $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
 
     /**
      * @var bool
+     * @config
      */
     private static $include_subdomains = true;// include subdomains in NEL
 
     /**
      * @var int
+     * @config
      */
     private static $nonce_length = 16;// the minimum length to create 128 bit nonce value
 
     /**
      * @var string
+     * @config
      */
     private static $nonce_injection_method = 'requirements';// the minimum length to create 128 bit nonce value
 
     /**
      * @var int
+     * @config
      */
     private static $max_age =  10886400;
 
     /**
      * Set to true to override the result of  self::checkCanApply()
      * @var bool
+     * @config
      */
     private static $override_apply = false;
 
@@ -100,6 +113,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Database fields
      * @var array
+     * @config
      */
     private static $db = [
         'Title' => 'Varchar(255)',
@@ -118,6 +132,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Default field values
      * @var array
+     * @config
      */
     private static $defaults = [
         'Enabled' => 0,
@@ -134,6 +149,7 @@ class Policy extends DataObject implements PermissionProvider
      * Defines summary fields commonly used in table columns
      * as a quick overview of the data for this dataobject
      * @var array
+     * @config
      */
     private static $summary_fields = [
         'ID' => '#',
@@ -150,6 +166,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Many_many relationship
      * @var array
+     * @config
      */
     private static $many_many = [
         'Directives' => Directive::class,
@@ -158,6 +175,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Has_many relationship
      * @var array
+     * @config
      */
     private static $has_many = [
         'Pages' => SiteTree::class
@@ -166,6 +184,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Default sort ordering
      * @var string
+     * @config
      */
     private static $default_sort = 'IsBasePolicy DESC, Enabled DESC, Title ASC';
 
@@ -398,7 +417,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Takes the Policy provided and merges it into this Policy by matching directives
      * According to MDN "Adding additional policies can only further restrict the capabilities of the protected resource"
-     * @param Policy the policy to merge directives from, into this Policy
+     * @param Policy $merge_from_policy the policy to merge directives from, into this Policy
      */
     public function setMergeFromPolicy(Policy $merge_from_policy)
     {
@@ -407,9 +426,9 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * Retrieve the policy in a format for use in the Header or Meta Tag handling
-     * @param boolean $enabled filter by Enabled directives only
-     * @param boolean $pretty format each policy line on a new line
-     * @returns string
+     * @param int|null $enabled filter by Enabled directives only
+     * @param bool $pretty format each policy line on a new line
+     * @return string
      */
     public function getPolicy($enabled = 1, $pretty = false)
     {
@@ -454,7 +473,7 @@ class Policy extends DataObject implements PermissionProvider
             if ($create_directives) {
                 foreach ($create_directives as $create_directive) {
                     // get the Directive value
-                    $value = $directive->getDirectiveValue();
+                    $value = $create_directive->getDirectiveValue();
                     // add the Key then value to the policy
                     $policy .= $this->KeyValue($create_directive, $value, $pretty);
                 }
@@ -465,9 +484,9 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * Form the policy line key/value pairings
-     * @param CspDirective $directive
+     * @param Directive $directive
      * @param string $value
-     * @param boolean $pretty
+     * @param bool $pretty
      */
     private function KeyValue(Directive $directive, $value = "", $pretty = false)
     {
@@ -480,9 +499,9 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Header values
      * @returns array
-     * @param boolean $enabled
+     * @param int|null $enabled
      * @param string $method
-     * @param boolean $pretty
+     * @param bool $pretty
      */
     public function HeaderValues($enabled = 1, $method = self::POLICY_DELIVERY_METHOD_HEADER, $pretty = false)
     {
@@ -600,7 +619,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Given a policy string, parse out the parts into key value pairs
      * @returns array
-     * @param string the value of a Content-Security-Policy[-Report-Only] header
+     * @param string $policy_string the value of a Content-Security-Policy[-Report-Only] header
      */
     public static function parsePolicy($policy_string)
     {
@@ -626,7 +645,7 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * Check if the policy can be applied based on configuration and the state of the current request
-     * @param Controller the controller to check against, if not supplied the current controller is used
+     * @param Controller $controller the controller to check against, if not supplied the current controller is used
      * @return bool
      */
     public static function checkCanApply(Controller $controller) : bool {

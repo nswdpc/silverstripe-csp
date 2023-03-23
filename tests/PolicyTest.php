@@ -20,13 +20,13 @@ class PolicyTest extends SapphireTest
     {
         parent::setUp();
         $this->include_report_to = Config::inst()->get(Policy::class, 'include_report_to');
-        Config::inst()->update(Policy::class, 'include_report_to', true);
+        Config::modify()->set(Policy::class, 'include_report_to', true);
     }
 
     public function tearDown() : void
     {
         parent::tearDown();
-        Config::inst()->update(Policy::class, 'include_report_to', $this->include_report_to);
+        Config::modify()->set(Policy::class, 'include_report_to', $this->include_report_to);
     }
 
     private function createPolicy($data)

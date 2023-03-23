@@ -8,7 +8,7 @@ use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 use NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension;
 use SilverStripe\Control\Controller;
 use SilverStripe\Dev\FunctionalTest;
-use Silverstripe\CMS\Model\SiteTree;
+use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Config\Config;
@@ -40,7 +40,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     public function setUp() : void
     {
-        Config::inst()->update( Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
+        Config::modify()->set( Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
         parent::setUp();
     }
 
@@ -78,13 +78,16 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     /**
      * Given an {@link DOMNodeList} list of nodes, verify that each one has the current nonce
-     * @param \DOMNodeList $nodeList
+     * @param \DOMNodeList $nodelist
      * @return int
      */
     protected function verifyElements(\DOMNodeList $nodelist) : int {
         $found_nonces = 0;
         $nonce_value = Nonce::getNonce();// the current nonce
         foreach($nodelist as $element) {
+            if(!($element instanceof \DOMElement)) {
+                continue;
+            }
             /**
              * verify that every element having a nonce attribute,
              * that its value matches the nonce value
