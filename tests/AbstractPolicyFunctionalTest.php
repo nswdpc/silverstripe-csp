@@ -40,7 +40,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     public function setUp() : void
     {
-        Config::inst()->update( Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
+        Config::modify()->set( Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
         parent::setUp();
     }
 
