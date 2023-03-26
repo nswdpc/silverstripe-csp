@@ -173,6 +173,18 @@ class Policy extends DataObject implements PermissionProvider
     ];
 
     /**
+     * Database indexes
+     * @var array
+     * @config
+     */
+    private static $indexes = [
+        'Enabled' => true,
+        'IsLive' => true,
+        'DeliveryMethod' => true,
+        'IsBasePolicy' => true
+    ];
+
+    /**
      * Has_many relationship
      * @var array
      * @config
