@@ -59,6 +59,16 @@ class Directive extends DataObject implements PermissionProvider
     ];
 
     /**
+     * Database indexes
+     * @var array
+     * @config
+     */
+    private static $indexes = [
+        'Enabled' => true,
+        'Key' => true
+    ];
+
+    /**
      * Defines summary fields commonly used in table columns
      * as a quick overview of the data for this dataobject
      * @var array
