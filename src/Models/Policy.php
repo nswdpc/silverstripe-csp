@@ -444,7 +444,7 @@ class Policy extends DataObject implements PermissionProvider
      */
     public function getPolicy($enabled = 1, $pretty = false)
     {
-        $directives = $this->Directives();
+        $directives = $this->Directives()->sort("ID ASC");
         if (!is_null($enabled)) {
             $directives = $directives->filter('Enabled', (bool)$enabled);
         }
@@ -452,7 +452,7 @@ class Policy extends DataObject implements PermissionProvider
 
         $merge_from_policy_directives = null;
         if ($this->merge_from_policy instanceof Policy) {
-            $merge_from_policy_directives = $this->merge_from_policy->Directives();
+            $merge_from_policy_directives = $this->merge_from_policy->Directives()->sort("ID ASC");
             if (!is_null($enabled)) {
                 $merge_from_policy_directives = $merge_from_policy_directives->filter('Enabled', (bool)$enabled);
             }
