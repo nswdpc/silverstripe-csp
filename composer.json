@@ -35,9 +35,9 @@
     },
     "require": {
         "ext-xml": "*",
-        "silverstripe/cms": "^4.10.0",
-        "symbiote/silverstripe-queuedjobs": "^4.9.0",
-        "symbiote/silverstripe-multivaluefield": "^5.2.0"
+        "silverstripe/cms": "^5",
+        "symbiote/silverstripe-queuedjobs": "^5",
+        "symbiote/silverstripe-multivaluefield": "^6"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.5",
