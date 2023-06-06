@@ -214,8 +214,8 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
         $this->assertNotNull($header_nel, "No " . Policy::HEADER_NEL . " Header!");
 
-        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
-        $this->assertNotNull($header_report_to, "No " . Policy::HEADER_REPORT_TO . " Header!");
+        $header_report_to = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
+        $this->assertNotNull($header_report_to, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " Header!");
 
         $policy->ReportOnly = 1;
         $policy->write();
@@ -227,7 +227,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $header_csp_report_only = $result->getHeader(Policy::HEADER_CSP_REPORT_ONLY);
         $this->assertNotNull($header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " Header!");
 
-        // Turn off Report-To and NEL
+        // Turn off Reporting and NEL
         $policy->SendViolationReports = 0;
         $policy->EnableNEL = 0;
         $policy->write();
@@ -344,8 +344,8 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
         $this->assertNotNull($header_nel, "No " . Policy::HEADER_NEL . " Header!");
 
-        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
-        $this->assertNotNull($header_report_to, "No " . Policy::HEADER_REPORT_TO . " Header!");
+        $header_report_to = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
+        $this->assertNotNull($header_report_to, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " Header!");
     }
 
     /**

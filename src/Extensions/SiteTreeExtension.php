@@ -16,7 +16,6 @@ use SilverStripe\ORM\FieldType\DBField;
 
 /**
  * Provides an extension method so that the SiteTree can gather the CSP meta tag if that is set
- * @author james.ellis@dpc.nsw.gov.au
  */
 class SiteTreeExtension extends Extension
 {

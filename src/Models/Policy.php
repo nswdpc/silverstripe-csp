@@ -22,7 +22,6 @@ use SilverStripe\CMS\Model\SiteTree;
 
 /**
  * A Content Security Policy policy record
- * @author james.ellis@dpc.nsw.gov.au
  */
 class Policy extends DataObject implements PermissionProvider
 {
@@ -48,6 +47,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * @var bool
      * @config
+     * Support sending the "Reporting-Endpoints" header along with report-uri
      */
     private static $include_report_to = false;// possible issue in Chrome when the report-to directive is set, seems the report-uri directive does not work!
 
@@ -99,12 +99,13 @@ class Policy extends DataObject implements PermissionProvider
     const POLICY_DELIVERY_METHOD_HEADER = 'Header';
     const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
 
-    const DEFAULT_REPORTING_GROUP = 'default';
+    const DEFAULT_REPORTING_GROUP = 'csp-endpoint';
     const DEFAULT_REPORTING_GROUP_NEL = 'network-error-logging';
 
     const HEADER_CSP_REPORT_ONLY = 'Content-Security-Policy-Report-Only';
     const HEADER_CSP = 'Content-Security-Policy';
-    const HEADER_REPORT_TO = 'Report-To';
+    const HEADER_REPORT_TO = 'Report-To';// see HEADER_REPORTING_ENDPOINTS
+    const HEADER_REPORTING_ENDPOINTS = 'Reporting-Endpoints';
     const HEADER_NEL = 'NEL';
 
     const NONCE_INJECT_VIA_REQUIREMENTS = 'requirements';
@@ -137,7 +138,7 @@ class Policy extends DataObject implements PermissionProvider
     private static $defaults = [
         'Enabled' => 0,
         'IsLive' => 0,
-        'MinimumCspLevel' => 1,// CSP Level 1 by default
+        'MinimumCspLevel' => 2,// CSP Level 1 by default
         'DeliveryMethod' => self::POLICY_DELIVERY_METHOD_HEADER,
         'ReportOnly' => 1,
         'SendViolationReports' => 0,
@@ -360,7 +361,7 @@ class Policy extends DataObject implements PermissionProvider
                         'PolicyEnabledReportTo',
                         '<p>'
                         . (!empty($policy['reporting']) ? '<pre><code>'
-                        . 'Report-To: ' . json_encode($policy['reporting'])
+                        . self::HEADER_REPORTING_ENDPOINTS . ": " . self::getReportingEndpointsHeader($policy['reporting'])
                         . (!empty($policy['nel']) ? "\nNEL: " . json_encode($policy['nel']) : "")
                         . '</code></pre>' : 'No reporting set')
                         . '</p>'
@@ -389,7 +390,7 @@ class Policy extends DataObject implements PermissionProvider
                         'PolicyAllReportTo',
                         '<p>'
                         . (!empty($policy['reporting']) ? '<pre><code>'
-                        . 'Report-To: ' . json_encode($policy['reporting'])
+                        . self::HEADER_REPORTING_ENDPOINTS . ": " . self::getReportingEndpointsHeader($policy['reporting'])
                         . (!empty($policy['nel']) ? "\nNEL: " . json_encode($policy['nel']) : "")
                         . '</code></pre>' : 'No reporting set')
                         . '</p>'
@@ -424,6 +425,25 @@ class Policy extends DataObject implements PermissionProvider
             $fields->removeByName('Pages');
         }
         return $fields;
+    }
+
+    /**
+     * Given an array of reporting endpoints, return the "Reporting-Endpoints" header value
+     */
+    public static function getReportingEndpointsHeader(array $reporting) : string {
+        if(count($reporting) == 0) {
+            // No reporting endpoints provided
+            return "";
+        } else {
+            return implode(",", $reporting);
+        }
+    }
+
+    /**
+     * Create an endpoint for the Reporting-Endpoints header
+     */
+    public static function getReportingEndpoint(string $endpointName, string $endpointUrl) : string {
+        return $endpointName . "=\"" . $endpointUrl . "\"";
     }
 
     /**
@@ -546,7 +566,7 @@ class Policy extends DataObject implements PermissionProvider
             /**
              * Reporting changed between CSP Level 2 and 3
              * With a min. level of 2, we send report-uri and Report-To headers
-             * With a min. level of 3, we send Report-To only
+             * With a min. level of 3, we send Reporting-Endpoints only
              * @see https://wicg.github.io/reporting/#examples
              * @see https://w3c.github.io/webappsec-csp/#directives-reporting
              * @note the Abort steps here - https://w3c.github.io/reporting/#process-header
@@ -566,27 +586,16 @@ class Policy extends DataObject implements PermissionProvider
 
             $reporting_group = self::DEFAULT_REPORTING_GROUP;
 
-            // 3 only gets Report-To
-            if ($include_report_to) {
-                $reporting[] = [
-                    "group" => $reporting_group,
-                    "max_age" => $max_age,
-                    "endpoints" => [
-                        // an array of URLs, non secure-endpoints should be ignored by the user agent
-                        [ "url" => $reporting_url ],
-                    ],
-                    "include_subdomains" => $include_subdomains
-                ];
-            }
-
             if ($min_csp_level < 3) {
                 // Only 1,2 will add a report-uri, when selecting '3' this is ignored
                 $report_to .= "report-uri {$reporting_url};";
             }
 
             if ($include_report_to) {
-                // 1,2,3 use report-to so that UserAgents that support it can use this as they'll ignore report-uri
+                // Add Reporting-Endpoints header (previously Report-To)
+                // Browsers not supporting this will use report-uri
                 $report_to .= "report-to {$reporting_group};";
+                $reporting[ self::DEFAULT_REPORTING_GROUP ] = self::getReportingEndpoint(self::DEFAULT_REPORTING_GROUP, $reporting_url);
             }
 
             // only apply report_to if there is a URL and the
@@ -606,15 +615,8 @@ class Policy extends DataObject implements PermissionProvider
                     "include_subdomains" => $include_subdomains
                 ];
 
-                // Add group to reporting
-                $reporting[] = [
-                    "group" => self::DEFAULT_REPORTING_GROUP_NEL,
-                    "max_age" => $max_age,
-                    "endpoints" => [
-                        [ "url" => $nel_reporting_url ],
-                    ],
-                    "include_subdomains" => $include_subdomains
-                ];
+                // Reporting-Endpoints endpoint for NEL
+                $reporting[ self::DEFAULT_REPORTING_GROUP_NEL ] = self::getReportingEndpoint(self::DEFAULT_REPORTING_GROUP_NEL, $nel_reporting_url);
             }
         }
 

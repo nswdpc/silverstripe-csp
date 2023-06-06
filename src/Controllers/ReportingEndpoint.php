@@ -9,47 +9,21 @@ use Exception;
 
 /*
  * Reporting endpoint used to collect violations
- * Note that this *could* collect LOTS of reportsm, in production it would be wiser + better to use a service like report-uri
- * You can use this reporting endpoint to assist with policy/directive creation on staging/draft sites - it's best to get your policy working prior to rolling it out to production.
-
- * @author james.ellis@dpc.nsw.gov.au
- * The following JSON report is POSTed to this controller using the Content-Type application/csp-report
- * @see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only#Violation_report_syntax
- <code>
- {
-  "csp-report": {
-    "document-uri": "http://example.com/signup.html",
-    "referrer": "",
-    "blocked-uri": "http://example.com/css/style.css",
-    "violated-directive": "style-src cdn.example.com",
-    "original-policy": "default-src 'none'; style-src cdn.example.com; report-uri /_/csp-reports"
-  }
-}
-// Example report sent from Chrome
-Array
-(
-    [csp-report] => Array
-        (
-            [document-uri] => https://example.com/path
-            [referrer] =>
-            [violated-directive] => script-src
-            [effective-directive] => script-src
-            [original-policy] => default-src 'self'; report-uri /csp/v1/report/;report-to default;
-            [disposition] => report
-            [blocked-uri] => eval
-            [line-number] => 673
-            [column-number] => 18
-            [source-file] => https://example.com/path/script.js
-            [status-code] => 0
-            [script-sample] =>
-        )
-
-)
-</code>
+ * Note that this *could* collect LOTS of reports, in production it would be wiser + better
+ * to use an external reporting service
+ * You can use this reporting endpoint to assist with policy/directive creation on staging/draft sites
+ * it's best to get your policy working prior to rolling it out to production.
  *
  */
 class ReportingEndpoint extends Controller
 {
+
+    /**
+     * Whether reports are accepted by this endpoint
+     * @var bool
+     * @config
+     */
+    private static $accept_reports = false;
 
     /**
      * @var array
@@ -69,15 +43,19 @@ class ReportingEndpoint extends Controller
 
     public function index(HTTPRequest $request)
     {
+        $this->returnHeader();
     }
 
+    /**
+     * Return appropriate response header, only
+     */
     private function returnHeader()
     {
         header("HTTP/1.1 204 No Content");
         exit;
     }
 
-    public static function getCurrentReportingUrl($include_host = true)
+    public static function getCurrentReportingUrl($include_host = true) : string
     {
         return ($include_host ? Director::absoluteBaseURL() : '/') . 'csp/v1/report';
     }
@@ -90,25 +68,32 @@ class ReportingEndpoint extends Controller
     {
         // collect the body
         try {
+
+            if(!self::config()->get('accept_reports')) {
+                $this->returnHeader();
+            }
+
             if (!$request->isPOST()) {
                 $this->returnHeader();
             }
 
-            $post = file_get_contents("php://input");
-            if (empty($post)) {
+            $contentType = $request->getHeader('Content-Type');
+            $acceptedContentTypes = [ 'application/csp-report', 'application/reports+json' ];
+            if(!in_array($contentType, $acceptedContentTypes)) {
                 $this->returnHeader();
             }
-            $post = json_decode($post, true);
-            if (empty($post['csp-report'])) {
-                throw new Exception('No csp-report index found in POSTed data');
+
+            $body = $request->getBody();
+            if(!$body) {
+                $this->returnHeader();
             }
-            $user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : '';
-            $report = ViolationReport::create_report($post['csp-report'], $user_agent);
-            if (empty($report->ID)) {
-                throw new Exception('Could not create report from data submitted');
+
+            $report = json_decode($body, true);
+            if(json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception("CSP report JSON decode error: " . json_last_error_msg());
             }
+            $violationReport = ViolationReport::create_report($report , $contentType);
         } catch (Exception $e) {
-            // Not a warning :)
         }
 
         $this->returnHeader();

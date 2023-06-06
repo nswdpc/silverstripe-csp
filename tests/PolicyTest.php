@@ -114,9 +114,15 @@ class PolicyTest extends SapphireTest
         $this->assertTrue(strpos($header['policy_string'], "'self'") !== false);
         $this->assertTrue(strpos($header['policy_string'], "font-src") === 0);
         $this->assertTrue(strpos($header['policy_string'], "https://example.com https://www.example.net https://*.example.org") !== false);
-        $this->assertEquals($header['reporting'][0]['endpoints'][0]['url'], ReportingEndpoint::getCurrentReportingUrl(true));
+        $this->assertEquals(
+            $header['reporting'][ Policy::DEFAULT_REPORTING_GROUP ],
+            Policy::getReportingEndpoint(Policy::DEFAULT_REPORTING_GROUP, ReportingEndpoint::getCurrentReportingUrl(true))
+        );
         $this->assertEquals($header['nel']['report_to'], Policy::DEFAULT_REPORTING_GROUP_NEL);
-        $this->assertEquals($header['reporting'][0]['group'], Policy::DEFAULT_REPORTING_GROUP);// TODO handle based on group name ?
+        $this->assertEquals(
+            $header['reporting'][ Policy::DEFAULT_REPORTING_GROUP_NEL ],
+            Policy::getReportingEndpoint(Policy::DEFAULT_REPORTING_GROUP_NEL, ReportingEndpoint::getCurrentReportingUrl(true))
+        );
 
         $policy->EnableNEL = 0;
         $policy->write();

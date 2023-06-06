@@ -16,7 +16,6 @@ use Symbiote\MultiValueField\Fields\KeyValueField;
 
 /**
  * A Content Security Policy directive, can be used by multiple {@link Policy}
- * @author james.ellis@dpc.nsw.gov.au
  */
 class Directive extends DataObject implements PermissionProvider
 {

@@ -15,8 +15,6 @@ use SilverStripe\CMS\Model\SiteTree;
 
 /**
  * Provides an extension method so that the Controller can set the relevant CSP header
- * @author james.ellis@dpc.nsw.gov.au
- * @todo report-uri is deprecated, report-to is the new thang but browsers don't fully support report-to yet
  */
 class ControllerExtension extends Extension
 {
@@ -77,13 +75,8 @@ class ControllerExtension extends Extension
         if ($policy instanceof Policy && ($data = $policy->HeaderValues($enabled_directives))) {
             // Add the Report-To header for all
             if (!empty($data['reporting'])) {
-                /**
-                 * See: https://www.w3.org/TR/reporting/
-                 * "The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ], as described in Section 4 of [HTTP-JFV]."
-                 */
-                $encoded_report_to = json_encode($data['reporting'], JSON_UNESCAPED_SLASHES);
-                $encoded_report_to = trim($encoded_report_to, "[]");
-                $response->addHeader("Report-To", $encoded_report_to);
+                // Add Reporting-Endpoints header
+                $response->addHeader(Policy::HEADER_REPORTING_ENDPOINTS , Policy::getReportingEndpointsHeader($data['reporting']));
             }
             if (!empty($data['nel'])) {
                 $response->addHeader("NEL", json_encode($data['nel'], JSON_UNESCAPED_SLASHES));
