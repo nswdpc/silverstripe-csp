@@ -5,7 +5,6 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
-use Exception;
 
 /*
  * Reporting endpoint used to collect violations
@@ -70,32 +69,36 @@ class ReportingEndpoint extends Controller
         try {
 
             if(!self::config()->get('accept_reports')) {
-                $this->returnHeader();
+                throw new \Exception("This endpoint does not accept reports");
             }
 
             if (!$request->isPOST()) {
-                $this->returnHeader();
+                throw new \Exception("The request method is not POST");
             }
 
             $contentType = $request->getHeader('Content-Type');
             $acceptedContentTypes = [ 'application/csp-report', 'application/reports+json' ];
             if(!in_array($contentType, $acceptedContentTypes)) {
-                $this->returnHeader();
+                throw new \Exception("The request does not have an accepted content type");
             }
 
             $body = $request->getBody();
             if(!$body) {
-                $this->returnHeader();
+                throw new \Exception("The body of the request is empty");
             }
 
             $report = json_decode($body, true);
             if(json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception("CSP report JSON decode error: " . json_last_error_msg());
             }
+
             $violationReport = ViolationReport::create_report($report , $contentType);
-        } catch (Exception $e) {
+
+        } catch (\Exception $e) {
+            Logger::log("ReportingEndpoint: " . $e->getMessage(), "NOTICE");
+        } finally {
+            $this->returnHeader();
         }
 
-        $this->returnHeader();
     }
 }

@@ -13,6 +13,8 @@ use SilverStripe\Forms\DropdownField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use Symbiote\MultiValueField\Fields\KeyValueField;
+use SilverStripe\ORM\Filters\PartialMatchFilter;
+use SilverStripe\ORM\Filters\ExactMatchFilter;
 
 /**
  * A Content Security Policy directive, can be used by multiple {@link Policy}
@@ -83,6 +85,20 @@ class Directive extends DataObject implements PermissionProvider
         'UnsafeInline.Nice' =>'Unsafe Inline',
         'AllowDataUri.Nice' =>'Allow Data URI',
         'UseNonce.Nice' => 'Use Nonce'
+    ];
+
+    /**
+     * Searchable Fields
+     * @var array
+     * @config
+     */
+    private static $searchable_fields = [
+        'Key' => PartialMatchFilter::class,
+        'Enabled' => ExactMatchFilter::class,
+        'IncludeSelf' => ExactMatchFilter::class,
+        'UnsafeInline' => ExactMatchFilter::class,
+        'AllowDataUri' => ExactMatchFilter::class,
+        'UseNonce' => ExactMatchFilter::class,
     ];
 
     /**

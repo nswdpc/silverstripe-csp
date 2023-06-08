@@ -13,6 +13,7 @@ use SilverStripe\Versioned\Versioned;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\View\Requirements;
+use SilverStripe\Control\Director;
 use Exception;
 
 abstract class AbstractPolicyFunctionalTest extends FunctionalTest
@@ -22,7 +23,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     protected static $disable_themes = true;
 
-    // protected $usesDatabase = true;
+    protected $usesDatabase = true;
 
     protected static $fixture_file = 'PolicyFunctionalTest.yml';
 
@@ -38,13 +39,19 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     abstract protected function getInjectionMethod();
 
-    public function setUp() : void
+    protected function setUp() : void
     {
         Config::modify()->set( Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
         parent::setUp();
+        // Ensure protocol is https, to ensure reporting URL is validated
+        Config::modify()->set(
+            Director::class,
+            'alternate_base_url',
+            'https://localhost/'
+        );
     }
 
-    public function tearDown() : void
+    protected function tearDown() : void
     {
         parent::tearDown();
     }
@@ -136,8 +143,8 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
             'IsBasePolicy' => 1,
             'ReportOnly' => 0,
             'SendViolationReports' => 1,
-            'EnableNEL' => 1,
-            'AlternateReportURI' => '',
+            'EnableNEL' => 0,
+            'AlternateReportURI' => 'https://reporting.example.com/csp/report',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
             'MinimumCspLevel' => 1,
         ]);
@@ -209,13 +216,22 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $this->assertTrue($result instanceof HTTPResponse);
 
         $header_csp = $result->getHeader(Policy::HEADER_CSP);
-        $this->assertNotNull($header_csp, "No " . Policy::HEADER_CSP . " Header!");
+        $this->assertNotNull($header_csp, "No " . Policy::HEADER_CSP . " header");
 
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
-        $this->assertNotNull($header_nel, "No " . Policy::HEADER_NEL . " Header!");
+        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
+        $this->assertNull($header_nel, Policy::HEADER_NEL . " header found");
+        $this->assertNull($header_nel, Policy::HEADER_REPORT_TO . " header found");
 
-        $header_report_to = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
-        $this->assertNotNull($header_report_to, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " Header!");
+        $header_reporting_endpoints = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
+        $this->assertNotNull($header_reporting_endpoints, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " header");
+        $this->assertStringContainsString(
+            Policy::getReportingEndpoint(
+                Policy::DEFAULT_REPORTING_GROUP,
+                $policy->getReportingUrl()
+            ),
+            $header_reporting_endpoints
+        );
 
         $policy->ReportOnly = 1;
         $policy->write();
@@ -225,25 +241,39 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $this->assertTrue($result instanceof HTTPResponse);
 
         $header_csp_report_only = $result->getHeader(Policy::HEADER_CSP_REPORT_ONLY);
-        $this->assertNotNull($header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " Header!");
+        $this->assertNotNull($header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " header");
 
-        // Turn off Reporting and NEL
+        $header_reporting_endpoints = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
+        $this->assertNotNull($header_reporting_endpoints, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " header");
+        $this->assertStringContainsString(
+            Policy::getReportingEndpoint(
+                Policy::DEFAULT_REPORTING_GROUP,
+                $policy->getReportingUrl()
+            ),
+            $header_reporting_endpoints
+        );
+
+        // Turn off Reporting
         $policy->SendViolationReports = 0;
-        $policy->EnableNEL = 0;
         $policy->write();
 
         $result = $this->get('home/');
 
         $this->assertTrue($result instanceof HTTPResponse);
 
+        // Report only header should be present
         $header_csp_report_only = $result->getHeader(Policy::HEADER_CSP_REPORT_ONLY);
-        $this->assertNotNull($header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " Header!");
+        $this->assertNotNull($header_csp_report_only, "No " . Policy::HEADER_CSP_REPORT_ONLY . " header");
 
+        // Reporting-Endpoints should not be present
+        $header_reporting_endpoints = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
+        $this->assertNull($header_reporting_endpoints, Policy::HEADER_REPORTING_ENDPOINTS . " header found");
+
+        // NEL should remain off
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
-        $this->assertNull($header_nel, Policy::HEADER_NEL . " Header!");
-
         $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
-        $this->assertNull($header_report_to, Policy::HEADER_REPORT_TO . " Header!");
+        $this->assertNull($header_nel, Policy::HEADER_NEL . " header found");
+        $this->assertNull($header_nel, Policy::HEADER_REPORT_TO . " header found");
     }
 
     /**
@@ -261,7 +291,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
             'IsBasePolicy' => 1,
             'ReportOnly' => 0,
             'SendViolationReports' => 1,
-            'EnableNEL' => 1,
+            'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
             'MinimumCspLevel' => 1,
@@ -340,12 +370,11 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
             && strpos($formatted_values['font-src'], "https://pagetestfont.example.com") !== false
         );
 
-        // the main base policy sets these
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
-        $this->assertNotNull($header_nel, "No " . Policy::HEADER_NEL . " Header!");
+        $this->assertNull($header_nel, Policy::HEADER_NEL . " Header!");
 
-        $header_report_to = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
-        $this->assertNotNull($header_report_to, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " Header!");
+        $header_reporting_endpoints = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
+        $this->assertNotNull($header_reporting_endpoints, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " Header!");
     }
 
     /**
@@ -439,6 +468,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
                 switch ($equiv) {
                     case Policy::HEADER_CSP_REPORT_ONLY:
                     case Policy::HEADER_REPORT_TO:
+                    case Policy::HEADER_REPORTING_ENDPOINTS:
                     case Policy::HEADER_NEL:
                         // none of these headers are allowed
                         throw new Exception("Header {$equiv} found");
@@ -588,6 +618,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
                 switch ($equiv) {
                         case Policy::HEADER_CSP_REPORT_ONLY:
                         case Policy::HEADER_REPORT_TO:
+                        case Policy::HEADER_REPORTING_ENDPOINTS:
                         case Policy::HEADER_NEL:
                             // causes the test to fail
                             throw new Exception("Header {$equiv} found");

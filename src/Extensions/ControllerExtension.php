@@ -50,7 +50,7 @@ class ControllerExtension extends Extension
 
         $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
-        // check for Page specific policies
+        // check for Page specific policy
         if ($this->owner instanceof ContentController
             && ($data = $this->owner->data())
             && $data instanceof SiteTree) {
@@ -59,7 +59,7 @@ class ControllerExtension extends Extension
                     if (!empty($policy->ID)) {
                         /**
                          * HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
-                         * Workaround is to set the page policy for merging when HeaderValues() is called
+                         * Workaround is to set the page policy for merging when getPolicyData() is called
                          * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies
                          * Ref: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
                          */
@@ -72,14 +72,26 @@ class ControllerExtension extends Extension
         }
 
         // Add the policy/reporting header values
-        if ($policy instanceof Policy && ($data = $policy->HeaderValues($enabled_directives))) {
-            // Add the Report-To header for all
-            if (!empty($data['reporting'])) {
+        if ($policy instanceof Policy && ($data = $policy->getPolicyData($enabled_directives))) {
+            // Report-To header
+            // Add the Reporting-Endpoints header
+            if (!empty($data['reporting_endpoints'])) {
                 // Add Reporting-Endpoints header
-                $response->addHeader(Policy::HEADER_REPORTING_ENDPOINTS , Policy::getReportingEndpointsHeader($data['reporting']));
+                $response->addHeader(
+                    Policy::HEADER_REPORTING_ENDPOINTS,
+                    Policy::getReportingEndpointsHeader($data['reporting_endpoints'])
+                );
             }
             if (!empty($data['nel'])) {
-                $response->addHeader("NEL", json_encode($data['nel'], JSON_UNESCAPED_SLASHES));
+                // NEL is enabled
+                $response->addHeader(
+                    Policy::HEADER_REPORT_TO,
+                    Policy::getReportToHeader($data['report_to'])
+                );
+                $response->addHeader(
+                    "NEL",
+                    json_encode($data['nel'], JSON_UNESCAPED_SLASHES)
+                );
             }
             // the relevant CSP-header with its values
             $response->addHeader($data['header'], $data['policy_string']);
