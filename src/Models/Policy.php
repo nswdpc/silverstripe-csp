@@ -605,6 +605,12 @@ class Policy extends DataObject implements PermissionProvider
             }
             if(count($reportTo) > 0) {
                 $headerValue = json_encode( $reportTo, JSON_UNESCAPED_SLASHES );
+                /**
+                 * W3C spec:
+                 * The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ],
+                 * as described in Section 4 of [HTTP-JFV].
+                 */
+                $headerValue = trim($headerValue, "[]");
             }
             return $headerValue;
         }
