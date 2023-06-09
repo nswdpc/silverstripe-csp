@@ -49,7 +49,7 @@ To start with, add a policy with the "Enabled" box unchecked. Once the policy is
 #### CSP Reporting
 
 + **Send violation reports** - when checked, adds the Report-To header and report-uri directive to the policy
-+ **Report Only** - adds the header "Content-Security-Policy-Report-Only", the policy will report to the browser's dev console and log to an endpoint if you have one configured. Reporting is not available when using meta tags to deliver CSP rules.
++ **Report Only** - adds the header "Content-Security-Policy-Report-Only", the policy will report to the browser's dev console and log to an endpoint if you have one configured.
 + **Endpoint for report-uri violation reports** - add the reporting URL for logging violations, this can be left empty to report back to the website (not recommended). You can add, for instance, a report-uri.com logging URL here.
 + **Endpoint for Reporting API (report-to) violation reports** - add a URL for handling Reporting API reports. Some services have separate CSP reporting endpoints for report-uri and report-to.
 
@@ -58,7 +58,7 @@ To start with, add a policy with the "Enabled" box unchecked. Once the policy is
 + **Enable Network Error Logging (NEL)** - turned on Network Error Logging via the NEL header
 
 ### Delivery options
-+ **Delivery Method** -  Via an HTTP header (recommended) or a metatag. The module may remove the Metatag option in the future to simplify code.
++ **Delivery Method** - The policy is delivered by HTTP response headers
 
 ### Adding Directives
 

@@ -12,15 +12,3 @@ The configuration value ```run_in_admin``` is shipped as false by default.
 You can whitelist certain controllers in module config. This will block the policy from being delivered in those controllers.
 
 > Override module configuration in your project configuration.
-
-## Using meta tags
-
-> This option will be removed in v1.0
-
-You can choose to deliver the CSP via meta tags.
-
-Choosing this option will cause certain features to be unavailable
-* The ```report-uri``` and ```report-to``` directives are not supported in meta tags and will not be present
-* The ```Content-Security-Policy-Report-Only``` header is not supported, currently.
-
-The only way to received policy violation reports is via HTTP Header delivery method.

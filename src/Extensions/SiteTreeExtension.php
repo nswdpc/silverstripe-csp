@@ -15,7 +15,7 @@ use SilverStripe\ORM\FieldType\DBHTMLText;
 use SilverStripe\ORM\FieldType\DBField;
 
 /**
- * Provides an extension method so that the SiteTree can gather the CSP meta tag if that is set
+ * Allow selection of a page-specific CSP
  */
 class SiteTreeExtension extends Extension
 {
@@ -69,77 +69,4 @@ class SiteTreeExtension extends Extension
         return $fields;
     }
 
-    /**
-     * Check to see if a meta tag can be returned
-     */
-    private function checkCanRun()
-    {
-        $controller = Controller::has_curr() ? Controller::curr() : false;
-        if (!$controller) {
-            // no current controller
-            return false;
-        }
-
-        // Configured controllers with no CSP
-        if(Policy::controllerWithoutCsp($controller)) {
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
-     * Extension hook, see {@link SilverStripe\CMS\Model\SiteTree::MetaTags}
-     * @returns void
-     */
-    public function MetaTags(&$tags)
-    {
-        $csp_tags = $this->CspMetaTags();
-        $tags = $tags . "\n" . $csp_tags;
-    }
-
-    /**
-     * Note that reporting is ignored/disallowed when using a meta tag. Only the header Content-Security-Policy is allowed.
-     * In your template this can be called directly by adding $CspMetaTags if you don't use $MetaTags
-     * See https://github.com/w3c/webappsec-csp/issues/348 for a good discussion on this and possible inclusion of CSPRO in metatags
-     * @returns string
-     */
-    public function CspMetaTags()
-    {
-        $tags = [];
-
-        if (!$this->checkCanRun()) {
-            return "";
-        }
-
-        $stage = Versioned::get_stage();
-        // check if request on the Live stage
-        $is_live = ($stage == Versioned::LIVE);
-
-        // get the default policy
-        $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_METATAG);
-        if (!empty($policy->ID) && ($data = $policy->getPolicyData(true))) {
-            $tags[] = HTML::createTag('meta', [
-                'http-equiv' => $data['header'],
-                'content' => $data['policy_string'],
-            ]);
-        }
-
-        // check for a specific page based policy
-        if ($this->owner instanceof SiteTree) {
-            $page_policy = Policy::getPagePolicy($this->owner, $is_live, Policy::POLICY_DELIVERY_METHOD_METATAG);
-            if (!empty($page_policy->ID) && ($data = $page_policy->getPolicyData(true))) {
-                $tags[] = HTML::createTag('meta', [
-                    'http-equiv' => $data['header'],
-                    'content' => $data['policy_string'],
-                ]);
-            }
-        }
-
-        if (!empty($tags)) {
-            return DBField::create_field(DBHTMLText::class, implode("\n", $tags));
-        }
-
-        return "";
-    }
 }

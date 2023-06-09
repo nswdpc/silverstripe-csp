@@ -41,7 +41,6 @@ composer require nswdpc/silverstripe-csp
     * Set it to 'report only'
     * Mark it as the 'base policy'
     * Optionally, make it available on your draft site only
-0. Set the policy to be delivered via a HTTP headers (you can use meta tags but this method limits the feature you can use).
 0. Add some Directives
 0. Mark the Policy 'Enabled', save it and
 0. Watch for violation reports or look at your browser dev console

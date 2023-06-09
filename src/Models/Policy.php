@@ -13,7 +13,7 @@ use SilverStripe\Forms\CompositeField;
 use SilverStripe\Forms\TextField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Forms\HeaderField;
-use SilverStripe\Forms\OptionsetField;
+use SilverStripe\Forms\ReadonlyField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use SilverStripe\ORM\DB;
@@ -93,7 +93,7 @@ class Policy extends DataObject implements PermissionProvider
     private $merge_from_policy;// at runtime set a policy to merge other directives from, into this policy
 
     const POLICY_DELIVERY_METHOD_HEADER = 'Header';
-    const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
+    const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';// Support for metatag delivery removed
 
     const DEFAULT_REPORTING_GROUP = 'csp-endpoint';
     const DEFAULT_REPORTING_GROUP_NEL = 'network-error-logging';
@@ -124,7 +124,7 @@ class Policy extends DataObject implements PermissionProvider
         'AlternateReportToURI' => 'Varchar(255)',// Reporting URL for Reporting API reports
         'EnableNEL' => 'Boolean', // Enable Network Error Logging (for supporting browsers)
         'AlternateNELReportURI' => 'Varchar(255)', // NEL reporting URL e.g an external service
-        'DeliveryMethod' => 'Enum(\'Header,MetaTag\')',
+        'DeliveryMethod' => 'Enum(\'Header,MetaTag\')',// Allow for historical MetaTag values to be migrated to Header type
     ];
 
     /**
@@ -197,6 +197,14 @@ class Policy extends DataObject implements PermissionProvider
      * @config
      */
     private static $default_sort = 'IsBasePolicy DESC, Enabled DESC, Title ASC';
+
+    /**
+     * Actions performed prior to write
+     */
+    public function onBeforeWrite() {
+        parent::onBeforeWrite();
+        $this->DeliveryMethod = self::POLICY_DELIVERY_METHOD_HEADER;
+    }
 
     /**
      * Return the default base policy
@@ -293,20 +301,15 @@ class Policy extends DataObject implements PermissionProvider
 
         $fields->insertAfter(
             'Title',
-            OptionsetField::create(
+            ReadonlyField::create(
                 'DeliveryMethod',
                 _t(
                     'ContentSecurityPolicy.DELIVERY_METHOD',
                     'Delivery Method'
                 ),
-                [
-                    self::POLICY_DELIVERY_METHOD_HEADER => 'Via an HTTP Header',
-                    self::POLICY_DELIVERY_METHOD_METATAG => 'As a meta tag'
-                ]
-            )->setDescription(
                 _t(
-                    'ContentSecurityPolicy.REPORT_VIA_META_TAG',
-                    'Reporting violations is not supported when using the meta tag delivery method'
+                    'ContentSecurityPolicy.DELIVERY_METHOD_HEADER',
+                    'Via an HTTP Header'
                 )
             )
         );
@@ -377,15 +380,6 @@ class Policy extends DataObject implements PermissionProvider
                     'Allows experimenting with the policy by monitoring (but not enforcing) its effects.'
                 )
             );
-
-        if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_METATAG && $this->ReportOnly == 1) {
-            $reportOnlyField->setRightTitle(
-                _t(
-                    'ContentSecurityPolicy.REPORT_ONLY_METATAG_WARNING',
-                    'The delivery method is set to \'meta tag\', this setting will be ignored'
-                )
-            );
-        }
 
         $internal_reporting_url = ReportingEndpoint::getCurrentReportingUrl(true);
         $reportUriField = $fields->dataFieldByName('AlternateReportURI')
@@ -649,7 +643,7 @@ class Policy extends DataObject implements PermissionProvider
     }
 
     /**
-     * Retrieve the policy in a format for use in the Header or Meta Tag handling
+     * Retrieve the policy string in a format for use in the CSP response header
      * @param mixed $enabled filter by Enabled directives only
      * @param bool $pretty format each policy line on a new line
      * @return string
@@ -748,13 +742,7 @@ class Policy extends DataObject implements PermissionProvider
         $report_to = $reporting_endpoints = $nel = [];
         $header = self::HEADER_CSP;
         if ($this->ReportOnly == 1) {
-            if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_METATAG) {
-                // MetaTag delivery does not support CSPRO, go no further (delivers NO CSP headers)
-                return null;
-            } elseif ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER) {
-                // only HTTP Header can use CSPRO currently
-                $header = self::HEADER_CSP_REPORT_ONLY;
-            }
+            $header = self::HEADER_CSP_REPORT_ONLY;
         }
 
         /**
