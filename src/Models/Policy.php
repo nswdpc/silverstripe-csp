@@ -604,7 +604,7 @@ class Policy extends DataObject implements PermissionProvider
                 $reportTo[] = $entry;
             }
             if(count($reportTo) > 0) {
-                $headerValue = json_encode( $reportTo, JSON_UNESCAPED_SLASHES );
+                $headerValue = json_encode( $reportTo );
                 /**
                  * W3C spec:
                  * The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ],

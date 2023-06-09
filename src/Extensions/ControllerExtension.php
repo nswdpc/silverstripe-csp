@@ -90,7 +90,7 @@ class ControllerExtension extends Extension
                 );
                 $response->addHeader(
                     "NEL",
-                    json_encode($data['nel'], JSON_UNESCAPED_SLASHES)
+                    json_encode($data['nel'])
                 );
             }
             // the relevant CSP-header with its values
