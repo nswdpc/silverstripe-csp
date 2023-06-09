@@ -264,7 +264,9 @@ class Directive extends DataObject implements PermissionProvider
                     'Rules',
                     'Add the rule on the left and a reason for adding the rule on the right'
                 )->setDescription(
-                    'Some keywords, such as hashes, must be single-quoted'
+                    'Some keywords, such as hashes, must be single-quoted.'
+                    . '<br>'
+                    . '<code>;</code> and <code>,</code> characters will be removed.'
                 ),
                 HTMLReadonlyField::create(
                     'RulesExample',
