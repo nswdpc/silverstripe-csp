@@ -363,7 +363,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
         $this->assertTrue(
             strpos($formatted_values['font-src'], "'self'") !== false
-            && strpos($formatted_values['font-src'], " data: ") !== false
+            && strpos($formatted_values['font-src'], "data:") !== false
             && strpos($formatted_values['font-src'], "https://base.font.example.com") !== false
             && strpos($formatted_values['font-src'], "https://base.font.example.net") !== false
             && strpos($formatted_values['font-src'], "https://*.base.font.example.org") !== false
