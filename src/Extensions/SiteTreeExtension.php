@@ -16,7 +16,6 @@ use SilverStripe\ORM\FieldType\DBField;
 
 /**
  * Provides an extension method so that the SiteTree can gather the CSP meta tag if that is set
- * @author james.ellis@dpc.nsw.gov.au
  */
 class SiteTreeExtension extends Extension
 {
@@ -119,7 +118,7 @@ class SiteTreeExtension extends Extension
 
         // get the default policy
         $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_METATAG);
-        if (!empty($policy->ID) && ($data = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_METATAG))) {
+        if (!empty($policy->ID) && ($data = $policy->getPolicyData(true))) {
             $tags[] = HTML::createTag('meta', [
                 'http-equiv' => $data['header'],
                 'content' => $data['policy_string'],
@@ -129,7 +128,7 @@ class SiteTreeExtension extends Extension
         // check for a specific page based policy
         if ($this->owner instanceof SiteTree) {
             $page_policy = Policy::getPagePolicy($this->owner, $is_live, Policy::POLICY_DELIVERY_METHOD_METATAG);
-            if (!empty($page_policy->ID) && ($data = $page_policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_METATAG))) {
+            if (!empty($page_policy->ID) && ($data = $page_policy->getPolicyData(true))) {
                 $tags[] = HTML::createTag('meta', [
                     'http-equiv' => $data['header'],
                     'content' => $data['policy_string'],

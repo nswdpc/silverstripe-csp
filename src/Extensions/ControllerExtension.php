@@ -15,8 +15,6 @@ use SilverStripe\CMS\Model\SiteTree;
 
 /**
  * Provides an extension method so that the Controller can set the relevant CSP header
- * @author james.ellis@dpc.nsw.gov.au
- * @todo report-uri is deprecated, report-to is the new thang but browsers don't fully support report-to yet
  */
 class ControllerExtension extends Extension
 {
@@ -52,7 +50,7 @@ class ControllerExtension extends Extension
 
         $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
-        // check for Page specific policies
+        // check for Page specific policy
         if ($this->owner instanceof ContentController
             && ($data = $this->owner->data())
             && $data instanceof SiteTree) {
@@ -61,7 +59,7 @@ class ControllerExtension extends Extension
                     if (!empty($policy->ID)) {
                         /**
                          * HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
-                         * Workaround is to set the page policy for merging when HeaderValues() is called
+                         * Workaround is to set the page policy for merging when getPolicyData() is called
                          * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies
                          * Ref: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
                          */
@@ -74,19 +72,26 @@ class ControllerExtension extends Extension
         }
 
         // Add the policy/reporting header values
-        if ($policy instanceof Policy && ($data = $policy->HeaderValues($enabled_directives))) {
-            // Add the Report-To header for all
-            if (!empty($data['reporting'])) {
-                /**
-                 * See: https://www.w3.org/TR/reporting/
-                 * "The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ], as described in Section 4 of [HTTP-JFV]."
-                 */
-                $encoded_report_to = json_encode($data['reporting'], JSON_UNESCAPED_SLASHES);
-                $encoded_report_to = trim($encoded_report_to, "[]");
-                $response->addHeader("Report-To", $encoded_report_to);
+        if ($policy instanceof Policy && ($data = $policy->getPolicyData($enabled_directives))) {
+            // Report-To header
+            // Add the Reporting-Endpoints header
+            if (!empty($data['reporting_endpoints'])) {
+                // Add Reporting-Endpoints header
+                $response->addHeader(
+                    Policy::HEADER_REPORTING_ENDPOINTS,
+                    Policy::getReportingEndpointsHeader($data['reporting_endpoints'])
+                );
             }
             if (!empty($data['nel'])) {
-                $response->addHeader("NEL", json_encode($data['nel'], JSON_UNESCAPED_SLASHES));
+                // NEL is enabled
+                $response->addHeader(
+                    Policy::HEADER_REPORT_TO,
+                    Policy::getReportToHeader($data['report_to'])
+                );
+                $response->addHeader(
+                    "NEL",
+                    json_encode($data['nel'])
+                );
             }
             // the relevant CSP-header with its values
             $response->addHeader($data['header'], $data['policy_string']);

@@ -1,7 +1,11 @@
 en:
   ContentSecurityPolicy:
-    ALTERNATE_REPORT_URI: 'If not set, and the sending of violation reports is enabled, reports will be directed to %s and will appear in the CSP/Reports admin<br>Sending reports back to your own website may cause performance degradation.'
-    ALTERNATE_REPORT_URI_TITLE: 'Set a reporting URL that will accept violation reports'
+    ALTERNATE_REPORT_URI_DESCRIPTION: 'If not set and the sending of violation reports is enabled, reports will be directed to <code>{internal_reporting_url}</code> and will appear in the CSP/Reports screen.<br>Sending reports back to your own website may cause performance degradation.'
+    ALTERNATE_REPORT_URI_TITLE: 'Endpoint for report-uri violation reports'
+    ALTERNATE_REPORT_TO_TITLE: 'Endpoint for Reporting API (report-to) violation reports'
+    ALTERNATE_REPORT_TO_URI_DESCRIPTION: 'For services that have a separate Reporting API endpoint.<br>If not set and the sending of violation reports is enabled, reports will be directed to <code>{internal_reporting_url}</code> and will appear in the CSP/Reports screen.<br>Sending reports back to your own website may cause performance degradation.'
+    ALTERNATE_NEL_REPORT_URI_TITLE: 'NEL/Reporting API reporting URL that will accept Network Error Logging reports'
+    ALTERNATE_NEL_REPORT_URI_EXTERNAL: 'You must use an external reporting service.'
     REPORT_VIA_META_TAG: 'Reporting violations is not supported when using the meta tag delivery method'
     SEND_VIOLATION_REPORTS: "Send violation reports to a reporting system"
     SEND_VIOLATION_REPORTS_REPORT_ONLY: "'Report Only' is on -  it is wise to turn on sending violation reports"

@@ -6,7 +6,6 @@ use SilverStripe\Admin\ModelAdmin;
 
 /**
  * Admin for managing Content Security Policy and Violation Reports
- * @author james.ellis@dpc.nsw.gov.au
  */
 class CspModelAdmin extends ModelAdmin
 {

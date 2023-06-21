@@ -15,6 +15,8 @@ You can whitelist certain controllers in module config. This will block the poli
 
 ## Using meta tags
 
+> This option will be removed in v1.0
+
 You can choose to deliver the CSP via meta tags.
 
 Choosing this option will cause certain features to be unavailable
