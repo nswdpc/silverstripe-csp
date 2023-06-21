@@ -662,12 +662,16 @@ class Policy extends DataObject implements PermissionProvider
      */
     public function getPolicy($enabled = true, $pretty = false) : string
     {
+
+        $policy = "";
+
+        // All directives in this policy
         $directives = $this->Directives()->sort("ID ASC");
         if (!is_null($enabled)) {
             $directives = $directives->filter(['Enabled' => $enabled ]);
         }
-        $policy = "";
 
+        // Check for policy that can be merged with this policy
         $merge_from_policy_directives = null;
         if ($this->merge_from_policy instanceof Policy) {
             $merge_from_policy_directives = $this->merge_from_policy->Directives()->sort("ID ASC");
@@ -676,54 +680,40 @@ class Policy extends DataObject implements PermissionProvider
             }
         }
 
-        $keys = [];
+        $directive_names = [];// Direcitve names in this policy
         foreach ($directives as $directive) {
             // get the Directive value
-            $value = $directive->getDirectiveValue();
+            $directive_values = $directive->getDirectiveValuesAsArray();
             if ($merge_from_policy_directives) {
                 // merge a directive from this policy
                 $merge_directive = $merge_from_policy_directives->filter('Key', $directive->Key)->first();
-                if (!empty($merge_directive->Rules)) {
-                    $merge_directive_value = $merge_directive->getDirectiveValue();
-                    if ($merge_directive_value != "") {
-                        $value .= " " . $merge_directive_value;
-                    } else {
-                        $value = $merge_directive_value;
-                    }
+                if ($merge_directive && $merge_directive->exists()) {
+                    $merge_directive_values = $merge_directive->getDirectiveValuesAsArray();
+                    $directive_values = array_merge($merge_directive_values, $directive_values);
                 }
             }
             // add the Key then value to the policy
-            $policy .= $this->KeyValue($directive, $value, $pretty);
-            $keys[] = $directive->Key;
+            $policy .= $directive->getDirectiveValueForPolicy($directive_values) . " ";
+            $directive_names[] = $directive->Key;
         }
 
+        // If there are no directives, some could be merged in
         if ($merge_from_policy_directives) {
             // find out if there are any directives to add
-            $create_directives = $merge_from_policy_directives->exclude('Key', $keys);
-            if ($create_directives) {
+            $create_directives = $merge_from_policy_directives;
+            if(!empty($directive_names)) {
+                $create_directives = $create_directives->exclude('Key', $directive_names);
+            }
+            if ($create_directives->count() > 0) {
                 foreach ($create_directives as $create_directive) {
-                    // get the Directive value
-                    $value = $create_directive->getDirectiveValue();
-                    // add the Key then value to the policy
-                    $policy .= $this->KeyValue($create_directive, $value, $pretty);
+                    // Add directives from the merge policy that are not in the original policy
+                    $values = $create_directive->getDirectiveValuesAsArray();
+                    $policy .= $create_directive->getDirectiveValueForPolicy($values) . " ";
                 }
             }
         }
-        return $policy;
-    }
 
-    /**
-     * Form the policy line key/value pairings
-     * @param Directive $directive
-     * @param string $value
-     * @param bool $pretty
-     */
-    private function KeyValue(Directive $directive, $value = "", $pretty = false)
-    {
-        $policy_line = $directive->Key . ($value ? " {$value};" : ";");
-        // if pretty printing it, add a line break
-        $policy_line .= ($pretty ? "\n" : "");
-        return $policy_line;
+        return trim($policy);
     }
 
     /**
@@ -849,7 +839,7 @@ class Policy extends DataObject implements PermissionProvider
         $parts = explode(";", rtrim($policy_string, ";"));
         $data = [];
         foreach ($parts as $part) {
-            $pieces = explode(" ", $part, 2);
+            $pieces = explode(" ", trim($part), 2);
             $data[$pieces[0]] = isset($pieces[1]) ? $pieces[1] : '';
         }
         return $data;

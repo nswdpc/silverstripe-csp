@@ -356,7 +356,7 @@ class PolicyTest extends SapphireTest
                     case 'font-src':
                         $this->assertTrue(
                             strpos($value, "'self'") !== false
-                            && strpos($value, " data: ") !== false
+                            && strpos($value, "data:") !== false
                             && strpos($value, "https://font.example.com") !== false
                             && strpos($value, "https://font.example.net") !== false
                             && strpos($value, "https://*.font.example.org") !== false
@@ -372,7 +372,7 @@ class PolicyTest extends SapphireTest
                     case 'script-src':
                         $this->assertTrue(
                             strpos($value, "'self'") !== false
-                            && strpos($value, " data: ") !== false
+                            && strpos($value, "data:") !== false
                             && strpos($value, "'unsafe-inline'") !== false
                             && strpos($value, "https://script.example.com") !== false
                         );
