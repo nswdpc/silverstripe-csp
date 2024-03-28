@@ -57,7 +57,8 @@ class Directive extends DataObject implements PermissionProvider
         'UnsafeInline' => 'Boolean',
         'AllowDataUri' => 'Boolean',
         'UseNonce' => 'Boolean',
-        'ReportSample' => 'Boolean'
+        'ReportSample' => 'Boolean',
+        'HasNone' => 'Boolean'  // 'none' value
     ];
 
     /**
@@ -205,6 +206,20 @@ class Directive extends DataObject implements PermissionProvider
         $fields->dataFieldByName('UnsafeInline')->setDescription(_t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive."));
         $fields->dataFieldByName('Enabled')->setDescription(_t('ContentSecurityPolicy.ENABLED_DIRECTIVE', "Enables this directive within linked policies"));
         $fields->dataFieldByName('ReportSample')->setDescription(_t('ContentSecurityPolicy.REPORT_SAMPLE', "Adds the 'report-sample' value to this directive. Only applicable to script-src* and style-src* violations. Will send a snippet of code that caused the violation to the reporting URL."));
+        $fields->dataFieldByName('HasNone')
+            ->setDescription(
+                _t(
+                    'ContentSecurityPolicy.NONE_VALUE_DESCRIPTION',
+                    "When enabled, elements controlled by this directive will not be allowed to load any resources."
+                    . "<br>"
+                    . "This value will be ignored by web browsers if other source expressions such as 'self' or URLs are present in the directive."
+                )
+            )->setTitle(
+                _t(
+                    'ContentSecurityPolicy.NONE_VALUE_TITLE',
+                    "Add the 'none' value"
+                )
+            );
 
         $policies = $this->Policies()->count();
         if ($policies > 1) {
@@ -343,6 +358,9 @@ class Directive extends DataObject implements PermissionProvider
         }
         if($this->ReportSample == 1) {
             $values[] = "'report-sample'";
+        }
+        if($this->HasNone == 1) {
+            $values[] = "'none'";
         }
         // Add the nonce if available and enabled for this directive
         if($this->UseNonce == 1) {

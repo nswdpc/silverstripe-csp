@@ -87,6 +87,7 @@ class PolicyTest extends SapphireTest
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
             'ReportSample' => 1,
+            'HasNone' => 1,
             'Enabled' => 1,
         ]);
 
@@ -108,6 +109,7 @@ class PolicyTest extends SapphireTest
         $this->assertTrue(strpos($header['policy_string'], "script-src") === 0);
         $this->assertTrue(strpos($header['policy_string'], "https://example.com https://www.example.net https://*.example.org") !== false);
         $this->assertTrue(strpos($header['policy_string'], "'report-sample'") !== false);
+        $this->assertTrue(strpos($header['policy_string'], "'none'") !== false);
 
         $this->assertArrayHasKey(Policy::DEFAULT_REPORTING_GROUP, $header['reporting_endpoints']);
         $this->assertEquals(
