@@ -63,6 +63,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         'ColumnNumber' =>'Int',
         'Disposition' => 'Varchar(32)',
         'UserAgent' => 'Varchar(255)',
+        'ScriptSample' => 'Varchar(40)' // per w3c spec (https://www.w3.org/TR/CSP3/#violation-sample)
     ];
 
     /**
@@ -130,6 +131,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         $report->Disposition =  isset($data['disposition']) ? $data['disposition'] : '';
         $report->SourceFile =  isset($data['source-file']) ? $data['source-file'] : '';
         $report->UserAgent = $user_agent;
+        $report->ScriptSample =  isset($data['script-sample']) ? $data['script-sample'] : '';
         $report->write();
         return $report;
     }

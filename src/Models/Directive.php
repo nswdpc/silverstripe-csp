@@ -56,7 +56,8 @@ class Directive extends DataObject implements PermissionProvider
         'IncludeSelf' => 'Boolean',
         'UnsafeInline' => 'Boolean',
         'AllowDataUri' => 'Boolean',
-        'UseNonce' => 'Boolean'
+        'UseNonce' => 'Boolean',
+        'ReportSample' => 'Boolean'
     ];
 
     /**
@@ -203,6 +204,7 @@ class Directive extends DataObject implements PermissionProvider
         $fields->dataFieldByName('AllowDataUri')->setDescription(_t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this directive"));
         $fields->dataFieldByName('UnsafeInline')->setDescription(_t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive."));
         $fields->dataFieldByName('Enabled')->setDescription(_t('ContentSecurityPolicy.ENABLED_DIRECTIVE', "Enables this directive within linked policies"));
+        $fields->dataFieldByName('ReportSample')->setDescription(_t('ContentSecurityPolicy.REPORT_SAMPLE', "Adds the 'report-sample' value to this directive. Only applicable to script-src* and style-src* violations. Will send a snippet of code that caused the violation to the reporting URL."));
 
         $policies = $this->Policies()->count();
         if ($policies > 1) {
@@ -338,6 +340,9 @@ class Directive extends DataObject implements PermissionProvider
         }
         if($this->AllowDataUri == 1) {
             $values[] = "data:";
+        }
+        if($this->ReportSample == 1) {
+            $values[] = "'report-sample'";
         }
         // Add the nonce if available and enabled for this directive
         if($this->UseNonce == 1) {

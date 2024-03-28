@@ -80,12 +80,13 @@ class PolicyTest extends SapphireTest
         $this->assertTrue($policy->ID == $base_policy->ID, "The base policy was not the expected policy");
 
         $directive = $this->createDirective([
-            'Key' => 'font-src',
+            'Key' => 'script-src',
             'Value' => '',
             'RulesValue' => json_encode([ 'https://example.com' => '1', 'https://www.example.net' => '2', 'https://*.example.org' => '3' ]),
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
+            'ReportSample' => 1,
             'Enabled' => 1,
         ]);
 
@@ -104,8 +105,9 @@ class PolicyTest extends SapphireTest
         $this->assertEquals($header['header'], Policy::HEADER_CSP);
         $this->assertTrue(strpos($header['policy_string'], 'data:') !== false);
         $this->assertTrue(strpos($header['policy_string'], "'self'") !== false);
-        $this->assertTrue(strpos($header['policy_string'], "font-src") === 0);
+        $this->assertTrue(strpos($header['policy_string'], "script-src") === 0);
         $this->assertTrue(strpos($header['policy_string'], "https://example.com https://www.example.net https://*.example.org") !== false);
+        $this->assertTrue(strpos($header['policy_string'], "'report-sample'") !== false);
 
         $this->assertArrayHasKey(Policy::DEFAULT_REPORTING_GROUP, $header['reporting_endpoints']);
         $this->assertEquals(
@@ -174,6 +176,7 @@ class PolicyTest extends SapphireTest
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
+            'Report-Sample' => 1,
             'Enabled' => 1,
         ]);
 
@@ -287,6 +290,7 @@ class PolicyTest extends SapphireTest
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
             'AllowDataUri' => 1,
+            'ReportSample' => 0,
             'Enabled' => 1,
         ]);
 
@@ -321,6 +325,7 @@ class PolicyTest extends SapphireTest
                     && $test_directive->AllowDataUri == 0
                     && $test_directive->UnsafeInline == 0
                     && $test_directive->IncludeSelf == 0
+                    && $test_directive->ReportSample == 0
                 );
             }
         }
@@ -373,6 +378,7 @@ class PolicyTest extends SapphireTest
                         $this->assertTrue(
                             strpos($value, "'self'") !== false
                             && strpos($value, "data:") !== false
+                            && strpos($value, "'report-sample'") === false // turned off
                             && strpos($value, "'unsafe-inline'") !== false
                             && strpos($value, "https://script.example.com") !== false
                         );
