@@ -2,6 +2,7 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
+use SilverStripe\Dev\Deprecation;
 use SilverStripe\View\Requirements_Backend;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\View\HTML;
@@ -10,13 +11,7 @@ class NonceRequirements_Backend extends Requirements_Backend
 {
 
     /**
-     * Update the given HTML content with the appropriate include tags for the registered
-     * requirements. Needs to receive a valid HTML/XHTML template in the $content parameter,
-     * including a head and body tag.
-     *
-     * @param string $content HTML content that has already been parsed from the $templateFile
-     *                             through {@link SSViewer}
-     * @return string HTML content augmented with the requirements tags
+     * @inheritdoc
      */
     public function includeInHTML($content)
     {
@@ -29,7 +24,7 @@ class NonceRequirements_Backend extends Requirements_Backend
         }
 
         // Skip if content isn't injectable, or there is nothing to inject
-        $tagsAvailable = preg_match('#</head\b#', $content);
+        $tagsAvailable = preg_match('#</head\b#', $content ?? '');
         $hasFiles = $this->css || $this->javascript || $this->customCSS || $this->customScript || $this->customHeadTags;
         if (!$tagsAvailable || !$hasFiles) {
             return $content;

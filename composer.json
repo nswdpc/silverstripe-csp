@@ -17,7 +17,15 @@
     ],
     "autoload": {
         "psr-4": {
-            "NSWDPC\\Utilities\\ContentSecurityPolicy\\": "src/"
+            "NSWDPC\\Utilities\\ContentSecurityPolicy\\": [
+                "src/Controllers",
+                "src/Extensions",
+                "src/Jobs",
+                "src/Middleware",
+                "src/Models",
+                "src/Services/",
+                "src/Traits"
+            ]
         }
     },
     "autoload-dev": {

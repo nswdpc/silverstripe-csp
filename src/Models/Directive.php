@@ -2,37 +2,52 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use Silverstripe\ORM\DataObject;
-use Silverstripe\Forms\HTMLReadonlyField;
-use Silverstripe\Forms\LiteralField;
-use Silverstripe\Forms\CompositeField;
-use Silverstripe\Forms\Textfield;
-use Silverstripe\Forms\TextareaField;
-use Silverstripe\Forms\DropdownField;
+use SilverStripe\ORM\DataObject;
+use SilverStripe\Forms\HTMLReadonlyField;
+use SilverStripe\Forms\LiteralField;
+use SilverStripe\Forms\CompositeField;
+use SilverStripe\Forms\FieldList;
+use SilverStripe\Forms\TextField;
+use SilverStripe\Forms\TextareaField;
+use SilverStripe\Forms\DropdownField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 use Symbiote\MultiValueField\Fields\KeyValueField;
+use SilverStripe\ORM\Filters\PartialMatchFilter;
+use SilverStripe\ORM\Filters\ExactMatchFilter;
 
 /**
  * A Content Security Policy directive, can be used by multiple {@link Policy}
- * @author james.ellis@dpc.nsw.gov.au
  */
 class Directive extends DataObject implements PermissionProvider
 {
+
+    /**
+     * @config
+     */
     private static $table_name = 'CspDirective';
 
+    /**
+     * @config
+     */
     private static $singular_name = 'Directive';
+
+    /**
+     * @config
+     */
     private static $plural_name = 'Directives';
 
     /**
      * Default sort ordering
      * @var string
+     * @config
      */
     private static $default_sort = 'Key ASC';
 
     /**
      * Database fields
      * @var array
+     * @config
      */
     private static $db = [
         'Key' => 'Varchar(255)',
@@ -46,9 +61,20 @@ class Directive extends DataObject implements PermissionProvider
     ];
 
     /**
+     * Database indexes
+     * @var array
+     * @config
+     */
+    private static $indexes = [
+        'Enabled' => true,
+        'Key' => true
+    ];
+
+    /**
      * Defines summary fields commonly used in table columns
      * as a quick overview of the data for this dataobject
      * @var array
+     * @config
      */
     private static $summary_fields = [
         'ID' => '#',
@@ -63,8 +89,23 @@ class Directive extends DataObject implements PermissionProvider
     ];
 
     /**
+     * Searchable Fields
+     * @var array
+     * @config
+     */
+    private static $searchable_fields = [
+        'Key' => PartialMatchFilter::class,
+        'Enabled' => ExactMatchFilter::class,
+        'IncludeSelf' => ExactMatchFilter::class,
+        'UnsafeInline' => ExactMatchFilter::class,
+        'AllowDataUri' => ExactMatchFilter::class,
+        'UseNonce' => ExactMatchFilter::class,
+    ];
+
+    /**
      * Many_many relationship
      * @var array
+     * @config
      */
     private static $belongs_many_many = [
         'Policies' => Policy::class,
@@ -225,7 +266,9 @@ class Directive extends DataObject implements PermissionProvider
                     'Rules',
                     'Add the rule on the left and a reason for adding the rule on the right'
                 )->setDescription(
-                    'Some keywords, such as hashes, must be single-quoted'
+                    'Some keywords, such as hashes, must be single-quoted.'
+                    . '<br>'
+                    . '<code>;</code> and <code>,</code> characters will be removed.'
                 ),
                 HTMLReadonlyField::create(
                     'RulesExample',
@@ -246,34 +289,61 @@ class Directive extends DataObject implements PermissionProvider
     }
 
     /**
-     * Rules are stored in a key/value mapping. Return the rules as a value for inclusion in the header
-     * @returns string
+     * Format the directive value
+     * Ref: https://w3c.github.io/webappsec-csp/#framework-directives
      */
-    public function getValuesFromRules()
+    public static function formatDirectiveValue(string $directiveValue) : string {
+        return trim(str_replace([";",","], "", $directiveValue));
+    }
+
+    /**
+     * Rules are stored in a key/value mapping.
+     * Return each rule as an array of values
+     * @return array
+     */
+    public function getValuesFromRulesAsArray() : array
     {
         $rules = $this->Rules;
-        $values = "";
+        $values = [];
         if ($rules) {
             $rules = $rules->getValues();
             if (!empty($rules) && is_array($rules)) {
                 foreach ($rules as $rule => $optional_reason) {
-                    $values .= $rule . " ";
+                    $values[] = self::formatDirectiveValue($rule ?? "");
                 }
             }
         }
-        return trim($values, "; ");
+        return $values;
     }
 
     /**
-    * Returns the directive value for use in a header
-    * @returns string
-    */
-    public function getDirectiveValue(bool $useFakeNonce = false)
-    {
-        $value = ($this->IncludeSelf == 1 ? "'self'" : "");
-        $value .= ($this->UnsafeInline == 1 ? " 'unsafe-inline'" : "");
-        $value .= ($this->AllowDataUri == 1 ? " data:" : "");
-        $value .= ($this->ReportSample == 1 ? " 'report-sample'" : "");
+     * Return rule values as a string, retained for BC
+     * @deprecated
+     * @return string
+     */
+    public function getValuesFromRules() : string {
+        $values = $this->getValuesFromRulesAsArray();
+        return implode(" ", $values);
+    }
+
+    /**
+     * Return directive values as array of values
+     * Ref: https://w3c.github.io/webappsec-csp/#framework-directives
+     */
+    public function getDirectiveValuesAsArray(bool $useFakeNonce = false) : array {
+        $values = [];
+        if($this->IncludeSelf == 1) {
+            $values[] = "'self'";
+        }
+        if($this->UnsafeInline == 1) {
+            $values[] = "'unsafe-inline'";
+        }
+        if($this->AllowDataUri == 1) {
+            $values[] = "data:";
+        }
+        if($this->ReportSample == 1) {
+            $values[] = "'report-sample'";
+        }
         // Add the nonce if available and enabled for this directive
         if($this->UseNonce == 1) {
             if($useFakeNonce) {
@@ -283,11 +353,40 @@ class Directive extends DataObject implements PermissionProvider
                 // use the nonce init'd in the controller
                 $nonce = Nonce::getNonce();
             }
-            $value .= " 'nonce-{$nonce}'";
+            $values[] = "'nonce-{$nonce}'";
         }
-        $value .= " " . $this->getValuesFromRules();
-        $value = trim($value);
-        return $value;
+        $rulesValues = $this->getValuesFromRulesAsArray();
+        if(!empty($rulesValues)) {
+            // Values have preference over rules values
+            $values = array_merge($rulesValues, $values);
+        }
+        return $values;
+    }
+
+    /**
+    * Returns the directive value for use in a header
+    * @return string
+    */
+    public function getDirectiveValue(bool $useFakeNonce = false) : string
+    {
+        $values = $this->getDirectiveValuesAsArray($useFakeNonce);
+        return implode(" ", $values);
+    }
+
+    /**
+     * Return a serialised directive for a policy
+     * Ref: https://w3c.github.io/webappsec-csp/#framework-directives
+     * @param array $values an array of directive values
+     */
+    public function getDirectiveValueForPolicy(array $values) : string {
+        if(count($values) == 0) {
+            return "";
+        } else {
+            $values = array_unique($values);
+            $directive = $this->Key . " " . implode(" ", $values) . ";";
+            return $directive;
+        }
+
     }
 
     public function canView($member = null)

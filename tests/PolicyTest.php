@@ -8,25 +8,27 @@ use NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint;
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 use SilverStripe\Dev\SapphireTest;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Control\Director;
 
 class PolicyTest extends SapphireTest
 {
 
     protected $usesDatabase = true;
 
-    private $include_report_to = false;
-
-    public function setUp() : void
+    protected function setUp() : void
     {
         parent::setUp();
-        $this->include_report_to = Config::inst()->get(Policy::class, 'include_report_to');
-        Config::inst()->update(Policy::class, 'include_report_to', true);
+        // Ensure protocol is https, to ensure reporting URL is validated
+        Config::modify()->set(
+            Director::class,
+            'alternate_base_url',
+            'https://localhost/'
+        );
     }
 
-    public function tearDown() : void
+    protected function tearDown() : void
     {
         parent::tearDown();
-        Config::inst()->update(Policy::class, 'include_report_to', $this->include_report_to);
     }
 
     private function createPolicy($data)
@@ -67,29 +69,105 @@ class PolicyTest extends SapphireTest
             'IsBasePolicy' => 1,
             'ReportOnly' => 0,
             'SendViolationReports' => 1,
-            'EnableNEL' => 1,
-            'AlternateReportURI' => '',
+            'EnableNEL' => 1, // NEL not enabled as not NEL reporting URL
+            'AlternateReportURI' => 'https://localhost/csp/reporting',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
             'MinimumCspLevel' => 1,
         ]);
-
-        $non_enabled_policy = $this->createPolicy([
-            'Title' => 'Test Policy',
-            'Enabled' => 0,
-            'IsLive' => 0,
-            'IsBasePolicy' => 0,
-            'ReportOnly' => 0,
-            'SendViolationReports' => 1,
-            'EnableNEL' => 1,
-            'AlternateReportURI' => '',
-            'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 1,
-        ]);
-        $non_enabled_policy->write();
 
         $base_policy = Policy::getDefaultBasePolicy();
 
         $this->assertTrue($policy->ID == $base_policy->ID, "The base policy was not the expected policy");
+
+        $directive = $this->createDirective([
+            'Key' => 'script-src',
+            'Value' => '',
+            'RulesValue' => json_encode([ 'https://example.com' => '1', 'https://www.example.net' => '2', 'https://*.example.org' => '3' ]),
+            'IncludeSelf' => 1,
+            'UnsafeInline' => 0,
+            'AllowDataUri' => 1,
+            'ReportSample' => 1,
+            'Enabled' => 1,
+        ]);
+
+        $policy->Directives()->add($directive);
+
+        $this->assertEquals($policy->Directives()->count(), 1);
+
+        $header = $policy->getPolicyData(true);
+
+        $this->assertTrue(isset($header['header']));
+        $this->assertTrue(isset($header['policy_string']));
+        $this->assertTrue(isset($header['reporting_endpoints']));
+        $this->assertEmpty($header['report_to']);
+        $this->assertEmpty($header['nel']);
+
+        $this->assertEquals($header['header'], Policy::HEADER_CSP);
+        $this->assertTrue(strpos($header['policy_string'], 'data:') !== false);
+        $this->assertTrue(strpos($header['policy_string'], "'self'") !== false);
+        $this->assertTrue(strpos($header['policy_string'], "script-src") === 0);
+        $this->assertTrue(strpos($header['policy_string'], "https://example.com https://www.example.net https://*.example.org") !== false);
+        $this->assertTrue(strpos($header['policy_string'], "'report-sample'") !== false);
+
+        $this->assertArrayHasKey(Policy::DEFAULT_REPORTING_GROUP, $header['reporting_endpoints']);
+        $this->assertEquals(
+            $header['reporting_endpoints'][ Policy::DEFAULT_REPORTING_GROUP ],
+            Policy::getReportingEndpoint(
+                Policy::DEFAULT_REPORTING_GROUP,
+                $policy->getReportingUrl()
+            )
+        );
+
+        // NEL not enabled as no NEL reporting URL in policy
+        $this->assertEmpty( $policy->isNELEnabled() );
+
+        // Turn off violation report sending
+        $policy->SendViolationReports = 0;
+        $policy->write();
+        $this->assertEmpty( $policy->isCspReportingEnabled() );
+
+        // Policy should have no endpoints
+        $header = $policy->getPolicyData(true);
+        $this->assertTrue(empty($header['reporting_endpoints']));
+
+        $policy->ReportOnly = 1;
+        $policy->write();
+
+        // Violation reporting is still off
+        $this->assertEmpty( $policy->isCspReportingEnabled() );
+
+        // Header should have changed
+        $header = $policy->getPolicyData(true);
+        $this->assertTrue(isset($header['header']) && Policy::HEADER_CSP_REPORT_ONLY);
+
+        // Make policy non-enabled
+        $policy->Enabled = 0;
+        $policy->IsBasePolicy = 0;
+        $policy->write();
+
+        // There should be no base policy now
+        $not_base_policy = Policy::getDefaultBasePolicy();
+        $this->assertNull($not_base_policy);
+
+
+    }
+
+    public function testReportingURLs() {
+        $this->clearAllPolicies();
+
+        $policy = $this->createPolicy([
+            'Title' => 'Test Policy with 2 reporting URLs',
+            'Enabled' => 1,
+            'IsLive' => 1,
+            'IsBasePolicy' => 1,
+            'ReportOnly' => 0,
+            'SendViolationReports' => 1,
+            'EnableNEL' => 0, // NEL not enabled as not NEL reporting URL
+            'AlternateReportURI' => 'https://example.net/csp/report-uri',// for report-uri reports
+            'AlternateReportToURI' => 'https://example.net/csp/report-to',// for Reporting API reports
+            'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
+            'MinimumCspLevel' => 2,
+        ]);
 
         $directive = $this->createDirective([
             'Key' => 'font-src',
@@ -98,6 +176,7 @@ class PolicyTest extends SapphireTest
             'IncludeSelf' => 1,
             'UnsafeInline' => 0,
             'AllowDataUri' => 1,
+            'Report-Sample' => 1,
             'Enabled' => 1,
         ]);
 
@@ -105,61 +184,65 @@ class PolicyTest extends SapphireTest
 
         $this->assertEquals($policy->Directives()->count(), 1);
 
-        $header = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
+        $header = $policy->getPolicyData(true);
 
-        $this->assertTrue(isset($header['header']) && isset($header['policy_string']) && isset($header['reporting']) && isset($header['nel']));
+        // Test report-uri
+        $policy_string = $header['policy_string'];
+        $this->assertStringContainsString(
+            "report-uri https://example.net/csp/report-uri",
+            $policy_string
+        );
 
-        $this->assertEquals($header['header'], Policy::HEADER_CSP);
-        $this->assertTrue(strpos($header['policy_string'], 'data:') !== false);
-        $this->assertTrue(strpos($header['policy_string'], "'self'") !== false);
-        $this->assertTrue(strpos($header['policy_string'], "font-src") === 0);
-        $this->assertTrue(strpos($header['policy_string'], "https://example.com https://www.example.net https://*.example.org") !== false);
-        $this->assertEquals($header['reporting'][0]['endpoints'][0]['url'], ReportingEndpoint::getCurrentReportingUrl(true));
-        $this->assertEquals($header['nel']['report_to'], Policy::DEFAULT_REPORTING_GROUP_NEL);
-        $this->assertEquals($header['reporting'][0]['group'], Policy::DEFAULT_REPORTING_GROUP);// TODO handle based on group name ?
+        // Test Reporting-Endpoints
+        $this->assertArrayHasKey(Policy::DEFAULT_REPORTING_GROUP, $header['reporting_endpoints']);
+        $this->assertEquals(
+            $header['reporting_endpoints'][ Policy::DEFAULT_REPORTING_GROUP ],
+            Policy::getReportingEndpoint(
+                Policy::DEFAULT_REPORTING_GROUP,
+                $policy->getReportingApiUrl()
+            )
+        );
+    }
 
-        $policy->EnableNEL = 0;
-        $policy->write();
+    public function testBasePolicyChange() {
 
-        $header = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
-        $this->assertTrue(empty($header['nel']));
+        $this->clearAllPolicies();
 
-        $policy->SendViolationReports = 0;
-        $policy->write();
-        $header = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
+        $policy = $this->createPolicy([
+            'Title' => 'Test Base Policy',
+            'Enabled' => 1,
+            'IsLive' => 1,
+            'IsBasePolicy' => 1,
+            'ReportOnly' => 0,
+            'SendViolationReports' => 1,
+            'EnableNEL' => 0, // NEL not enabled as not NEL reporting URL
+            'AlternateReportURI' => 'https://localhost/csp/reporting',
+            'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
+            'MinimumCspLevel' => 1,
+        ]);
 
-        $this->assertTrue(empty($header['reporting']));
+        $base_policy = Policy::getDefaultBasePolicy();
 
-        $policy->ReportOnly = 1;
-        $policy->write();
+        $this->assertEquals($base_policy->ID, $policy->ID, "The base policy was not the expected policy");
 
-        $header = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
+        // Create another policy, make it the base policy
+        $new_policy = $this->createPolicy([
+            'Title' => 'Test Policy',
+            'Enabled' => 1,
+            'IsLive' => 1,
+            'IsBasePolicy' => 1,
+            'ReportOnly' => 0,
+            'SendViolationReports' => 1,
+            'EnableNEL' => 0,
+            'AlternateReportURI' => 'https://localhost/csp/reporting',
+            'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
+            'MinimumCspLevel' => 1,
+        ]);
+        $new_policy->write();
 
-        $this->assertTrue(isset($header['header']) && Policy::HEADER_CSP_REPORT_ONLY);
+        $base_policy = Policy::getDefaultBasePolicy();
+        $this->assertEquals($base_policy->ID, $new_policy->ID, "The base policy was not the new base policy");
 
-        $policy->Enabled = 0;
-        $policy->IsBasePolicy = 0;
-        $policy->write();
-
-        // There should be no base policy now
-        $not_base_policy = Policy::getDefaultBasePolicy();
-
-        $this->assertNull($not_base_policy);
-
-        // play switcheroo with the Base Policy
-        $policy->IsBasePolicy = 1;
-        $policy->write();
-
-        $non_enabled_policy->IsBasePolicy = 1;
-        $non_enabled_policy->write();
-
-        $check_policy = Policy::get()->byId($policy->ID);
-
-        $this->assertTrue($check_policy && $check_policy->IsBasePolicy == 0, 'Previous Base policy was not valid');
-
-        $check_policy = Policy::get()->byId($non_enabled_policy->ID);
-
-        $this->assertTrue($check_policy && $check_policy->IsBasePolicy == 1, 'New Base policy was not valid');
     }
 
     public function testDirectives()
@@ -173,7 +256,7 @@ class PolicyTest extends SapphireTest
             'IsBasePolicy' => 1,
             'ReportOnly' => 0,
             'SendViolationReports' => 1,
-            'EnableNEL' => 1,
+            'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
             'MinimumCspLevel' => 1,
@@ -207,6 +290,7 @@ class PolicyTest extends SapphireTest
             'IncludeSelf' => 1,
             'UnsafeInline' => 1,
             'AllowDataUri' => 1,
+            'ReportSample' => 0,
             'Enabled' => 1,
         ]);
 
@@ -241,13 +325,14 @@ class PolicyTest extends SapphireTest
                     && $test_directive->AllowDataUri == 0
                     && $test_directive->UnsafeInline == 0
                     && $test_directive->IncludeSelf == 0
+                    && $test_directive->ReportSample == 0
                 );
             }
         }
 
         $this->assertEquals($policy->Directives()->count(), count($directives));
 
-        $headers = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
+        $policyData = $policy->getPolicyData(true);
 
         /**
          * The CSP values should look like:
@@ -257,15 +342,16 @@ class PolicyTest extends SapphireTest
          * script-src 'self' 'unsafe-inline' https://media.example.com;
          * upgrade-insecure-requests;
          * report-uri http://localhost/csp/v1/report;
-         * report-to default;
+         * report-to csp-endpoint;
          */
 
-        $this->assertTrue(!empty($headers['header']) && $headers['header'] == Policy::HEADER_CSP);
-        $this->assertTrue(!empty($headers['reporting']));
-        $this->assertTrue(!empty($headers['nel']));
-        $this->assertTrue(!empty($headers['policy_string']));
+        $this->assertTrue(!empty($policyData['header']) && $policyData['header'] == Policy::HEADER_CSP);
+        $this->assertTrue(!empty($policyData['reporting_endpoints']));
+        $this->assertTrue(empty($policyData['nel']));
+        $this->assertTrue(empty($policyData['report_to']));
+        $this->assertTrue(!empty($policyData['policy_string']));
 
-        $formatted_values = Policy::parsePolicy($headers['policy_string']);
+        $formatted_values = Policy::parsePolicy($policyData['policy_string']);
 
         foreach ($formatted_values as $key => $value) {
             if (in_array($key, Directive::KeysWithoutValues())) {
@@ -275,7 +361,7 @@ class PolicyTest extends SapphireTest
                     case 'font-src':
                         $this->assertTrue(
                             strpos($value, "'self'") !== false
-                            && strpos($value, " data: ") !== false
+                            && strpos($value, "data:") !== false
                             && strpos($value, "https://font.example.com") !== false
                             && strpos($value, "https://font.example.net") !== false
                             && strpos($value, "https://*.font.example.org") !== false
@@ -291,7 +377,8 @@ class PolicyTest extends SapphireTest
                     case 'script-src':
                         $this->assertTrue(
                             strpos($value, "'self'") !== false
-                            && strpos($value, " data: ") !== false
+                            && strpos($value, "data:") !== false
+                            && strpos($value, "'report-sample'") === false // turned off
                             && strpos($value, "'unsafe-inline'") !== false
                             && strpos($value, "https://script.example.com") !== false
                         );
@@ -322,7 +409,7 @@ class PolicyTest extends SapphireTest
             'IsBasePolicy' => 1,
             'ReportOnly' => 0,
             'SendViolationReports' => 1,
-            'EnableNEL' => 1,
+            'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
             'MinimumCspLevel' => 3,
@@ -339,17 +426,84 @@ class PolicyTest extends SapphireTest
         ]);
         $policy->Directives()->add($directive);
 
-        $headers = $policy->HeaderValues(1, Policy::POLICY_DELIVERY_METHOD_HEADER);
+        // policy should have a policy string
+        $policyData = $policy->getPolicyData(true);
+        $this->assertTrue(!empty($policyData['policy_string']));
 
-        $this->assertTrue(!empty($headers['policy_string']));
-
-        $formatted_values = Policy::parsePolicy($headers['policy_string']);
-
+        // report-uri should not be in the string
+        $formatted_values = Policy::parsePolicy($policyData['policy_string']);
         $this->assertTrue(!array_key_exists('report-uri', $formatted_values));
 
+        // report-to should be in the policy directives
         $this->assertTrue(
             array_key_exists('report-to', $formatted_values)
                     && $formatted_values['report-to'] == Policy::DEFAULT_REPORTING_GROUP
+        );
+
+        // test reporting endpoints is present
+        $this->assertEmpty($policyData['report_to']);// Report-To header is not present
+        $this->assertArrayHasKey(Policy::DEFAULT_REPORTING_GROUP, $policyData['reporting_endpoints']);
+        $this->assertEquals(
+            $policyData['reporting_endpoints'][ Policy::DEFAULT_REPORTING_GROUP ],
+            Policy::getReportingEndpoint(
+                Policy::DEFAULT_REPORTING_GROUP,
+                $policy->getReportingUrl()
+            )
+        );
+    }
+
+    public function testNEL()
+    {
+        $this->clearAllPolicies();
+
+        $policy = $this->createPolicy([
+            'Title' => 'Test Policy with NEL enabled',
+            'Enabled' => 1,
+            'IsLive' => 1,
+            'IsBasePolicy' => 1,
+            'ReportOnly' => 0,
+            'SendViolationReports' => 1,
+            'EnableNEL' => 1,
+            'AlternateReportURI' => 'https://csp.example.com/report',
+            'AlternateNELReportURI' => 'https://nel.example.com/report',
+            'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
+            'MinimumCspLevel' => 3,
+        ]);
+
+        $directive = $this->createDirective([
+            'Key' => 'font-src',
+            'Value' => '',
+            'RulesValue' => json_encode(['https://font.example.com' => '', 'https://font.example.net' => '', 'https://*.font.example.org' => '']),
+            'IncludeSelf' => 1,
+            'UnsafeInline' => 0,
+            'AllowDataUri' => 1,
+            'Enabled' => 1,
+        ]);
+        $policy->Directives()->add($directive);
+
+        // policy should have a policy string
+        $policyData = $policy->getPolicyData(true);
+        $this->assertTrue(!empty($policyData['policy_string']));
+
+        // report-uri should not be in the string
+        $formatted_values = Policy::parsePolicy($policyData['policy_string']);
+        $this->assertTrue(!array_key_exists('report-uri', $formatted_values));
+
+        // report-to should be in the policy directives
+        $this->assertTrue(
+            array_key_exists('report-to', $formatted_values)
+                    && $formatted_values['report-to'] == Policy::DEFAULT_REPORTING_GROUP
+        );
+
+        // test reporting endpoints is present
+        $this->assertNotEmpty($policyData['report_to']);// Report-To header is present
+        $this->assertArrayHasKey(Policy::DEFAULT_REPORTING_GROUP, $policyData['reporting_endpoints']);
+        $this->assertEquals(
+            $policyData['reporting_endpoints'][ Policy::DEFAULT_REPORTING_GROUP ],
+            Policy::getReportingEndpoint(
+                Policy::DEFAULT_REPORTING_GROUP,
+                $policy->getReportingUrl()
+            )
         );
     }
 }

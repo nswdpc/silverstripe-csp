@@ -6,11 +6,13 @@ NSWDPC\Utilities\ContentSecurityPolicy\Policy:
   nonce_length: 16
   # or 'middleware'
   nonce_injection_method: 'requirements'
-  include_report_to: false
   run_in_modeladmin: false
-  max_age: 10886400
+  max_age: 3600
   include_subdomains: true
   whitelisted_controllers: []
+NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint:
+  # by default, do not accept local reports
+  accept_reports: false
 # report removal job
 NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
   older_than: 1
