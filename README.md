@@ -18,9 +18,9 @@ Once a CSP is in place and working, any assets loads that do not meet policy req
 
 ## Versioning
 
-This is the Silverstripe 4.x version of the module, with releases tagged as v0.2 and up
+For Silverstripe 5.x, use version constraint ^1 
 
-The Silverstripe 3.x version with releases tagged as v0.1. While none are planned, any future releases of the `ss3` branch will remain at 0.1.x
+For Silverstripe 4.x, use version constraint ^0.4.3
 
 ## Installation
 
