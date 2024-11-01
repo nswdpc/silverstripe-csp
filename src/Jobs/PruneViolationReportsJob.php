@@ -8,7 +8,6 @@ use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DB;
 use DateTime;
-use SilverStripe\Core\Convert;
 use Exception;
 
 /**
@@ -33,13 +32,13 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 
     public function getRecordCount()
     {
-        $query = "SELECT COUNT(ID) AS RecordCount FROM `CspViolationReport`";
-        $result = DB::query($query);
-        if ($result) {
-            $row = $result->nextRecord();
-            return isset($row['RecordCount']) ? $row['RecordCount'] : 0;
+        $query = "SELECT COUNT(ID) AS RecordCount FROM \"CspViolationReport\"";
+        if($result = DB::query($query)) {
+            $row = $result->record();
+            return $row['RecordCount'] ?? 0;
+        } else {
+            return 0;
         }
-        return 0;
     }
 
     public function process()
@@ -55,8 +54,8 @@ class PruneViolationReportsJob extends AbstractQueuedJob
         $dt = new DateTime();
         $now = $dt->format('Y-m-d H:i:s');
 
-        $query = "DELETE FROM `CspViolationReport` WHERE `Created` < '" . Convert::raw2sql($now) . "' -  INTERVAL {$this->older_than} HOUR";
-        $result = DB::query($query);
+        $query = "DELETE FROM \"CspViolationReport\" WHERE \"Created\" < ? - INTERVAL ? HOUR";
+        $result = DB::prepared_query($query, [$now, $this->older_than]);
 
         $post_count = $this->getRecordCount();
 
