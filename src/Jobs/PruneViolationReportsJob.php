@@ -8,7 +8,6 @@ use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DB;
 use DateTime;
-use SilverStripe\Core\Convert;
 use Exception;
 
 /**
