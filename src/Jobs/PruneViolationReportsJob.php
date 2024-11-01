@@ -33,7 +33,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 
     public function getRecordCount()
     {
-        $query = "SELECT COUNT(ID) AS RecordCount FROM `CspViolationReport`";
+        $query = "SELECT COUNT(ID) AS RecordCount FROM \"CspViolationReport\"";
         $result = DB::query($query);
         if ($result) {
             $row = $result->nextRecord();
@@ -55,7 +55,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
         $dt = new DateTime();
         $now = $dt->format('Y-m-d H:i:s');
 
-        $query = "DELETE FROM `CspViolationReport` WHERE `Created` < '" . Convert::raw2sql($now) . "' -  INTERVAL {$this->older_than} HOUR";
+        $query = "DELETE FROM \"CspViolationReport\" WHERE \"Created\" < '" . Convert::raw2sql($now) . "' -  INTERVAL {$this->older_than} HOUR";
         $result = DB::query($query);
 
         $post_count = $this->getRecordCount();
