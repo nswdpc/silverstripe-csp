@@ -55,8 +55,8 @@ class PruneViolationReportsJob extends AbstractQueuedJob
         $dt = new DateTime();
         $now = $dt->format('Y-m-d H:i:s');
 
-        $query = "DELETE FROM \"CspViolationReport\" WHERE \"Created\" < '" . Convert::raw2sql($now) . "' -  INTERVAL {$this->older_than} HOUR";
-        $result = DB::query($query);
+        $query = "DELETE FROM \"CspViolationReport\" WHERE \"Created\" < ? - INTERVAL ? HOUR";
+        $result = DB::prepared_query($query, [$now, $this->older_than]);
 
         $post_count = $this->getRecordCount();
 
