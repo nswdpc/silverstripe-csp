@@ -198,7 +198,7 @@ class Policy extends DataObject implements PermissionProvider
      * @param bool $is_live
      * @param string $delivery_method
      */
-    public static function getDefaultBasePolicy($is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER): ?\SilverStripe\ORM\DataObject
+    public static function getDefaultBasePolicy($is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER): ?Policy
     {
         $filter = [ 'Enabled' => 1, 'IsBasePolicy' => 1, 'DeliveryMethod' => $delivery_method ];
         $list = Policy::get()->filter($filter);
@@ -214,7 +214,7 @@ class Policy extends DataObject implements PermissionProvider
      * @param bool $is_live
      * @param string $delivery_method
      */
-    public static function getPagePolicy(SiteTree $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER)
+    public static function getPagePolicy(SiteTree $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER): ?Policy
     {
         if (empty($page->CspPolicyID)) {
             // early return if none linked
