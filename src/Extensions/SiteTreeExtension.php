@@ -73,15 +73,16 @@ class SiteTreeExtension extends Extension
     /**
      * Check to see if a meta tag can be returned
      */
-    private function checkCanRun()
+    private function checkCanRun(): bool
     {
-        $controller = \SilverStripe\Control\Controller::curr() instanceof \SilverStripe\Control\Controller ? Controller::curr() : false;
-        if ($controller === null) {
+        $controller = Controller::curr();
+        if (!($controller instanceof Controller)) {
             // no current controller
             return false;
+        } else {
+            // Configured controllers with no CSP
+            return !Policy::controllerWithoutCsp($controller);
         }
-        // Configured controllers with no CSP
-        return !Policy::controllerWithoutCsp($controller);
     }
 
     /**
