@@ -11,8 +11,8 @@ require_once(dirname(__FILE__) . '/AbstractPolicyFunctionalTest.php');
  */
 class MiddlewarePolicyFunctionalTest extends AbstractPolicyFunctionalTest
 {
-
-    protected function getInjectionMethod() {
+    protected function getInjectionMethod()
+    {
         return Policy::NONCE_INJECT_VIA_MIDDLEWARE;
     }
 

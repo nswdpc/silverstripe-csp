@@ -14,14 +14,13 @@ use SilverStripe\View\Requirements;
  */
 class Nonce
 {
-
     /**
      * @var string
      * @config
      */
     private static $nonce = '';
 
-    const MIN_LENGTH = 16;
+    public const MIN_LENGTH = 16;
 
     /**
      * Create a nonce
@@ -36,14 +35,15 @@ class Nonce
      * Return the nonce
      * @return string
      */
-    public static function getNonce() : string {
+    public static function getNonce(): string
+    {
         // Return existing nonce
-        if(self::$nonce) {
+        if (self::$nonce) {
             return self::$nonce;
         }
         // Create the nonce
-        $length = intval(Config::inst()->get( Policy::class, 'nonce_length'));
-        if($length < self::MIN_LENGTH) {
+        $length = intval(Config::inst()->get(Policy::class, 'nonce_length'));
+        if ($length < self::MIN_LENGTH) {
             $length = self::MIN_LENGTH;
         }
         self::create($length);
@@ -54,7 +54,8 @@ class Nonce
      * Clear the nonce value
      * This is only used in tests
      */
-    public static function clear() {
+    public static function clear()
+    {
         self::$nonce = '';
     }
 
@@ -64,15 +65,17 @@ class Nonce
      * @param array $attributes
      * @return void
      */
-    public static function addToAttributes(string $tag, array &$attributes) {
+    public static function addToAttributes(string $tag, array &$attributes)
+    {
         // inline scripts and style tags get the nonce
-        switch($tag) {
+        switch ($tag) {
             case 'script':
-                if(!empty($attributes['src'])) {
+                if (!empty($attributes['src'])) {
                     // no nonce
                     break;
                 }
                 // else
+                // no break
             case 'style':
                 $attributes['nonce'] = self::getNonce();
                 break;
@@ -88,16 +91,17 @@ class Nonce
      * @param \DOMNodeList $domNodeList
      * @return void
      */
-    public static function addToElements(\DOMNodeList &$domNodeList) {
-        foreach($domNodeList as $domElement) {
-            if(!($domElement instanceof \DOMElement)) {
+    public static function addToElements(\DOMNodeList &$domNodeList)
+    {
+        foreach ($domNodeList as $domElement) {
+            if (!($domElement instanceof \DOMElement)) {
                 continue;
             }
             $nonce = trim($domElement->getAttribute('nonce'));
-            if($nonce) {
+            if ($nonce) {
                 continue;
             }
-            if(self::applicableElement($domElement)) {
+            if (self::applicableElement($domElement)) {
                 $textContent = htmlspecialchars($domElement->textContent);
                 $domElement->setAttribute('nonce', self::getNonce());
             }
@@ -110,9 +114,10 @@ class Nonce
      * @param \DOMElement $domElement
      * @return bool
      */
-    protected static function applicableElement(\DOMElement $domElement) : bool {
+    protected static function applicableElement(\DOMElement $domElement): bool
+    {
         $inline = false;
-        switch(strtolower($domElement->nodeName)) {
+        switch (strtolower($domElement->nodeName)) {
             case "script":
                 // inline scripts get a nonce
                 $inline = !$domElement->hasAttribute('src');

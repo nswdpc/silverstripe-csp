@@ -9,7 +9,6 @@ use SilverStripe\View\HTML;
 
 class NonceRequirements_Backend extends Requirements_Backend
 {
-
     /**
      * @inheritdoc
      */

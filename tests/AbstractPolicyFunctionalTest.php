@@ -18,7 +18,6 @@ use Exception;
 
 abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 {
-
     protected $injectionMethod = '';
 
     protected static $disable_themes = true;
@@ -39,9 +38,9 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     abstract protected function getInjectionMethod();
 
-    protected function setUp() : void
+    protected function setUp(): void
     {
-        Config::modify()->set( Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
+        Config::modify()->set(Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
         parent::setUp();
         // Ensure protocol is https, to ensure reporting URL is validated
         Config::modify()->set(
@@ -51,7 +50,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         );
     }
 
-    protected function tearDown() : void
+    protected function tearDown(): void
     {
         parent::tearDown();
     }
@@ -88,32 +87,33 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
      * @param \DOMNodeList $nodelist
      * @return int
      */
-    protected function verifyElements(\DOMNodeList $nodelist) : int {
+    protected function verifyElements(\DOMNodeList $nodelist): int
+    {
         $found_nonces = 0;
         $nonce_value = Nonce::getNonce();// the current nonce
-        foreach($nodelist as $element) {
-            if(!($element instanceof \DOMElement)) {
+        foreach ($nodelist as $element) {
+            if (!($element instanceof \DOMElement)) {
                 continue;
             }
             /**
              * verify that every element having a nonce attribute,
              * that its value matches the nonce value
              */
-            if($element->hasAttribute('nonce')) {
+            if ($element->hasAttribute('nonce')) {
                 $nonce_found_value = $element->getAttribute('nonce');
                 $this->assertEquals(
-                        $nonce_found_value,
-                        $nonce_value,
-                        "<{$element->nodeName}> nonce found value={$nonce_found_value} != {$nonce_value}"
+                    $nonce_found_value,
+                    $nonce_value,
+                    "<{$element->nodeName}> nonce found value={$nonce_found_value} != {$nonce_value}"
                 );
-            } else if($element->hasAttribute('data-should-nonce')) {
+            } elseif ($element->hasAttribute('data-should-nonce')) {
                 // no nonce attribute found.. but maybe it should have a nonce ?
                 $should = $element->getAttribute('data-should-nonce');
                 // to pass, the value should be zero
                 $this->assertEquals(
-                        $should, // 1 will mean it should have gotten a nonce, which is a failure
-                        0,
-                        "Found <{$element->nodeName}> with value {$element->nodeValue} which has a data-should-nonce={$should}"
+                    $should, // 1 will mean it should have gotten a nonce, which is a failure
+                    0,
+                    "Found <{$element->nodeName}> with value {$element->nodeValue} which has a data-should-nonce={$should}"
                 );
             }
 
@@ -124,8 +124,9 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
     /**
      * Test nonce injection method
      */
-    public function testInjectionMethod() {
-        $this->assertEquals( $this->getInjectionMethod(), Config::inst()->get( Policy::class, 'nonce_injection_method') );
+    public function testInjectionMethod()
+    {
+        $this->assertEquals($this->getInjectionMethod(), Config::inst()->get(Policy::class, 'nonce_injection_method'));
     }
 
 
@@ -616,18 +617,18 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
             foreach ($tags as $tag) {
                 $equiv = $tag->getAttribute('http-equiv');
                 switch ($equiv) {
-                        case Policy::HEADER_CSP_REPORT_ONLY:
-                        case Policy::HEADER_REPORT_TO:
-                        case Policy::HEADER_REPORTING_ENDPOINTS:
-                        case Policy::HEADER_NEL:
-                            // causes the test to fail
-                            throw new Exception("Header {$equiv} found");
-                            break;
-                        case Policy::HEADER_CSP:
-                        default:
-                            // some other meta
-                            break;
-                    }
+                    case Policy::HEADER_CSP_REPORT_ONLY:
+                    case Policy::HEADER_REPORT_TO:
+                    case Policy::HEADER_REPORTING_ENDPOINTS:
+                    case Policy::HEADER_NEL:
+                        // causes the test to fail
+                        throw new Exception("Header {$equiv} found");
+                        break;
+                    case Policy::HEADER_CSP:
+                    default:
+                        // some other meta
+                        break;
+                }
             }
         } catch (Exception $e) {
             $this->assertTrue(false, $e->getMessage());
@@ -732,7 +733,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
             $test->assertEquals($policy->Directives()->count(), count($directives));
 
-            $home = SiteTree::get()->filter('URLSegment','home')->first();
+            $home = SiteTree::get()->filter('URLSegment', 'home')->first();
             $home->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
             $result = $test->get('home/');// nonce created here
@@ -743,21 +744,21 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
             $test->assertTrue($result instanceof HttpResponse);
 
-            $policy = $result->getHeader( Policy::HEADER_CSP );
+            $policy = $result->getHeader(Policy::HEADER_CSP);
 
             $test->assertNotEmpty($policy);
 
             $parts = Policy::parsePolicy($policy);
             $enabled_directives = Policy::getNonceEnabledDirectives($policy);
 
-            $test->assertTrue( array_key_exists('script-src', $parts), 'script-src is not in the policy' );
-            $test->assertTrue( array_key_exists('style-src', $parts), 'style-src is not in the policy' );
+            $test->assertTrue(array_key_exists('script-src', $parts), 'script-src is not in the policy');
+            $test->assertTrue(array_key_exists('style-src', $parts), 'style-src is not in the policy');
 
-            $test->assertTrue( array_key_exists('script-src', $enabled_directives), 'script-src does not have a nonce' );
-            $test->assertTrue( array_key_exists('style-src', $enabled_directives), 'style-src does not have a nonce' );
+            $test->assertTrue(array_key_exists('script-src', $enabled_directives), 'script-src does not have a nonce');
+            $test->assertTrue(array_key_exists('style-src', $enabled_directives), 'style-src does not have a nonce');
 
-            $test->assertTrue( strpos($parts['script-src'], "'nonce-{$nonceValue}'") !== false, "Unmatched nonce {$nonceValue} in script-src {$parts['script-src']}" );
-            $test->assertTrue( strpos($parts['style-src'], "'nonce-{$nonceValue}'") !== false, "Unmatched nonce {$nonceValue} in style-src {$parts['style-src']}" );
+            $test->assertTrue(strpos($parts['script-src'], "'nonce-{$nonceValue}'") !== false, "Unmatched nonce {$nonceValue} in script-src {$parts['script-src']}");
+            $test->assertTrue(strpos($parts['style-src'], "'nonce-{$nonceValue}'") !== false, "Unmatched nonce {$nonceValue} in style-src {$parts['style-src']}");
 
             try {
 
@@ -767,7 +768,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
                 $body = $result->getBody();
 
                 $dom = new \DOMDocument();
-                $dom->loadHTML( $body , LIBXML_HTML_NODEFDTD );
+                $dom->loadHTML($body, LIBXML_HTML_NODEFDTD);
                 // gather scripts and styles, check nonces
                 $scripts = $dom->getElementsByTagName('script');
                 $styles = $dom->getElementsByTagName('style');

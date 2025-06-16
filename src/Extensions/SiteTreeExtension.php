@@ -19,7 +19,6 @@ use SilverStripe\ORM\FieldType\DBField;
  */
 class SiteTreeExtension extends Extension
 {
-
     /**
      * Has_one relationship
      * @var array
@@ -36,7 +35,7 @@ class SiteTreeExtension extends Extension
     public function updateSettingsFields(FieldList $fields)
     {
         $available_policies = Policy::get()->sort('Title ASC')->filter('Enabled', 1)->exclude('IsBasePolicy', 1);
-        if($available_policies->count() == 0) {
+        if ($available_policies->count() == 0) {
             $fields->removeByName('CspPolicyID');
             $fields->addFieldToTab(
                 'Root.CSP',
@@ -63,7 +62,7 @@ class SiteTreeExtension extends Extension
                             'ContentSecurityPolicy.ADDITION_SECURITY_POLICY',
                             'Choose an additional Content Security Policy to apply on this page only.<br>Adding additional policies can only further restrict the capabilities of the protected resource.'
                         )
-                )
+                    )
             );
         }
         return $fields;
@@ -81,7 +80,7 @@ class SiteTreeExtension extends Extension
         }
 
         // Configured controllers with no CSP
-        if(Policy::controllerWithoutCsp($controller)) {
+        if (Policy::controllerWithoutCsp($controller)) {
             return false;
         }
 

@@ -33,7 +33,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
     public function getRecordCount()
     {
         $query = "SELECT COUNT(ID) AS RecordCount FROM \"CspViolationReport\"";
-        if($result = DB::query($query)) {
+        if ($result = DB::query($query)) {
             $row = $result->record();
             return $row['RecordCount'] ?? 0;
         } else {

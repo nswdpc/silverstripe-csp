@@ -18,7 +18,6 @@ use SilverStripe\CMS\Model\SiteTree;
  */
 class ControllerExtension extends Extension
 {
-
     public function onAfterInit()
     {
 
@@ -54,21 +53,21 @@ class ControllerExtension extends Extension
         if ($this->owner instanceof ContentController
             && ($data = $this->owner->data())
             && $data instanceof SiteTree) {
-                $page_policy = Policy::getPagePolicy($data, $is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
-                if (!empty($page_policy->ID)) {
-                    if (!empty($policy->ID)) {
-                        /**
-                         * HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
-                         * Workaround is to set the page policy for merging when getPolicyData() is called
-                         * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies
-                         * Ref: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-                         */
-                        $policy->setMergeFromPolicy($page_policy);
-                    } else {
-                        // the page policy is *the* policy
-                        $policy = $page_policy;
-                    }
+            $page_policy = Policy::getPagePolicy($data, $is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
+            if (!empty($page_policy->ID)) {
+                if (!empty($policy->ID)) {
+                    /**
+                     * HTTPResponse can't handle header names that are duplicated (which is allowed in the HTTP spec)
+                     * Workaround is to set the page policy for merging when getPolicyData() is called
+                     * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy#Multiple_content_security_policies
+                     * Ref: https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+                     */
+                    $policy->setMergeFromPolicy($page_policy);
+                } else {
+                    // the page policy is *the* policy
+                    $policy = $page_policy;
                 }
+            }
         }
 
         // Add the policy/reporting header values

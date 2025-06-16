@@ -21,7 +21,6 @@ use SilverStripe\ORM\Filters\ExactMatchFilter;
  */
 class Directive extends DataObject implements PermissionProvider
 {
-
     /**
      * @config
      */
@@ -81,11 +80,11 @@ class Directive extends DataObject implements PermissionProvider
         'ID' => '#',
         'Key' => 'Name',
         'DirectiveValue' => 'Value',
-        'Enabled.Nice' =>'Enabled',
+        'Enabled.Nice' => 'Enabled',
         'Policies.Count' => 'Policies',
-        'IncludeSelf.Nice' =>'Include \'self\'',
-        'UnsafeInline.Nice' =>'Unsafe Inline',
-        'AllowDataUri.Nice' =>'Allow Data URI',
+        'IncludeSelf.Nice' => 'Include \'self\'',
+        'UnsafeInline.Nice' => 'Unsafe Inline',
+        'AllowDataUri.Nice' => 'Allow Data URI',
         'UseNonce.Nice' => 'Use Nonce'
     ];
 
@@ -191,11 +190,12 @@ class Directive extends DataObject implements PermissionProvider
             LiteralField::create(
                 'DirectiveHelper',
                 '<p class="message notice">'
-                 . _t('ContentSecurityPolicy.DIRECTIVE_HELPER',
-                        'Prior to adding a directive, you should consult the '
+                 . _t(
+                     'ContentSecurityPolicy.DIRECTIVE_HELPER',
+                     'Prior to adding a directive, you should consult the '
                         . 'Content Security Policy MDN documentation at '
                         . 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy'
-                )
+                 )
                 . '<p>'
             ),
             'Key'
@@ -260,7 +260,7 @@ class Directive extends DataObject implements PermissionProvider
             HTMLReadonlyField::create(
                 'LiteralRules',
                 'Current directive value',
-                htmlspecialchars( $this->getDirectiveValue(true ))
+                htmlspecialchars($this->getDirectiveValue(true))
             ),
             'Rules'
         );
@@ -270,7 +270,7 @@ class Directive extends DataObject implements PermissionProvider
                 ->setDescription(
                     'Add the system generated per-request number-once value to this directive.'
                     . ' Only applicable to certain directives.'
-        );
+                );
 
         // Rules field
         $fields->removeByName('Rules');
@@ -307,7 +307,8 @@ class Directive extends DataObject implements PermissionProvider
      * Format the directive value
      * Ref: https://w3c.github.io/webappsec-csp/#framework-directives
      */
-    public static function formatDirectiveValue(string $directiveValue) : string {
+    public static function formatDirectiveValue(string $directiveValue): string
+    {
         return trim(str_replace([";",","], "", $directiveValue));
     }
 
@@ -316,7 +317,7 @@ class Directive extends DataObject implements PermissionProvider
      * Return each rule as an array of values
      * @return array
      */
-    public function getValuesFromRulesAsArray() : array
+    public function getValuesFromRulesAsArray(): array
     {
         $rules = $this->Rules;
         $values = [];
@@ -336,7 +337,8 @@ class Directive extends DataObject implements PermissionProvider
      * @deprecated
      * @return string
      */
-    public function getValuesFromRules() : string {
+    public function getValuesFromRules(): string
+    {
         $values = $this->getValuesFromRulesAsArray();
         return implode(" ", $values);
     }
@@ -345,26 +347,27 @@ class Directive extends DataObject implements PermissionProvider
      * Return directive values as array of values
      * Ref: https://w3c.github.io/webappsec-csp/#framework-directives
      */
-    public function getDirectiveValuesAsArray(bool $useFakeNonce = false) : array {
+    public function getDirectiveValuesAsArray(bool $useFakeNonce = false): array
+    {
         $values = [];
-        if($this->IncludeSelf == 1) {
+        if ($this->IncludeSelf == 1) {
             $values[] = "'self'";
         }
-        if($this->UnsafeInline == 1) {
+        if ($this->UnsafeInline == 1) {
             $values[] = "'unsafe-inline'";
         }
-        if($this->AllowDataUri == 1) {
+        if ($this->AllowDataUri == 1) {
             $values[] = "data:";
         }
-        if($this->ReportSample == 1) {
+        if ($this->ReportSample == 1) {
             $values[] = "'report-sample'";
         }
-        if($this->HasNone == 1) {
+        if ($this->HasNone == 1) {
             $values[] = "'none'";
         }
         // Add the nonce if available and enabled for this directive
-        if($this->UseNonce == 1) {
-            if($useFakeNonce) {
+        if ($this->UseNonce == 1) {
+            if ($useFakeNonce) {
                 // for display in CMS or similar
                 $nonce = _t(__CLASS__ . ".SAMPLE_NONCE_ONLY", "sampleonly");
             } else {
@@ -374,7 +377,7 @@ class Directive extends DataObject implements PermissionProvider
             $values[] = "'nonce-{$nonce}'";
         }
         $rulesValues = $this->getValuesFromRulesAsArray();
-        if(!empty($rulesValues)) {
+        if (!empty($rulesValues)) {
             // Values have preference over rules values
             $values = array_merge($rulesValues, $values);
         }
@@ -385,7 +388,7 @@ class Directive extends DataObject implements PermissionProvider
     * Returns the directive value for use in a header
     * @return string
     */
-    public function getDirectiveValue(bool $useFakeNonce = false) : string
+    public function getDirectiveValue(bool $useFakeNonce = false): string
     {
         $values = $this->getDirectiveValuesAsArray($useFakeNonce);
         return implode(" ", $values);
@@ -396,8 +399,9 @@ class Directive extends DataObject implements PermissionProvider
      * Ref: https://w3c.github.io/webappsec-csp/#framework-directives
      * @param array $values an array of directive values
      */
-    public function getDirectiveValueForPolicy(array $values) : string {
-        if(count($values) == 0) {
+    public function getDirectiveValueForPolicy(array $values): string
+    {
+        if (count($values) == 0) {
             return $this->Key . ";";
         } else {
             $values = array_unique($values);
