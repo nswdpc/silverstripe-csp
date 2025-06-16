@@ -6,6 +6,7 @@ use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\DB;
 use DateTime;
 use Exception;
@@ -15,12 +16,16 @@ use Exception;
  */
 class PruneViolationReportsJob extends AbstractQueuedJob
 {
-    private static int $older_than;//hour
+
+    use Configurable;
+
+    // hour
+    private static int $age = 1;
 
     public function __construct($older_than = 0)
     {
-        if (!$older_than) {
-            $older_than = Config::inst()->get(self::class, 'older_than');
+        if (!$older_than || $older_than <= 0) {
+            $older_than = Config::inst()->get(self::class, 'age');
         }
 
         $this->older_than = (int)abs($older_than);
@@ -45,7 +50,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
     public function process()
     {
         $older_than = abs($this->older_than);
-        if ($older_than === 0) {
+        if ($older_than <= 0) {
             $older_than = 1;
         }
 
