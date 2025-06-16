@@ -241,7 +241,7 @@ class Policy extends DataObject implements PermissionProvider
         parent::onAfterWrite();
         if ($this->exists() && $this->IsBasePolicy == 1) {
             // clear other base policies, without using ORM
-            DB::query("UPDATE `CspPolicy` SET IsBasePolicy = 0 WHERE IsBasePolicy = 1 AND ID <> '" . Convert::raw2sql($this->ID) . "'");
+            DB::prepared_query("UPDATE \"CspPolicy\" SET IsBasePolicy = 0 WHERE IsBasePolicy = 1 AND ID <> ?'", [$this->ID]);
         }
     }
 
@@ -251,13 +251,13 @@ class Policy extends DataObject implements PermissionProvider
      */
     public function DuplicateDirectives(): array
     {
-        $sql = "SELECT d.`Key`, COUNT(d.`ID`) AS Dupes\n"
-            . " FROM `CspDirective` d\n"
-            . " JOIN `CspPolicy_Directives` pd ON pd.CspDirectiveID = d.ID\n"
-            . " JOIN `CspPolicy` p ON p.ID = pd.CspPolicyID AND p.ID='" . Convert::raw2sql($this->ID) . "'"
-            . " GROUP BY d.`Key`"
+        $sql = "SELECT d.\"Key\", COUNT(d.\"ID\") AS Dupes\n"
+            . " FROM \"CspDirective\" d\n"
+            . " JOIN \"CspPolicy_Directives\" pd ON pd.CspDirectiveID = d.ID\n"
+            . " JOIN \"CspPolicy\" p ON p.ID = pd.CspPolicyID AND p.ID = ?"
+            . " GROUP BY d.\"Key\""
             . " HAVING Dupes > 1";
-        $result = DB::query($sql);
+        $result = DB::prepared_query($sql, [$this->ID]);
         $records = [];
         foreach ($result as $record) {
             $records[] = $record['Key'];
