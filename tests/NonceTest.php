@@ -10,6 +10,7 @@ use SilverStripe\Dev\SapphireTest;
 
 class NonceTest extends SapphireTest
 {
+    #[\Override]
     protected function setUp(): void
     {
         parent::setUp();
@@ -17,7 +18,7 @@ class NonceTest extends SapphireTest
         Nonce::clear();
     }
 
-    public function testNonceStaysTheSame()
+    public function testNonceStaysTheSame(): void
     {
         Config::modify()->set(Policy::class, 'nonce_length', Nonce::MIN_LENGTH);
         $nonce = Nonce::getNonce();
@@ -26,7 +27,7 @@ class NonceTest extends SapphireTest
         $this->assertEquals($nonce, $nonce2, "Nonce should remain the same");
     }
 
-    public function testShortNonce()
+    public function testShortNonce(): void
     {
         $min_length = Nonce::MIN_LENGTH;
         // set an 8 chr nonce length
@@ -38,7 +39,7 @@ class NonceTest extends SapphireTest
         $this->assertNotEquals(strlen($nonce), $length, "Nonce should not be {$length} chrs, {$min_length} chr minimum");
     }
 
-    public function testExactLengthNonce()
+    public function testExactLengthNonce(): void
     {
         $min_length = Nonce::MIN_LENGTH;
 
@@ -51,7 +52,7 @@ class NonceTest extends SapphireTest
 
     }
 
-    public function testLongLengthNonce()
+    public function testLongLengthNonce(): void
     {
         $min_length = Nonce::MIN_LENGTH;
 
@@ -67,7 +68,7 @@ class NonceTest extends SapphireTest
     /**
      * Test application of attributes
      */
-    public function testApplyAttributes()
+    public function testApplyAttributes(): void
     {
 
         $controller = Controller::curr();

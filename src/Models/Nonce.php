@@ -15,10 +15,9 @@ use SilverStripe\View\Requirements;
 class Nonce
 {
     /**
-     * @var string
      * @config
      */
-    private static $nonce = '';
+    private static string $nonce = '';
 
     public const MIN_LENGTH = 16;
 
@@ -26,14 +25,13 @@ class Nonce
      * Create a nonce
      * @return void
      */
-    private static function create($length)
+    private static function create(int $length)
     {
         self::$nonce = bin2hex(random_bytes($length / 2));
     }
 
     /**
      * Return the nonce
-     * @return string
      */
     public static function getNonce(): string
     {
@@ -41,11 +39,13 @@ class Nonce
         if (self::$nonce) {
             return self::$nonce;
         }
+
         // Create the nonce
         $length = intval(Config::inst()->get(Policy::class, 'nonce_length'));
         if ($length < self::MIN_LENGTH) {
             $length = self::MIN_LENGTH;
         }
+
         self::create($length);
         return self::$nonce;
     }
@@ -61,8 +61,6 @@ class Nonce
 
     /**
      * Add nonce to an array of HTML attributes
-     * @param string $tag
-     * @param array $attributes
      * @return void
      */
     public static function addToAttributes(string $tag, array &$attributes)
@@ -88,7 +86,6 @@ class Nonce
     /**
      * Add nonce to HTML nodes
      * @note a \DOMNodeList can contain items that extend \DOMNode but only \DOMElement provides get/setAttribute methods
-     * @param \DOMNodeList $domNodeList
      * @return void
      */
     public static function addToElements(\DOMNodeList &$domNodeList)
@@ -97,10 +94,12 @@ class Nonce
             if (!($domElement instanceof \DOMElement)) {
                 continue;
             }
+
             $nonce = trim($domElement->getAttribute('nonce'));
-            if ($nonce) {
+            if ($nonce !== '') {
                 continue;
             }
+
             if (self::applicableElement($domElement)) {
                 $textContent = htmlspecialchars($domElement->textContent);
                 $domElement->setAttribute('nonce', self::getNonce());
@@ -111,26 +110,18 @@ class Nonce
     /**
      * Inline script and all style elements are given a nonce
      * Elements referencing an external resource should have their hosts referenced in the CSP script-src directive
-     * @param \DOMElement $domElement
-     * @return bool
      */
     protected static function applicableElement(\DOMElement $domElement): bool
     {
-        $inline = false;
-        switch (strtolower($domElement->nodeName)) {
-            case "script":
-                // inline scripts get a nonce
-                $inline = !$domElement->hasAttribute('src');
-                break;
-            case "style":
-                // styles are inline elements and get a nonce
-                $inline = true;
-                break;
-            default:
-                // unhandled element nodeName
-                $inline = false;
-                break;
-        }
+        $inline = match (strtolower($domElement->nodeName)) {
+            // inline scripts get a nonce
+            "script" => !$domElement->hasAttribute('src'),
+            // styles are inline elements and get a nonce
+            "style" => true,
+            // unhandled element nodeName
+            default => false,
+        };
+
         return $inline;
     }
 

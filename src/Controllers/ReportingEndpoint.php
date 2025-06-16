@@ -18,24 +18,21 @@ class ReportingEndpoint extends Controller
 {
     /**
      * Whether reports are accepted by this endpoint
-     * @var bool
      * @config
      */
-    private static $accept_reports = false;
+    private static bool $accept_reports = false;
 
     /**
-     * @var array
      * @config
      */
-    private static $allowed_actions = [
+    private static array $allowed_actions = [
         'report'
     ];
 
     /**
-     * @var array
      * @config
      */
-    private static $url_handlers = [
+    private static array $url_handlers = [
         'v1/report' => 'report'
     ];
 
@@ -47,7 +44,7 @@ class ReportingEndpoint extends Controller
     /**
      * Return appropriate response header, only
      */
-    private function returnHeader()
+    private function returnHeader(): never
     {
         header("HTTP/1.1 204 No Content");
         exit;
@@ -93,8 +90,8 @@ class ReportingEndpoint extends Controller
 
             $violationReport = ViolationReport::create_report($report, $contentType);
 
-        } catch (\Exception $e) {
-            Logger::log("ReportingEndpoint: " . $e->getMessage(), "NOTICE");
+        } catch (\Exception $exception) {
+            Logger::log("ReportingEndpoint: " . $exception->getMessage(), "NOTICE");
         } finally {
             $this->returnHeader();
         }

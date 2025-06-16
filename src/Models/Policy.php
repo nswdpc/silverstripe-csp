@@ -22,99 +22,101 @@ use SilverStripe\CMS\Model\SiteTree;
 
 /**
  * A Content Security Policy policy record
+ * @property string $Title
+ * @property bool $Enabled
+ * @property ?string $MinimumCspLevel
+ * @property bool $IsLive
+ * @property bool $IsBasePolicy
+ * @property bool $ReportOnly
+ * @property bool $SendViolationReports
+ * @property ?string $AlternateReportURI
+ * @property ?string $AlternateReportToURI
+ * @property bool $EnableNEL
+ * @property ?string $AlternateNELReportURI
+ * @property ?string $DeliveryMethod
+ * @method \SilverStripe\ORM\HasManyList<\SilverStripe\CMS\Model\SiteTree> Pages()
+ * @method \SilverStripe\ORM\ManyManyList<\NSWDPC\Utilities\ContentSecurityPolicy\Directive> Directives()
  */
 class Policy extends DataObject implements PermissionProvider
 {
     /**
-     * @var string
      * @config
      */
-    private static $table_name = 'CspPolicy';
+    private static string $table_name = 'CspPolicy';
 
     /**
-     * @var string
      * @config
      */
-    private static $singular_name = 'Policy';
+    private static string $singular_name = 'Policy';
 
     /**
-     * @var string
      * @config
      */
-    private static $plural_name = 'Policies';
+    private static string $plural_name = 'Policies';
 
     /**
-     * @var bool
      * @config
      */
-    private static $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
-
+    private static bool $run_in_modeladmin = false;// whether to set the policy in ModelAdmin and descendants of ModelAdmin
     /**
-     * @var array
      * @config
      */
-    private static $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
-
+    private static array $whitelisted_controllers = [];// do not set a policy when current controller is in this list of controllers
     /**
-     * @var bool
      * @config
      */
-    private static $include_subdomains = true;// include subdomains in NEL
-
+    private static bool $include_subdomains = true;// include subdomains in NEL
     /**
-     * @var int
      * @config
      */
-    private static $nonce_length = 16;// the minimum length to create 128 bit nonce value
-
+    private static int $nonce_length = 16;// the minimum length to create 128 bit nonce value
     /**
-     * @var string
      * @config
      */
-    private static $nonce_injection_method = 'requirements';// how a nonce is added
-
+    private static string $nonce_injection_method = 'requirements';// how a nonce is added
     /**
-     * @var int
      * @config
      */
-    private static $max_age = 3600;
+    private static int $max_age = 3600;
 
     /**
      * Set to true to override the result of  self::checkCanApply()
-     * @var bool
      * @config
      */
-    private static $override_apply = false;
+    private static bool $override_apply = false;
 
-    /**
-     * @var Policy|null
-     */
-    private $merge_from_policy;// at runtime set a policy to merge other directives from, into this policy
+    private ?\NSWDPC\Utilities\ContentSecurityPolicy\Policy $merge_from_policy = null;// at runtime set a policy to merge other directives from, into this policy
 
     public const POLICY_DELIVERY_METHOD_HEADER = 'Header';
+
     public const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
 
     public const DEFAULT_REPORTING_GROUP = 'csp-endpoint';
+
     public const DEFAULT_REPORTING_GROUP_NEL = 'network-error-logging';
 
     public const HEADER_CSP_REPORT_ONLY = 'Content-Security-Policy-Report-Only';
+
     public const HEADER_CSP = 'Content-Security-Policy';
+
     public const HEADER_REPORT_TO = 'Report-To';
+
     public const HEADER_REPORTING_ENDPOINTS = 'Reporting-Endpoints';
+
     public const HEADER_NEL = 'NEL';
 
     public const NONCE_INJECT_VIA_REQUIREMENTS = 'requirements';
+
     public const NONCE_INJECT_VIA_MIDDLEWARE = 'middleware';
 
     /**
      * Database fields
-     * @var array
      * @config
      */
-    private static $db = [
+    private static array $db = [
         'Title' => 'Varchar(255)',
         'Enabled' => 'Boolean',
-        'MinimumCspLevel' => 'Enum(\'1,2,3\')',// CSP level to support, specifically used for reporting, which changed between 2 and 3
+        'MinimumCspLevel' => "Enum('1,2,3')",// CSP level to support, specifically used for reporting, which changed between 2 and 3
         'IsLive' => 'Boolean',
         'IsBasePolicy' => 'Boolean',
         'ReportOnly' => 'Boolean',
@@ -123,15 +125,14 @@ class Policy extends DataObject implements PermissionProvider
         'AlternateReportToURI' => 'Varchar(255)',// Reporting URL for Reporting API reports
         'EnableNEL' => 'Boolean', // Enable Network Error Logging (for supporting browsers)
         'AlternateNELReportURI' => 'Varchar(255)', // NEL reporting URL e.g an external service
-        'DeliveryMethod' => 'Enum(\'Header,MetaTag\')',
+        'DeliveryMethod' => "Enum('Header,MetaTag')",
     ];
 
     /**
      * Default field values
-     * @var array
      * @config
      */
-    private static $defaults = [
+    private static array $defaults = [
         'Enabled' => 0,
         'IsLive' => 0,
         'MinimumCspLevel' => 2,// CSP Level 1 by default
@@ -145,10 +146,9 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Defines summary fields commonly used in table columns
      * as a quick overview of the data for this dataobject
-     * @var array
      * @config
      */
-    private static $summary_fields = [
+    private static array $summary_fields = [
         'ID' => '#',
         'Title' => 'Title',
         'DeliveryMethod' => 'Method',
@@ -162,19 +162,17 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * Many_many relationship
-     * @var array
      * @config
      */
-    private static $many_many = [
+    private static array $many_many = [
         'Directives' => Directive::class,
     ];
 
     /**
      * Database indexes
-     * @var array
      * @config
      */
-    private static $indexes = [
+    private static array $indexes = [
         'Enabled' => true,
         'IsLive' => true,
         'DeliveryMethod' => true,
@@ -183,38 +181,36 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * Has_many relationship
-     * @var array
      * @config
      */
-    private static $has_many = [
+    private static array $has_many = [
         'Pages' => SiteTree::class
     ];
 
     /**
      * Default sort ordering
-     * @var string
      * @config
      */
-    private static $default_sort = 'IsBasePolicy DESC, Enabled DESC, Title ASC';
+    private static string $default_sort = 'IsBasePolicy DESC, Enabled DESC, Title ASC';
 
     /**
      * Return the default base policy
      * @param bool $is_live
      * @param string $delivery_method
      */
-    public static function getDefaultBasePolicy($is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER)
+    public static function getDefaultBasePolicy($is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER): ?\SilverStripe\ORM\DataObject
     {
         $filter = [ 'Enabled' => 1, 'IsBasePolicy' => 1, 'DeliveryMethod' => $delivery_method ];
         $list = Policy::get()->filter($filter);
         if ($is_live) {
             $list = $list->filter('IsLive', 1);
         }
+
         return $list->first();
     }
 
     /**
      * Get a page specific policy based on the Page
-     * @param SiteTree $page
      * @param bool $is_live
      * @param string $delivery_method
      */
@@ -222,8 +218,9 @@ class Policy extends DataObject implements PermissionProvider
     {
         if (empty($page->CspPolicyID)) {
             // early return if none linked
-            return;
+            return null;
         }
+
         // Check that the policy is enabled, it's not a base policy..
         $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method ];
         $list = Policy::get()->filter($filter)
@@ -232,13 +229,13 @@ class Policy extends DataObject implements PermissionProvider
         if ($is_live) {
             $list = $list->filter('IsLive', 1);
         }
-        $policy = $list->first();
-        return $policy;
+        return $list->first();
     }
 
     /**
      * Handle changes made after write
      */
+    #[\Override]
     public function onAfterWrite()
     {
         parent::onAfterWrite();
@@ -250,8 +247,9 @@ class Policy extends DataObject implements PermissionProvider
 
     /**
      * Returns an array of duplicate directive Keys found
+     * @return list
      */
-    public function DuplicateDirectives()
+    public function DuplicateDirectives(): array
     {
         $sql = "SELECT d.`Key`, COUNT(d.`ID`) AS Dupes\n"
             . " FROM `CspDirective` d\n"
@@ -264,6 +262,7 @@ class Policy extends DataObject implements PermissionProvider
         foreach ($result as $record) {
             $records[] = $record['Key'];
         }
+
         return $records;
     }
 
@@ -271,6 +270,7 @@ class Policy extends DataObject implements PermissionProvider
      * CMS Fields
      * @return FieldList
      */
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
@@ -381,7 +381,7 @@ class Policy extends DataObject implements PermissionProvider
             $reportOnlyField->setRightTitle(
                 _t(
                     'ContentSecurityPolicy.REPORT_ONLY_METATAG_WARNING',
-                    'The delivery method is set to \'meta tag\', this setting will be ignored'
+                    "The delivery method is set to 'meta tag', this setting will be ignored"
                 )
             );
         }
@@ -475,6 +475,7 @@ class Policy extends DataObject implements PermissionProvider
         if ($this->IsBasePolicy == 1) {
             $fields->removeByName('Pages');
         }
+
         return $fields;
     }
 
@@ -489,14 +490,17 @@ class Policy extends DataObject implements PermissionProvider
             if (!isset($parts['scheme'])) {
                 throw new \Exception("Missing scheme");
             }
+
             if ($parts['scheme'] != "https") {
                 throw new \Exception("Scheme is not https");
             }
+
             if (!isset($parts['host'])) {
                 throw new \Exception("Missing host");
             }
+
             return $url;
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             return "";
         }
     }
@@ -510,6 +514,7 @@ class Policy extends DataObject implements PermissionProvider
         if (!is_int($maxAge)) {
             $maxAge = 3600;
         }
+
         return abs($maxAge);
     }
 
@@ -519,7 +524,7 @@ class Policy extends DataObject implements PermissionProvider
     public function getIncludeSubdomains(): bool
     {
         $include = self::config()->get('include_subdomains');
-        return $include ? true : false;
+        return (bool) $include;
     }
 
     /**
@@ -533,8 +538,7 @@ class Policy extends DataObject implements PermissionProvider
         } else {
             $reporting_url = ReportingEndpoint::getCurrentReportingUrl();
         }
-        $reporting_url = self::validateUrl($reporting_url);
-        return $reporting_url;
+        return self::validateUrl($reporting_url);
     }
 
     /**
@@ -547,8 +551,7 @@ class Policy extends DataObject implements PermissionProvider
         if ($this->AlternateReportToURI) {
             $url = $this->AlternateReportToURI;
         }
-        $url = self::validateUrl($url);
-        return $url;
+        return self::validateUrl($url);
     }
 
     /**
@@ -569,8 +572,8 @@ class Policy extends DataObject implements PermissionProvider
      */
     public static function getReportingEndpoint(string $endpointName, string $endpointUrl): string
     {
-        if ($endpointUrl = self::validateUrl($endpointUrl)) {
-            return $endpointName . "=\"" . $endpointUrl . "\"";
+        if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
+            return $endpointName . '="' . $endpointUrl . '"';
         } else {
             return "";
         }
@@ -592,26 +595,31 @@ class Policy extends DataObject implements PermissionProvider
                 if (!isset($reportToGroup['group']) || !is_string($reportToGroup['group'])) {
                     continue;
                 }
+
                 $entry['group'] = $reportToGroup['group'];
                 if (isset($reportToGroup['max_age']) && is_int($reportToGroup['max_age'])) {
                     $entry['max_age'] = $reportToGroup['max_age'];
                 }
+
                 if (isset($reportToGroup['endpoints']) && is_array($reportToGroup['endpoints'])) {
                     $entry['endpoints'] = [];
                     foreach ($reportToGroup['endpoints'] as $endpointUrl) {
-                        if ($endpointUrl = self::validateUrl($endpointUrl)) {
+                        if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
                             $entry['endpoints'][] = [
                                 'url' => $endpointUrl
                             ];
                         }
                     }
                 }
+
                 if (isset($reportToGroup['include_subdomains'])) {
-                    $entry['include_subdomains'] = $reportToGroup['include_subdomains'] ? true : false;
+                    $entry['include_subdomains'] = (bool) $reportToGroup['include_subdomains'];
                 }
+
                 $reportTo[] = $entry;
             }
-            if (count($reportTo) > 0) {
+
+            if ($reportTo !== []) {
                 $headerValue = json_encode($reportTo);
                 /**
                  * W3C spec:
@@ -620,6 +628,7 @@ class Policy extends DataObject implements PermissionProvider
                  */
                 $headerValue = trim($headerValue, "[]");
             }
+
             return $headerValue;
         }
     }
@@ -633,6 +642,7 @@ class Policy extends DataObject implements PermissionProvider
         if (is_string($this->AlternateNELReportURI)) {
             $nelReportUrl = self::validateUrl($this->AlternateNELReportURI);
         }
+
         if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER && $this->EnableNEL == 1 && $nelReportUrl) {
             return $nelReportUrl;
         } else {
@@ -668,7 +678,6 @@ class Policy extends DataObject implements PermissionProvider
      * Retrieve the policy in a format for use in the Header or Meta Tag handling
      * @param mixed $enabled filter by Enabled directives only
      * @param bool $pretty format each policy line on a new line
-     * @return string
      */
     public function getPolicy($enabled = true, $pretty = false): string
     {
@@ -702,6 +711,7 @@ class Policy extends DataObject implements PermissionProvider
                     $directive_values = array_merge($merge_directive_values, $directive_values);
                 }
             }
+
             // add the Key then value to the policy
             $policy .= $directive->getDirectiveValueForPolicy($directive_values) . " ";
             $directive_names[] = $directive->Key;
@@ -711,9 +721,10 @@ class Policy extends DataObject implements PermissionProvider
         if ($merge_from_policy_directives) {
             // find out if there are any directives to add
             $create_directives = $merge_from_policy_directives;
-            if (!empty($directive_names)) {
+            if ($directive_names !== []) {
                 $create_directives = $create_directives->exclude('Key', $directive_names);
             }
+
             if ($create_directives->count() > 0) {
                 foreach ($create_directives as $create_directive) {
                     // Add directives from the merge policy that are not in the original policy
@@ -733,26 +744,28 @@ class Policy extends DataObject implements PermissionProvider
      * @param string $method
      * @param bool $pretty
      */
-    public function HeaderValues($enabled = 1, $method = self::POLICY_DELIVERY_METHOD_HEADER, $pretty = false)
+    public function HeaderValues($enabled = 1, $method = self::POLICY_DELIVERY_METHOD_HEADER, $pretty = false): ?array
     {
         if (!is_null($enabled)) {
             $enabled = $enabled == 1;
         }
+
         return $this->getPolicyData($enabled);
     }
 
     /**
      * Header values
-     * @param bool|null $enabled
-     * @param bool $pretty
      */
     public function getPolicyData(?bool $enabled, bool $pretty = false): ?array
     {
         $policy_string = trim($this->getPolicy($enabled, $pretty));
-        if (!$policy_string) {
+        if ($policy_string === '' || $policy_string === '0') {
             return null;
         }
-        $report_to = $reporting_endpoints = $nel = [];
+
+        $report_to = [];
+        $reporting_endpoints = [];
+        $nel = [];
         $header = self::HEADER_CSP;
         if ($this->ReportOnly == 1) {
             if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_METATAG) {
@@ -772,8 +785,7 @@ class Policy extends DataObject implements PermissionProvider
         $include_subdomains = $this->getIncludeSubdomains();
 
         // Get Reporting URL for CSP
-        if ($reporting_url = $this->isCspReportingEnabled()) {
-
+        if (($reporting_url = $this->isCspReportingEnabled()) !== '') {
             /**
              * Reporting changed between CSP Level 2 and 3
              * With a min. level < 3, we send report-uri and report-to directives
@@ -783,34 +795,28 @@ class Policy extends DataObject implements PermissionProvider
              * @note the Abort steps here - https://w3c.github.io/reporting/#process-header
              * If you are testing locally with a self signed cert or without a cert, it's possible Report-To / Reporting-Endpoints will make no difference in supporting Browsers e.g Chrome 70+
              */
-
-            $report_to_directive = $report_uri_directive = "";
-
+            $report_to_directive = "";
+            $report_uri_directive = "";
             $reporting_group = self::DEFAULT_REPORTING_GROUP;
-
             if ($this->MinimumCspLevel < 3) {
                 // Only 1,2 will add a report-uri, when selecting '3' this is ignored
                 $report_uri_directive = "report-uri {$reporting_url};";
             }
-
             // report-to directive for CSP
             $report_to_directive = "report-to {$reporting_group};";
             // The report-to endpoint url can be different from the report-uri URL, in some services
             $reportingapi_url = $this->getReportingApiUrl();
-            if (!$reportingapi_url) {
+            if ($reportingapi_url === '' || $reportingapi_url === '0') {
                 $reportingapi_url = $reporting_url;
             }
+
             // Reporting-Endpoints for CSP
             $reporting_endpoints[ self::DEFAULT_REPORTING_GROUP ] = self::getReportingEndpoint(self::DEFAULT_REPORTING_GROUP, $reportingapi_url);
-
-            if ($report_uri_directive || $report_to_directive) {
-                $policy_string .= $report_uri_directive . $report_to_directive;
-            }
-
+            $policy_string .= $report_uri_directive . $report_to_directive;
         }
 
         // Network Error Logging support
-        if ($nelReportUrl = $this->isNELEnabled()) {
+        if (($nelReportUrl = $this->isNELEnabled()) !== '') {
             // NEL header values
             $nel = [
                 "report_to" => self::DEFAULT_REPORTING_GROUP_NEL,
@@ -828,7 +834,7 @@ class Policy extends DataObject implements PermissionProvider
             ];
         }
 
-        $response = [
+        return [
             'header' => $header, // the CSP header
             'policy_string' => trim($policy_string), // the CSP policy
             'reporting' => [],// See report entries below
@@ -836,13 +842,10 @@ class Policy extends DataObject implements PermissionProvider
             'reporting_endpoints' => $reporting_endpoints, // Reporting-Endpoints data
             'nel' => $nel // NEL support
         ];
-
-        return $response;
     }
 
     /**
      * Given a policy string, parse out the parts into key value pairs
-     * @return array
      * @param string $policy_string the value of a Content-Security-Policy[-Report-Only] header
      */
     public static function parsePolicy($policy_string): array
@@ -851,8 +854,9 @@ class Policy extends DataObject implements PermissionProvider
         $data = [];
         foreach ($parts as $part) {
             $pieces = explode(" ", trim($part), 2);
-            $data[$pieces[0]] = isset($pieces[1]) ? $pieces[1] : '';
+            $data[$pieces[0]] = $pieces[1] ?? '';
         }
+
         return $data;
     }
 
@@ -864,17 +868,17 @@ class Policy extends DataObject implements PermissionProvider
         $directives = [];
         $parts = self::parsePolicy($policy_string);
         foreach ($parts as $k => $v) {
-            if (strpos($v, "'nonce-") !== false) {
+            if (str_contains((string) $v, "'nonce-")) {
                 $directives[$k] = true;
             }
         }
+
         return $directives;
     }
 
     /**
      * Check if the policy can be applied based on configuration and the state of the current request
      * @param Controller $controller the controller to check against, if not supplied the current controller is used
-     * @return bool
      */
     public static function checkCanApply(Controller $controller): bool
     {
@@ -918,22 +922,19 @@ class Policy extends DataObject implements PermissionProvider
         // Allow certain controllers to remove headers (as in the request is 'whitelisted')
         // @deprecated and will be renamed in a future release
         $whitelisted_controllers = Config::inst()->get(Policy::class, 'whitelisted_controllers');
-        if (is_array($whitelisted_controllers) && in_array(get_class($controller), $whitelisted_controllers)) {
-            return true;
-        }
-
-        return false;
+        return is_array($whitelisted_controllers) && in_array($controller::class, $whitelisted_controllers);
     }
 
     /**
      * @inheritdoc
      */
+    #[\Override]
     public function validate(): \SilverStripe\Core\Validation\ValidationResult
     {
         $result = parent::validate();
         if ($this->AlternateReportURI) {
             $valid = self::validateUrl($this->AlternateReportURI);
-            if (!$valid) {
+            if ($valid === '' || $valid === '0') {
                 $result->addError(
                     _t(
                         'ContentSecurityPolicy.INVALID_URL',
@@ -942,9 +943,10 @@ class Policy extends DataObject implements PermissionProvider
                 );
             }
         }
+
         if ($this->AlternateNELReportURI) {
             $valid = self::validateUrl($this->AlternateNELReportURI);
-            if (!$valid) {
+            if ($valid === '' || $valid === '0') {
                 $result->addError(
                     _t(
                         'ContentSecurityPolicy.INVALID_URL_NEL',
@@ -953,24 +955,29 @@ class Policy extends DataObject implements PermissionProvider
                 );
             }
         }
+
         return $result;
     }
 
+    #[\Override]
     public function canView($member = null)
     {
         return Permission::check('CSP_POLICY_VIEW');
     }
 
+    #[\Override]
     public function canEdit($member = null)
     {
         return Permission::check('CSP_POLICY_EDIT');
     }
 
+    #[\Override]
     public function canDelete($member = null)
     {
         return Permission::check('CSPE_POLICY_DELETE');
     }
 
+    #[\Override]
     public function canCreate($member = null, $context = [])
     {
         return Permission::check('CSP_POLICY_EDIT');

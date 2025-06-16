@@ -30,7 +30,7 @@ class CSPMiddleware implements HTTPMiddleware
     protected function getPolicy(HTTPResponse $response)
     {
         $content_type = $response->getHeader('Content-Type');
-        if (!(strpos(strtolower($content_type), self::CONTENT_TYPE_HTML) === 0)) {
+        if (!str_starts_with(strtolower($content_type), self::CONTENT_TYPE_HTML)) {
             // only apply to text/html documents
             return false;
         }
@@ -40,13 +40,13 @@ class CSPMiddleware implements HTTPMiddleware
             // check for a CSPRO header
             $policy = $response->getHeader(Policy::HEADER_CSP_REPORT_ONLY);
         }
+
         return $policy;
     }
 
     /**
      * Apply the Content Security Policy changes, if any are required.
      * If the middleware is not enabled, no changes are applied
-     * @return \SilverStripe\Control\HTTPResponse
      */
     protected function applyCSP(HTTPRequest $request, callable $delegate): HTTPResponse
     {
@@ -78,6 +78,7 @@ class CSPMiddleware implements HTTPMiddleware
             $elements = $dom->getElementsByTagName($tag);
             Nonce::addToElements($elements);
         }
+
         $html = $dom->saveHTML();
         $response->setBody($html);
         \libxml_clear_errors();

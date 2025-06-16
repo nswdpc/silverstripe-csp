@@ -12,6 +12,7 @@ class NonceRequirements_Backend extends Requirements_Backend
     /**
      * @inheritdoc
      */
+    #[\Override]
     public function includeInHTML($content)
     {
         if (func_num_args() > 1) {
@@ -25,9 +26,10 @@ class NonceRequirements_Backend extends Requirements_Backend
         // Skip if content isn't injectable, or there is nothing to inject
         $tagsAvailable = preg_match('#</head\b#', $content ?? '');
         $hasFiles = $this->css || $this->javascript || $this->customCSS || $this->customScript || $this->customHeadTags;
-        if (!$tagsAvailable || !$hasFiles) {
+        if ($tagsAvailable === 0 || $tagsAvailable === false || !$hasFiles) {
             return $content;
         }
+
         $requirements = '';
         $jsRequirements = '';
 
@@ -38,21 +40,25 @@ class NonceRequirements_Backend extends Requirements_Backend
         foreach ($this->getJavascript() as $file => $attributes) {
             // Build html attributes
             $htmlAttributes = [
-                'type' => isset($attributes['type']) ? $attributes['type'] : "application/javascript",
+                'type' => $attributes['type'] ?? "application/javascript",
                 'src' => $this->pathForFile($file),
             ];
             if (!empty($attributes['async'])) {
                 $htmlAttributes['async'] = 'async';
             }
+
             if (!empty($attributes['defer'])) {
                 $htmlAttributes['defer'] = 'defer';
             }
+
             if (!empty($attributes['integrity'])) {
                 $htmlAttributes['integrity'] = $attributes['integrity'];
             }
+
             if (!empty($attributes['crossorigin'])) {
                 $htmlAttributes['crossorigin'] = $attributes['crossorigin'];
             }
+
             $tag = 'script';
             Nonce::addToAttributes($tag, $htmlAttributes);
             $jsRequirements .= HTML::createTag($tag, $htmlAttributes);
@@ -84,12 +90,15 @@ class NonceRequirements_Backend extends Requirements_Backend
             if (!empty($params['media'])) {
                 $htmlAttributes['media'] = $params['media'];
             }
+
             if (!empty($params['integrity'])) {
                 $htmlAttributes['integrity'] = $params['integrity'];
             }
+
             if (!empty($params['crossorigin'])) {
                 $htmlAttributes['crossorigin'] = $params['crossorigin'];
             }
+
             $tag = 'link';
             Nonce::addToAttributes($tag, $htmlAttributes);
             $requirements .= HTML::createTag($tag, $htmlAttributes);
@@ -126,6 +135,7 @@ class NonceRequirements_Backend extends Requirements_Backend
         } else {
             $content = $this->insertTagsIntoHead($jsRequirements, $content);
         }
+
         return $content;
     }
 
