@@ -914,7 +914,7 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * @inheritdoc
      */
-    public function validate()
+    public function validate(): \SilverStripe\Core\Validation\ValidationResult
     {
         $result = parent::validate();
         if ($this->AlternateReportURI) {
