@@ -222,9 +222,9 @@ class Policy extends DataObject implements PermissionProvider
         }
 
         // Check that the policy is enabled, it's not a base policy..
-        $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method, "\"SiteTree\".\"ID\"" => $page->ID ];
+        $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method, '"SiteTree"."ID"' => $page->ID ];
         $list = Policy::get()->filter($filter)
-              ->innerJoin('SiteTree', "\"SiteTree\".\"CspPolicyID\" = \"CspPolicy\".\"ID\"");
+              ->innerJoin('SiteTree', '"SiteTree"."CspPolicyID" = "CspPolicy"."ID"');
         // ... and if live, it's available on Live stage
         if ($is_live) {
             $list = $list->filter('IsLive', 1);
@@ -251,12 +251,12 @@ class Policy extends DataObject implements PermissionProvider
      */
     public function DuplicateDirectives(): array
     {
-        $sql = "SELECT d.\"Key\", COUNT(d.\"ID\") AS Dupes\n"
-            . " FROM \"CspDirective\" d\n"
-            . " JOIN \"CspPolicy_Directives\" pd ON pd.CspDirectiveID = d.ID\n"
-            . " JOIN \"CspPolicy\" p ON p.ID = pd.CspPolicyID AND p.ID = ?"
-            . " GROUP BY d.\"Key\""
-            . " HAVING Dupes > 1";
+        $sql = 'SELECT d."Key", COUNT(d.ID) AS Dupes'
+            . ' FROM CspDirective d'
+            . ' JOIN CspPolicy_Directives pd ON pd.CspDirectiveID = d.ID'
+            . ' JOIN CspPolicy p ON p.ID = pd.CspPolicyID AND p.ID = ?'
+            . ' GROUP BY d."Key"'
+            . ' HAVING Dupes > 1';
         $result = DB::prepared_query($sql, [$this->ID]);
         $records = [];
         foreach ($result as $record) {
