@@ -934,7 +934,7 @@ class Policy extends DataObject implements PermissionProvider
         $result = parent::validate();
         if ($this->AlternateReportURI) {
             $valid = self::validateUrl($this->AlternateReportURI);
-            if ($valid === '' || $valid === '0') {
+            if ($valid === '') {
                 $result->addError(
                     _t(
                         'ContentSecurityPolicy.INVALID_URL',
@@ -946,7 +946,7 @@ class Policy extends DataObject implements PermissionProvider
 
         if ($this->AlternateNELReportURI) {
             $valid = self::validateUrl($this->AlternateNELReportURI);
-            if ($valid === '' || $valid === '0') {
+            if ($valid === '') {
                 $result->addError(
                     _t(
                         'ContentSecurityPolicy.INVALID_URL_NEL',
