@@ -242,7 +242,7 @@ class Policy extends DataObject implements PermissionProvider
         parent::onAfterWrite();
         if ($this->exists() && $this->IsBasePolicy == 1) {
             // clear other base policies, without using ORM
-            DB::prepared_query("UPDATE \"CspPolicy\" SET IsBasePolicy = 0 WHERE IsBasePolicy = 1 AND ID <> ?'", [$this->ID]);
+            DB::prepared_query("UPDATE \"CspPolicy\" SET IsBasePolicy = 0 WHERE IsBasePolicy = 1 AND ID <> ?", [$this->ID]);
         }
     }
 
