@@ -229,6 +229,7 @@ class Policy extends DataObject implements PermissionProvider
         if ($is_live) {
             $list = $list->filter('IsLive', 1);
         }
+
         return $list->first();
     }
 
@@ -279,7 +280,7 @@ class Policy extends DataObject implements PermissionProvider
         // Directives handling
         if ($this->exists()) {
             $keys = $this->DuplicateDirectives();
-            if (!empty($keys)) {
+            if ($keys !== []) {
                 $fields->addFieldToTab(
                     'Root.Directives',
                     LiteralField::create('DuplicateDirectivesWarning', '<p class="message warning">This policy has the following duplicate directives: '
@@ -538,6 +539,7 @@ class Policy extends DataObject implements PermissionProvider
         } else {
             $reporting_url = ReportingEndpoint::getCurrentReportingUrl();
         }
+
         return self::validateUrl($reporting_url);
     }
 
@@ -551,6 +553,7 @@ class Policy extends DataObject implements PermissionProvider
         if ($this->AlternateReportToURI) {
             $url = $this->AlternateReportToURI;
         }
+
         return self::validateUrl($url);
     }
 
@@ -795,6 +798,7 @@ class Policy extends DataObject implements PermissionProvider
                 // Only 1,2 will add a report-uri, when selecting '3' this is ignored
                 $report_uri_directive = "report-uri {$reporting_url};";
             }
+
             // report-to directive for CSP
             $report_to_directive = "report-to {$reporting_group};";
             // The report-to endpoint url can be different from the report-uri URL, in some services

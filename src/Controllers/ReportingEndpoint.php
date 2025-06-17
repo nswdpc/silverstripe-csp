@@ -36,7 +36,7 @@ class ReportingEndpoint extends Controller
         'v1/report' => 'report'
     ];
 
-    public function index(HTTPRequest $request)
+    public function index(HTTPRequest $request): never
     {
         $this->returnHeader();
     }

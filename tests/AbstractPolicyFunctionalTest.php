@@ -463,8 +463,8 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $csp_meta_tags = [];
 
         $dom = new \DOMDocument();
-        $utf8_body = '<?xml encoding="UTF-8">' . $body;
         $dom->loadHTML($body);
+
         $tags = $dom->getElementsByTagName('meta');
         foreach ($tags as $tag) {
             $equiv = $tag->getAttribute('http-equiv');
@@ -504,7 +504,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
                     throw new Exception("report-to directive found in '{$content}'");
                 }
 
-                if (strpos($content, "https://pagetestfont.example.com") !== false && str_contains($content, "'unsafe-inline'")) {
+                if (str_contains($content, "https://pagetestfont.example.com") && str_contains($content, "'unsafe-inline'")) {
                     $expected_found++;
                 }
 
@@ -603,8 +603,8 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $body = $result->getBody();
 
         $dom = new \DOMDocument();
-        $utf8_body = '<?xml encoding="UTF-8">' . $body;
         $dom->loadHTML($body);
+
         $tags = $dom->getElementsByTagName('meta');
         foreach ($tags as $tag) {
             $equiv = $tag->getAttribute('http-equiv');
