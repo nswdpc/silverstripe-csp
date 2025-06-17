@@ -135,7 +135,7 @@ class Policy extends DataObject implements PermissionProvider
     private static array $defaults = [
         'Enabled' => 0,
         'IsLive' => 0,
-        'MinimumCspLevel' => 2,// CSP Level 1 by default
+        'MinimumCspLevel' => '2',// CSP Level 2 by default
         'DeliveryMethod' => self::POLICY_DELIVERY_METHOD_HEADER,
         'ReportOnly' => 1,
         'SendViolationReports' => 0,
@@ -794,7 +794,7 @@ class Policy extends DataObject implements PermissionProvider
             $report_to_directive = "";
             $report_uri_directive = "";
             $reporting_group = self::DEFAULT_REPORTING_GROUP;
-            if ($this->MinimumCspLevel < 3) {
+            if ((int)$this->MinimumCspLevel < 3) {
                 // Only 1,2 will add a report-uri, when selecting '3' this is ignored
                 $report_uri_directive = "report-uri {$reporting_url};";
             }

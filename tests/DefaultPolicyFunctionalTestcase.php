@@ -149,7 +149,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             'EnableNEL' => 0,
             'AlternateReportURI' => 'https://reporting.example.com/csp/report',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $directives = [];
@@ -297,7 +297,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $directives = [];
@@ -327,7 +327,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $directive = $this->createDirective([
@@ -398,7 +398,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             'EnableNEL' => 1,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_METATAG,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $directives = [];
@@ -428,7 +428,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_METATAG,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $directive = $this->createDirective([
@@ -540,7 +540,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             'EnableNEL' => 1,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_METATAG,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $directives = [];
@@ -570,7 +570,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_METATAG,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $directive = $this->createDirective([
@@ -647,7 +647,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                 'EnableNEL' => 1,
                 'AlternateReportURI' => '',
                 'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-                'MinimumCspLevel' => 1,
+                'MinimumCspLevel' => '1',
             ]);
 
             $directives = [];
