@@ -16,7 +16,7 @@ use SilverStripe\View\Requirements;
 use SilverStripe\Control\Director;
 use Exception;
 
-abstract class AbstractPolicyFunctionalTest extends FunctionalTest
+abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
 {
     protected $injectionMethod = '';
 
