@@ -92,9 +92,8 @@ class ReportingEndpoint extends Controller
 
         } catch (\Exception $exception) {
             Logger::log("ReportingEndpoint: " . $exception->getMessage(), "NOTICE");
-        } finally {
-            $this->returnHeader();
         }
 
+        $this->returnHeader();
     }
 }

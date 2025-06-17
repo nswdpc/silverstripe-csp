@@ -186,7 +186,7 @@ class ViolationReport extends DataObject implements PermissionProvider
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
-        return $fields->transform(new ReadonlyTransformation());
+        return $fields->transform(ReadonlyTransformation::create());
     }
 
 

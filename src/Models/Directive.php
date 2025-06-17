@@ -332,7 +332,7 @@ class Directive extends DataObject implements PermissionProvider
             $rules = $rules->getValues();
             if (!empty($rules) && is_array($rules)) {
                 foreach (array_keys($rules) as $rule) {
-                    $values[] = self::formatDirectiveValue($rule ?? "");
+                    $values[] = self::formatDirectiveValue($rule);
                 }
             }
         }

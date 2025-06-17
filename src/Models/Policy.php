@@ -222,9 +222,9 @@ class Policy extends DataObject implements PermissionProvider
         }
 
         // Check that the policy is enabled, it's not a base policy..
-        $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method ];
+        $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method, "\"SiteTree\".\"ID\"" => $page->ID ];
         $list = Policy::get()->filter($filter)
-              ->innerJoin('SiteTree', "SiteTree.CspPolicyID = CspPolicy.ID AND SiteTree.ID = '" . Convert::raw2sql($page->ID) . "'");
+              ->innerJoin('SiteTree', "\"SiteTree\".\"CspPolicyID\" = \"CspPolicy\".\"ID\"");
         // ... and if live, it's available on Live stage
         if ($is_live) {
             $list = $list->filter('IsLive', 1);
@@ -740,17 +740,10 @@ class Policy extends DataObject implements PermissionProvider
     /**
      * Header values
      * @deprecated
-     * @param bool|null $enabled
-     * @param string $method
-     * @param bool $pretty
      */
-    public function HeaderValues($enabled = 1, $method = self::POLICY_DELIVERY_METHOD_HEADER, $pretty = false): ?array
+    public function HeaderValues(int $enabled = 1, string $method = self::POLICY_DELIVERY_METHOD_HEADER, bool $pretty = false): ?array
     {
-        if (!is_null($enabled)) {
-            $enabled = $enabled == 1;
-        }
-
-        return $this->getPolicyData($enabled);
+        return $this->getPolicyData($enabled == 1);
     }
 
     /**
