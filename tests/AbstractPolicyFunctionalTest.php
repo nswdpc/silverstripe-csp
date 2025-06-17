@@ -274,7 +274,6 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
         // NEL should remain off
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
-        $result->getHeader(Policy::HEADER_REPORT_TO);
         $this->assertNull($header_nel, Policy::HEADER_NEL . " header found");
         $this->assertNull($header_nel, Policy::HEADER_REPORT_TO . " header found");
     }
