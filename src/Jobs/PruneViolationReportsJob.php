@@ -16,7 +16,6 @@ use Exception;
  */
 class PruneViolationReportsJob extends AbstractQueuedJob
 {
-
     use Configurable;
 
     // hour
