@@ -222,9 +222,10 @@ class Policy extends DataObject implements PermissionProvider
         }
 
         // Check that the policy is enabled, it's not a base policy..
-        $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method, '"SiteTree"."ID"' => $page->ID ];
+        $filter = [ 'Enabled' => 1,  'IsBasePolicy' => 0, 'DeliveryMethod' => $delivery_method];
         $list = Policy::get()->filter($filter)
-              ->innerJoin('SiteTree', '"SiteTree"."CspPolicyID" = "CspPolicy"."ID"');
+              ->innerJoin('SiteTree', '"SiteTree"."CspPolicyID" = "CspPolicy"."ID"')
+              ->where(['"SiteTree"."ID" = ?' => $page->ID]);
         // ... and if live, it's available on Live stage
         if ($is_live) {
             $list = $list->filter('IsLive', 1);
