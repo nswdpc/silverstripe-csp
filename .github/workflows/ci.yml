@@ -1,0 +1,13 @@
+name: CI
+
+on:
+  pull_request: null
+
+jobs:
+  Silverstripe:
+    name: 'Silverstripe (bundle)'
+    uses: nswdpc/ci-files/.github/workflows/silverstripe_53_83.yml@v-4
+  PHPStan:
+    name: 'PHPStan (analyse)'
+    uses: nswdpc/ci-files/.github/workflows/phpstan.silverstripe_83.yml@v-4
+    needs: Silverstripe
