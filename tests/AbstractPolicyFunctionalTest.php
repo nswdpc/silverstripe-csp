@@ -220,7 +220,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $this->assertNotNull($header_csp, "No " . Policy::HEADER_CSP . " header");
 
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
-        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
+        $result->getHeader(Policy::HEADER_REPORT_TO);
         $this->assertNull($header_nel, Policy::HEADER_NEL . " header found");
         $this->assertNull($header_nel, Policy::HEADER_REPORT_TO . " header found");
 
@@ -505,7 +505,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
                     throw new Exception("report-to directive found in '{$content}'");
                 }
 
-                if (strpos($content, "https://pagetestfont.example.com") !== false && str_contains($content, "'unsafe-inline'")) {
+                if (str_contains($content, "https://pagetestfont.example.com") && str_contains($content, "'unsafe-inline'")) {
                     $expected_found++;
                 }
 

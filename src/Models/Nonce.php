@@ -35,7 +35,7 @@ class Nonce
     public static function getNonce(): string
     {
         // Return existing nonce
-        if (self::$nonce) {
+        if (self::$nonce !== '') {
             return self::$nonce;
         }
 
@@ -112,7 +112,7 @@ class Nonce
      */
     protected static function applicableElement(\DOMElement $domElement): bool
     {
-        $inline = match (strtolower($domElement->nodeName)) {
+        return match (strtolower($domElement->nodeName)) {
             // inline scripts get a nonce
             "script" => !$domElement->hasAttribute('src'),
             // styles are inline elements and get a nonce
@@ -120,8 +120,6 @@ class Nonce
             // unhandled element nodeName
             default => false,
         };
-
-        return $inline;
     }
 
 }
