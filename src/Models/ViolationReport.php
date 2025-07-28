@@ -25,18 +25,17 @@ use SilverStripe\Security\PermissionProvider;
  */
 class ViolationReport extends DataObject implements PermissionProvider
 {
-
     /**
      * @var string
      * Report type created by report-uri requests
      */
-    const REPORT_TYPE_CSP_REPORT = "csp-report";
+    public const REPORT_TYPE_CSP_REPORT = "csp-report";
 
     /**
      * @var string
      * Report type created by Reporting-Endpoint requests
      */
-    const REPORT_TYPE_CSP_VIOLATION = "csp-violation";
+    public const REPORT_TYPE_CSP_VIOLATION = "csp-violation";
 
     /**
      * @config
@@ -66,8 +65,8 @@ class ViolationReport extends DataObject implements PermissionProvider
         'ViolatedDirective' => 'Varchar(255)',
         'OriginalPolicy' => 'Text',
         'SourceFile' => 'Varchar(255)',
-        'LineNumber' =>'Int',
-        'ColumnNumber' =>'Int',
+        'LineNumber' => 'Int',
+        'ColumnNumber' => 'Int',
         'Disposition' => 'Varchar(32)',
         'UserAgent' => 'Varchar(255)',
         'ScriptSample' => 'Varchar(40)' // per w3c spec (https://www.w3.org/TR/CSP3/#violation-sample)
@@ -105,7 +104,7 @@ class ViolationReport extends DataObject implements PermissionProvider
     /**
      * Create a new Violation Report per data spec
      */
-    public static function create_report(array $data, string $contentType) : ?ViolationReport
+    public static function create_report(array $data, string $contentType): ?ViolationReport
     {
         if (isset($data[ self::REPORT_TYPE_CSP_REPORT ]) && $contentType === "application/csp-report") {
             // report-uri report (application/csp-report)
@@ -122,7 +121,8 @@ class ViolationReport extends DataObject implements PermissionProvider
      * Create a new Violation Report for report-uri spec submitted reports
      * Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri
      */
-    protected static function create_csp_report(array $data) : ?ViolationReport {
+    protected static function create_csp_report(array $data): ?ViolationReport
+    {
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
         $report = ViolationReport::create();
         $report->DocumentUri = $data['document-uri'] ?? '';
@@ -144,19 +144,20 @@ class ViolationReport extends DataObject implements PermissionProvider
      * Handle Reporting API reports, for csp-violation reports
      * Ref: https://w3c.github.io/reporting/
      */
-    protected static function create_csp_violation(array $reports) : ?ViolationReport {
-        if(count($reports) == 0) {
+    protected static function create_csp_violation(array $reports): ?ViolationReport
+    {
+        if (count($reports) == 0) {
             return null;
         }
 
         $report = null;
         $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
-        foreach($reports as $reportBody) {
-            if(empty($reportBody['body'])) {
+        foreach ($reports as $reportBody) {
+            if (empty($reportBody['body'])) {
                 continue;
             }
 
-            if( isset($reportBody['type']) && $reportBody['type'] == self::REPORT_TYPE_CSP_VIOLATION ) {
+            if (isset($reportBody['type']) && $reportBody['type'] == self::REPORT_TYPE_CSP_VIOLATION) {
                 $data = $reportBody['body'];
                 $report = ViolationReport::create();
                 $report->DocumentUri = $data['documentURL'] ?? '';

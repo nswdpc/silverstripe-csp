@@ -3,7 +3,6 @@
 namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
 use NSWDPC\Utilities\ContentSecurityPolicy\Directive;
-use NSWDPC\Utilities\ContentSecurityPolicy\Nonce;
 use NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint;
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 use SilverStripe\Dev\SapphireTest;
@@ -12,11 +11,10 @@ use SilverStripe\Control\Director;
 
 class PolicyTest extends SapphireTest
 {
-
     protected $usesDatabase = true;
 
     #[\Override]
-    protected function setUp() : void
+    protected function setUp(): void
     {
         parent::setUp();
         // Ensure protocol is https, to ensure reporting URL is validated
@@ -28,7 +26,7 @@ class PolicyTest extends SapphireTest
     }
 
     #[\Override]
-    protected function tearDown() : void
+    protected function tearDown(): void
     {
         parent::tearDown();
     }
@@ -123,12 +121,12 @@ class PolicyTest extends SapphireTest
         );
 
         // NEL not enabled as no NEL reporting URL in policy
-        $this->assertEmpty( $policy->isNELEnabled() );
+        $this->assertEmpty($policy->isNELEnabled());
 
         // Turn off violation report sending
         $policy->SendViolationReports = 0;
         $policy->write();
-        $this->assertEmpty( $policy->isCspReportingEnabled() );
+        $this->assertEmpty($policy->isCspReportingEnabled());
 
         // Policy should have no endpoints
         $header = $policy->getPolicyData(true);
@@ -138,7 +136,7 @@ class PolicyTest extends SapphireTest
         $policy->write();
 
         // Violation reporting is still off
-        $this->assertEmpty( $policy->isCspReportingEnabled() );
+        $this->assertEmpty($policy->isCspReportingEnabled());
 
         // Header should have changed
         $header = $policy->getPolicyData(true);
@@ -156,7 +154,8 @@ class PolicyTest extends SapphireTest
 
     }
 
-    public function testReportingURLs(): void {
+    public function testReportingURLs(): void
+    {
         $this->clearAllPolicies();
 
         $policy = $this->createPolicy([
@@ -208,7 +207,8 @@ class PolicyTest extends SapphireTest
         );
     }
 
-    public function testBasePolicyChange(): void {
+    public function testBasePolicyChange(): void
+    {
 
         $this->clearAllPolicies();
 

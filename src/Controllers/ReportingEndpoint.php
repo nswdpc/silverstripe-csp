@@ -16,7 +16,6 @@ use SilverStripe\Control\HTTPRequest;
  */
 class ReportingEndpoint extends Controller
 {
-
     /**
      * Whether reports are accepted by this endpoint
      * @config
@@ -51,7 +50,7 @@ class ReportingEndpoint extends Controller
         exit;
     }
 
-    public static function getCurrentReportingUrl($include_host = true) : string
+    public static function getCurrentReportingUrl($include_host = true): string
     {
         return ($include_host ? Director::absoluteBaseURL() : '/') . 'csp/v1/report';
     }
@@ -65,7 +64,7 @@ class ReportingEndpoint extends Controller
         // collect the body
         try {
 
-            if(!self::config()->get('accept_reports')) {
+            if (!self::config()->get('accept_reports')) {
                 throw new \Exception("This endpoint does not accept reports");
             }
 
@@ -75,21 +74,21 @@ class ReportingEndpoint extends Controller
 
             $contentType = $request->getHeader('Content-Type');
             $acceptedContentTypes = [ 'application/csp-report', 'application/reports+json' ];
-            if(!in_array($contentType, $acceptedContentTypes)) {
+            if (!in_array($contentType, $acceptedContentTypes)) {
                 throw new \Exception("The request does not have an accepted content type");
             }
 
             $body = $request->getBody();
-            if(!$body) {
+            if (!$body) {
                 throw new \Exception("The body of the request is empty");
             }
 
             $report = json_decode($body, true);
-            if(json_last_error() !== JSON_ERROR_NONE) {
+            if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception("CSP report JSON decode error: " . json_last_error_msg());
             }
 
-            $violationReport = ViolationReport::create_report($report , $contentType);
+            $violationReport = ViolationReport::create_report($report, $contentType);
 
         } catch (\Exception $exception) {
             Logger::log("ReportingEndpoint: " . $exception->getMessage(), "NOTICE");

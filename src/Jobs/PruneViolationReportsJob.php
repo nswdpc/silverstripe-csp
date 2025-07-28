@@ -2,13 +2,11 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\ORM\DB;
 use DateTime;
-use Exception;
 
 /**
  *	Remove violation reports older than a set time
@@ -34,7 +32,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
     public function getRecordCount()
     {
         $query = 'SELECT COUNT(ID) AS RecordCount FROM "CspViolationReport"';
-        if($result = DB::query($query)) {
+        if ($result = DB::query($query)) {
             $row = $result->record();
             return $row['RecordCount'] ?? 0;
         } else {

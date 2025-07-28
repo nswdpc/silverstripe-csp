@@ -11,8 +11,8 @@ require_once(__DIR__ . '/AbstractPolicyFunctionalTest.php');
  */
 class PolicyFunctionalTest extends AbstractPolicyFunctionalTest
 {
-
-    protected function getInjectionMethod(): string {
+    protected function getInjectionMethod(): string
+    {
         return Policy::NONCE_INJECT_VIA_REQUIREMENTS;
     }
 
