@@ -140,7 +140,7 @@ class PolicyTest extends SapphireTest
 
         // Header should have changed
         $header = $policy->getPolicyData(true);
-        $this->assertTrue(isset($header['header']) && Policy::HEADER_CSP_REPORT_ONLY);
+        $this->assertTrue(isset($header['header']));
 
         // Make policy non-enabled
         $policy->Enabled = 0;
