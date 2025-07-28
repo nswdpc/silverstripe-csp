@@ -40,7 +40,19 @@
         "symbiote/silverstripe-multivaluefield": "^6"
     },
     "require-dev": {
+        "cambis/silverstripe-rector": "^2",
         "phpunit/phpunit": "^9.5",
+        "cambis/silverstan": "^2",
+        "nswdpc/ci-files": "dev-v-4",
+        "phpstan/phpstan": "^2",
+        "rector/rector": "^2",
+        "phpstan/phpstan-phpunit": "^2",
         "friendsofphp/php-cs-fixer": "^3"
+    },
+    "config": {
+        "allow-plugins": {
+            "composer/installers": true,
+            "silverstripe/vendor-plugin": true
+        }
     }
 }
