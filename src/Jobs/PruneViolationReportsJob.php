@@ -5,6 +5,7 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\DB;
 use DateTime;
 
@@ -13,6 +14,9 @@ use DateTime;
  */
 class PruneViolationReportsJob extends AbstractQueuedJob
 {
+
+    use Configurable;
+
     private static int $older_than;//hour
 
     public function __construct($older_than = 0)
@@ -21,12 +25,12 @@ class PruneViolationReportsJob extends AbstractQueuedJob
             $older_than = Config::inst()->get(self::class, 'older_than');
         }
 
-        $this->older_than = (int)abs($older_than);
+        $this->older_than_hours = (int)abs($older_than);
     }
 
     public function getTitle()
     {
-        return sprintf(_t('ContentSecurityPolicy.PRUNE_REPORTS_JOBTITLE', 'Remove CSP violation reports older than %d hour'), $this->older_than);
+        return sprintf(_t('ContentSecurityPolicy.PRUNE_REPORTS_JOBTITLE', 'Remove CSP violation reports older than %d hour'), $this->older_than_hours);
     }
 
     public function getRecordCount()
@@ -42,19 +46,19 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 
     public function process()
     {
-        $older_than = abs($this->older_than);
+        $older_than = abs($this->older_than_hours);
         if ($older_than === 0) {
             $older_than = 1;
         }
 
-        $this->older_than = $older_than;
+        $this->older_than_hours = $older_than;
         $pre_count = $this->getRecordCount();
 
         $dt = new DateTime();
         $now = $dt->format('Y-m-d H:i:s');
 
         $query = 'DELETE FROM "CspViolationReport" WHERE "Created" < ? - INTERVAL ? HOUR';
-        DB::prepared_query($query, [$now, $this->older_than]);
+        DB::prepared_query($query, [$now, $this->older_than_hours]);
 
         $post_count = $this->getRecordCount();
 
@@ -73,9 +77,9 @@ class PruneViolationReportsJob extends AbstractQueuedJob
      */
     public function afterComplete()
     {
-        $job = new PruneViolationReportsJob($this->older_than);
+        $job = new PruneViolationReportsJob($this->older_than_hours);
         $dt = new DateTime();
-        $dt->modify('+' . $this->older_than . ' hour');
+        $dt->modify('+' . $this->older_than_hours . ' hour');
 
         singleton(QueuedJobService::class)->queueJob($job, $dt->format('Y-m-d H:i:s'));
     }

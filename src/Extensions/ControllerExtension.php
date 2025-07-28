@@ -37,6 +37,9 @@ class ControllerExtension extends Extension
         $stage = Versioned::get_stage();
         $is_live = ($stage == Versioned::LIVE);
 
+        // only get enabled directives
+        $enabled_directives = true;
+
         // Set the CSP nonce for this request
         Nonce::getNonce();
 
