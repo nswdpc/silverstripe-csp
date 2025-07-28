@@ -15,6 +15,7 @@ use SilverStripe\CMS\Model\SiteTree;
 
 /**
  * Provides an extension method so that the Controller can set the relevant CSP header
+ * @extends \SilverStripe\Core\Extension<(\SilverStripe\Control\Controller & static)>
  */
 class ControllerExtension extends Extension
 {
@@ -23,18 +24,18 @@ class ControllerExtension extends Extension
     {
 
         // No response handling
-        $response = $this->owner->getResponse();
+        $response = $this->getOwner()->getResponse();
         if ($response && !($response instanceof HTTPResponse)) {
             return;
         }
 
         // Don't go in a loop reporting to the Reporting Endpoint controller from the Reporting Endpoint controller!
-        if ($this->owner instanceof ReportingEndpoint) {
+        if ($this->getOwner() instanceof ReportingEndpoint) {
             return;
         }
 
         // check if a policy can be applied
-        if (!$canApply = Policy::checkCanApply($this->owner)) {
+        if (!$canApply = Policy::checkCanApply($this->getOwner())) {
             return;
         }
 
@@ -42,17 +43,14 @@ class ControllerExtension extends Extension
         $stage = Versioned::get_stage();
         $is_live = ($stage == Versioned::LIVE);
 
-        // only get enabled policy/directives
-        $enabled_policy = $enabled_directives = true;
-
         // Set the CSP nonce for this request
         Nonce::getNonce();
 
         $policy = Policy::getDefaultBasePolicy($is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
 
         // check for Page specific policy
-        if ($this->owner instanceof ContentController
-            && ($data = $this->owner->data())
+        if ($this->getOwner() instanceof ContentController
+            && ($data = $this->getOwner()->data())
             && $data instanceof SiteTree) {
                 $page_policy = Policy::getPagePolicy($data, $is_live, Policy::POLICY_DELIVERY_METHOD_HEADER);
                 if (!empty($page_policy->ID)) {
@@ -82,6 +80,7 @@ class ControllerExtension extends Extension
                     Policy::getReportingEndpointsHeader($data['reporting_endpoints'])
                 );
             }
+
             if (!empty($data['nel'])) {
                 // NEL is enabled
                 $response->addHeader(
@@ -93,10 +92,9 @@ class ControllerExtension extends Extension
                     json_encode($data['nel'])
                 );
             }
+
             // the relevant CSP-header with its values
             $response->addHeader($data['header'], $data['policy_string']);
         }
-
-        return;
     }
 }

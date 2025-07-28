@@ -18,6 +18,16 @@ use SilverStripe\ORM\Filters\ExactMatchFilter;
 
 /**
  * A Content Security Policy directive, can be used by multiple {@link Policy}
+ * @property ?string $Key
+ * @property mixed $Rules
+ * @property bool $Enabled
+ * @property bool $IncludeSelf
+ * @property bool $UnsafeInline
+ * @property bool $AllowDataUri
+ * @property bool $UseNonce
+ * @property bool $ReportSample
+ * @property bool $HasNone
+ * @method \SilverStripe\ORM\ManyManyList<\NSWDPC\Utilities\ContentSecurityPolicy\Policy> Policies()
  */
 class Directive extends DataObject implements PermissionProvider
 {
@@ -25,31 +35,29 @@ class Directive extends DataObject implements PermissionProvider
     /**
      * @config
      */
-    private static $table_name = 'CspDirective';
+    private static string $table_name = 'CspDirective';
 
     /**
      * @config
      */
-    private static $singular_name = 'Directive';
+    private static string $singular_name = 'Directive';
 
     /**
      * @config
      */
-    private static $plural_name = 'Directives';
+    private static string $plural_name = 'Directives';
 
     /**
      * Default sort ordering
-     * @var string
      * @config
      */
-    private static $default_sort = 'Key ASC';
+    private static string $default_sort = 'Key ASC';
 
     /**
      * Database fields
-     * @var array
      * @config
      */
-    private static $db = [
+    private static array $db = [
         'Key' => 'Varchar(255)',
         'Rules' => 'MultiValueField',
         'Enabled' => 'Boolean',
@@ -63,10 +71,9 @@ class Directive extends DataObject implements PermissionProvider
 
     /**
      * Database indexes
-     * @var array
      * @config
      */
-    private static $indexes = [
+    private static array $indexes = [
         'Enabled' => true,
         'Key' => true
     ];
@@ -74,16 +81,15 @@ class Directive extends DataObject implements PermissionProvider
     /**
      * Defines summary fields commonly used in table columns
      * as a quick overview of the data for this dataobject
-     * @var array
      * @config
      */
-    private static $summary_fields = [
+    private static array $summary_fields = [
         'ID' => '#',
         'Key' => 'Name',
         'DirectiveValue' => 'Value',
         'Enabled.Nice' =>'Enabled',
         'Policies.Count' => 'Policies',
-        'IncludeSelf.Nice' =>'Include \'self\'',
+        'IncludeSelf.Nice' =>"Include 'self'",
         'UnsafeInline.Nice' =>'Unsafe Inline',
         'AllowDataUri.Nice' =>'Allow Data URI',
         'UseNonce.Nice' => 'Use Nonce'
@@ -91,10 +97,9 @@ class Directive extends DataObject implements PermissionProvider
 
     /**
      * Searchable Fields
-     * @var array
      * @config
      */
-    private static $searchable_fields = [
+    private static array $searchable_fields = [
         'Key' => PartialMatchFilter::class,
         'Enabled' => ExactMatchFilter::class,
         'IncludeSelf' => ExactMatchFilter::class,
@@ -105,13 +110,13 @@ class Directive extends DataObject implements PermissionProvider
 
     /**
      * Many_many relationship
-     * @var array
      * @config
      */
-    private static $belongs_many_many = [
+    private static array $belongs_many_many = [
         'Policies' => Policy::class,
     ];
 
+    #[\Override]
     public function getTitle()
     {
         return substr($this->Key . " " . $this->getDirectiveValue(true), 0, 100) . "...";
@@ -120,11 +125,11 @@ class Directive extends DataObject implements PermissionProvider
     /**
      * The text here is taken from: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
      */
-    public function possibleKeys()
+    public function possibleKeys(): array
     {
         $keys = [
             'default-src' => _t('ContentSecurityPolicy.DIRECTIVE_DEFAULT_SRC', 'the fallback for all directives'),
-            'base-uri' => _t('ContentSecurityPolicy.DIRECTIVE_BASE_URI', 'restricts the URLs which can be used in a document\'s <base> element'),
+            'base-uri' => _t('ContentSecurityPolicy.DIRECTIVE_BASE_URI', "restricts the URLs which can be used in a document's <base> element"),
             'frame-src' => _t('ContentSecurityPolicy.DIRECTIVE_FRAME_SRC', 'specifies valid sources for nested browsing contexts loading using elements such as <frame> and <iframe>'),
             'connect-src' => _t('ContentSecurityPolicy.DIRECTIVE_CONNECT_SRC', 'restricts the URLs which can be loaded using script interfaces (Restricted APIs: <a ping>, Fetch,  XHR, WebSocket, EventSource)'),
             'font-src' => _t('ContentSecurityPolicy.DIRECTIVE_FONT_SRC', 'specifies valid sources for fonts loaded using @font-face'),
@@ -135,7 +140,7 @@ class Directive extends DataObject implements PermissionProvider
             'object-src' => _t('ContentSecurityPolicy.DIRECTIVE_OBJECT_SRC', 'specifies valid sources for the <object>, <embed>, and <applet> elements'),
             'script-src' => _t('ContentSecurityPolicy.DIRECTIVE_SCRIPT_SRC', 'Specifies valid sources for JavaScript'),
             'style-src' => _t('ContentSecurityPolicy.DIRECTIVE_STYLE_SRC', 'specifies valid sources for sources for stylesheets'),
-            'upgrade-insecure-requests' => _t('ContentSecurityPolicy.DIRECTIVE_UPGRADE_INSECURE_REQUESTS', 'instructs user agents to treat all of a site\'s insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS)'),
+            'upgrade-insecure-requests' => _t('ContentSecurityPolicy.DIRECTIVE_UPGRADE_INSECURE_REQUESTS', "instructs user agents to treat all of a site's insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS)"),
             'worker-src' => _t('ContentSecurityPolicy.DIRECTIVE_WORKER_SRC', 'specifies valid sources for Worker, SharedWorker, or ServiceWorker scripts'),
             'prefetch-src' => _t('ContentSecurityPolicy.DIRECTIVE_PREFETCH_SRC', 'Specifies valid sources to be prefetched or prerendered'),
             'webrtc-src' => _t('ContentSecurityPolicy.DIRECTIVE_WEBRTC_SRC', 'specifies valid sources for WebRTC connections'),
@@ -151,7 +156,7 @@ class Directive extends DataObject implements PermissionProvider
         return $keys;
     }
 
-    public static function KeysWithoutValues()
+    public static function KeysWithoutValues(): array
     {
         return [
             'block-all-mixed-content','upgrade-insecure-requests'
@@ -161,6 +166,7 @@ class Directive extends DataObject implements PermissionProvider
     /**
      * Event handler called before writing to the database.
      */
+    #[\Override]
     public function onBeforeWrite()
     {
         parent::onBeforeWrite();
@@ -182,6 +188,7 @@ class Directive extends DataObject implements PermissionProvider
      * CMS Fields
      * @return FieldList
      */
+    #[\Override]
     public function getCMSFields()
     {
         $fields = parent::getCMSFields();
@@ -225,7 +232,7 @@ class Directive extends DataObject implements PermissionProvider
         if ($policies > 1) {
             $fields->addFieldToTab(
                 'Root.Main',
-                LiteralField::create('MultiplePolicies', "<p class=\"message notice\">" . sprintf(_t('ContentSecurityPolicy.USED_IN_MULTIPLE_POLICIES', 'This record is used in %d policies. Updating it will modify all linked policies'), $policies) . "</p>")
+                LiteralField::create('MultiplePolicies', '<p class="message notice">' . sprintf(_t('ContentSecurityPolicy.USED_IN_MULTIPLE_POLICIES', 'This record is used in %d policies. Updating it will modify all linked policies'), $policies) . "</p>")
             );
         }
 
@@ -234,6 +241,7 @@ class Directive extends DataObject implements PermissionProvider
         foreach ($keys as $key => $value) {
             $select_keys[ $key ] = $key . " - " . $value;
         }
+
         $fields->removeByName([
             'Key'
         ]);
@@ -290,8 +298,8 @@ class Directive extends DataObject implements PermissionProvider
                     'Examples',
                     '<div class="container"><table class="table table-striped table-bordered">'
                     . '<tr><td>https://example.com</td><td>My reason for adding example.com</td></tr>'
-                    . '<tr><td>\'report-sample\'</td><td>Send a portion of the violating code to the report endpoint</td></tr>'
-                    . '<tr><td>\'sha256-xxxxxx\'</td><td>We need to allow this specific hash to enable an inline style</td></tr>'
+                    . "<tr><td>'report-sample'</td><td>Send a portion of the violating code to the report endpoint</td></tr>"
+                    . "<tr><td>'sha256-xxxxxx'</td><td>We need to allow this specific hash to enable an inline style</td></tr>"
                     . '</table></div>'
                 )->setDescription(
                     'A good resource for available values and format is https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/Sources'
@@ -314,7 +322,6 @@ class Directive extends DataObject implements PermissionProvider
     /**
      * Rules are stored in a key/value mapping.
      * Return each rule as an array of values
-     * @return array
      */
     public function getValuesFromRulesAsArray() : array
     {
@@ -323,18 +330,18 @@ class Directive extends DataObject implements PermissionProvider
         if ($rules) {
             $rules = $rules->getValues();
             if (!empty($rules) && is_array($rules)) {
-                foreach ($rules as $rule => $optional_reason) {
+                foreach (array_keys($rules) as $rule) {
                     $values[] = self::formatDirectiveValue($rule ?? "");
                 }
             }
         }
+
         return $values;
     }
 
     /**
      * Return rule values as a string, retained for BC
      * @deprecated
-     * @return string
      */
     public function getValuesFromRules() : string {
         $values = $this->getValuesFromRulesAsArray();
@@ -350,41 +357,48 @@ class Directive extends DataObject implements PermissionProvider
         if($this->IncludeSelf == 1) {
             $values[] = "'self'";
         }
+
         if($this->UnsafeInline == 1) {
             $values[] = "'unsafe-inline'";
         }
+
         if($this->AllowDataUri == 1) {
             $values[] = "data:";
         }
+
         if($this->ReportSample == 1) {
             $values[] = "'report-sample'";
         }
+
         if($this->HasNone == 1) {
             $values[] = "'none'";
         }
+
         // Add the nonce if available and enabled for this directive
         if($this->UseNonce == 1) {
             if($useFakeNonce) {
                 // for display in CMS or similar
-                $nonce = _t(__CLASS__ . ".SAMPLE_NONCE_ONLY", "sampleonly");
+                $nonce = _t(self::class . ".SAMPLE_NONCE_ONLY", "sampleonly");
             } else {
                 // use the nonce init'd in the controller
                 $nonce = Nonce::getNonce();
             }
+
             $values[] = "'nonce-{$nonce}'";
         }
+
         $rulesValues = $this->getValuesFromRulesAsArray();
-        if(!empty($rulesValues)) {
+        if($rulesValues !== []) {
             // Values have preference over rules values
             $values = array_merge($rulesValues, $values);
         }
+
         return $values;
     }
 
     /**
-    * Returns the directive value for use in a header
-    * @return string
-    */
+     * Returns the directive value for use in a header
+     */
     public function getDirectiveValue(bool $useFakeNonce = false) : string
     {
         $values = $this->getDirectiveValuesAsArray($useFakeNonce);
@@ -401,27 +415,30 @@ class Directive extends DataObject implements PermissionProvider
             return $this->Key . ";";
         } else {
             $values = array_unique($values);
-            $directive = $this->Key . " " . implode(" ", $values) . ";";
-            return $directive;
+            return $this->Key . " " . implode(" ", $values) . ";";
         }
 
     }
 
+    #[\Override]
     public function canView($member = null)
     {
         return Permission::check('CSP_DIRECTIVE_VIEW');
     }
 
+    #[\Override]
     public function canEdit($member = null)
     {
         return Permission::check('CSP_DIRECTIVE_EDIT');
     }
 
+    #[\Override]
     public function canDelete($member = null)
     {
         return Permission::check('CSPE_DIRECTIVE_DELETE');
     }
 
+    #[\Override]
     public function canCreate($member = null, $context = [])
     {
         return Permission::check('CSP_DIRECTIVE_EDIT');

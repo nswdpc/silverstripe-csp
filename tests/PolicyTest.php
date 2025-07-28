@@ -15,6 +15,7 @@ class PolicyTest extends SapphireTest
 
     protected $usesDatabase = true;
 
+    #[\Override]
     protected function setUp() : void
     {
         parent::setUp();
@@ -26,19 +27,20 @@ class PolicyTest extends SapphireTest
         );
     }
 
+    #[\Override]
     protected function tearDown() : void
     {
         parent::tearDown();
     }
 
-    private function createPolicy($data)
+    private function createPolicy(array $data)
     {
         $policy = Policy::create($data);
         $policy->write();
         return $policy;
     }
 
-    private function createDirective($data)
+    private function createDirective(array $data)
     {
         $directive = Directive::create($data);
         $directive->write();
@@ -58,7 +60,7 @@ class PolicyTest extends SapphireTest
         }
     }
 
-    public function testPolicy()
+    public function testPolicy(): void
     {
         $this->clearAllPolicies();
 
@@ -104,12 +106,12 @@ class PolicyTest extends SapphireTest
         $this->assertEmpty($header['nel']);
 
         $this->assertEquals($header['header'], Policy::HEADER_CSP);
-        $this->assertTrue(strpos($header['policy_string'], 'data:') !== false);
-        $this->assertTrue(strpos($header['policy_string'], "'self'") !== false);
-        $this->assertTrue(strpos($header['policy_string'], "script-src") === 0);
-        $this->assertTrue(strpos($header['policy_string'], "https://example.com https://www.example.net https://*.example.org") !== false);
-        $this->assertTrue(strpos($header['policy_string'], "'report-sample'") !== false);
-        $this->assertTrue(strpos($header['policy_string'], "'none'") !== false);
+        $this->assertTrue(str_contains($header['policy_string'], 'data:'));
+        $this->assertTrue(str_contains($header['policy_string'], "'self'"));
+        $this->assertTrue(str_starts_with($header['policy_string'], "script-src"));
+        $this->assertTrue(str_contains($header['policy_string'], "https://example.com https://www.example.net https://*.example.org"));
+        $this->assertTrue(str_contains($header['policy_string'], "'report-sample'"));
+        $this->assertTrue(str_contains($header['policy_string'], "'none'"));
 
         $this->assertArrayHasKey(Policy::DEFAULT_REPORTING_GROUP, $header['reporting_endpoints']);
         $this->assertEquals(
@@ -154,7 +156,7 @@ class PolicyTest extends SapphireTest
 
     }
 
-    public function testReportingURLs() {
+    public function testReportingURLs(): void {
         $this->clearAllPolicies();
 
         $policy = $this->createPolicy([
@@ -206,7 +208,7 @@ class PolicyTest extends SapphireTest
         );
     }
 
-    public function testBasePolicyChange() {
+    public function testBasePolicyChange(): void {
 
         $this->clearAllPolicies();
 
@@ -247,7 +249,7 @@ class PolicyTest extends SapphireTest
 
     }
 
-    public function testDirectives()
+    public function testDirectives(): void
     {
         $this->clearAllPolicies();
 
@@ -362,27 +364,27 @@ class PolicyTest extends SapphireTest
                 switch ($key) {
                     case 'font-src':
                         $this->assertTrue(
-                            strpos($value, "'self'") !== false
-                            && strpos($value, "data:") !== false
-                            && strpos($value, "https://font.example.com") !== false
-                            && strpos($value, "https://font.example.net") !== false
-                            && strpos($value, "https://*.font.example.org") !== false
+                            str_contains((string) $value, "'self'")
+                            && str_contains((string) $value, "data:")
+                            && str_contains((string) $value, "https://font.example.com")
+                            && str_contains((string) $value, "https://font.example.net")
+                            && str_contains((string) $value, "https://*.font.example.org")
                         );
                         break;
                     case 'media-src':
                         $this->assertTrue(
-                            strpos($value, "'self'") !== false
-                            && strpos($value, "'unsafe-inline'") !== false
-                            && strpos($value, "https://media.example.com") !== false
+                            str_contains((string) $value, "'self'")
+                            && str_contains((string) $value, "'unsafe-inline'")
+                            && str_contains((string) $value, "https://media.example.com")
                         );
                         break;
                     case 'script-src':
                         $this->assertTrue(
-                            strpos($value, "'self'") !== false
-                            && strpos($value, "data:") !== false
-                            && strpos($value, "'report-sample'") === false // turned off
-                            && strpos($value, "'unsafe-inline'") !== false
-                            && strpos($value, "https://script.example.com") !== false
+                            str_contains((string) $value, "'self'")
+                            && str_contains((string) $value, "data:")
+                            && !str_contains((string) $value, "'report-sample'") // turned off
+                            && str_contains((string) $value, "'unsafe-inline'")
+                            && str_contains((string) $value, "https://script.example.com")
                         );
                         break;
                     case 'report-uri':
@@ -400,7 +402,7 @@ class PolicyTest extends SapphireTest
     }
 
     // set a Policy to 3 which should drop report-uri
-    public function testCspLevel()
+    public function testCspLevel(): void
     {
         $this->clearAllPolicies();
 
@@ -454,7 +456,7 @@ class PolicyTest extends SapphireTest
         );
     }
 
-    public function testNEL()
+    public function testNEL(): void
     {
         $this->clearAllPolicies();
 

@@ -8,7 +8,7 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
  */
 trait ContentSecurityPolicyAware
 {
-    public function EnableContentSecurityPolicy()
+    public function EnableContentSecurityPolicy(): bool
     {
         return true;
     }
