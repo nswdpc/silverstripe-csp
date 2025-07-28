@@ -14,7 +14,6 @@ use DateTime;
  */
 class PruneViolationReportsJob extends AbstractQueuedJob
 {
-
     use Configurable;
 
     private static int $older_than;//hour
