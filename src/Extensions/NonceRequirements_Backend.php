@@ -14,13 +14,6 @@ class NonceRequirements_Backend extends Requirements_Backend
     #[\Override]
     public function includeInHTML($content)
     {
-        if (func_num_args() > 1) {
-            Deprecation::notice(
-                '5.0',
-                '$templateFile argument is deprecated. includeInHTML takes a sole $content parameter now.'
-            );
-            $content = func_get_arg(1);
-        }
 
         // Skip if content isn't injectable, or there is nothing to inject
         $tagsAvailable = preg_match('#</head\b#', $content ?? '');
