@@ -43,10 +43,10 @@ class SiteTreeExtension extends Extension
                 LiteralField::create(
                     'CspPolicyNoneFound',
                     '<p class="message info">' .
-                        _t(
+                        htmlspecialchars(_t(
                             'ContentSecurityPolicy.NO_AVAILABLE_EXTRA_POLICIES',
                             'There are no extra Content Security Polices. To fix this, define a new policy in the CSP administration area or ask an administrator to do this and it will appear here'
-                        )
+                        ))
                     . "</p>"
                 )
             );
@@ -59,10 +59,12 @@ class SiteTreeExtension extends Extension
                     $available_policies->map('ID', 'Title')
                 )->setEmptyString('')
                     ->setDescription(
-                        _t(
+                        nl2br(htmlspecialchars(_t(
                             'ContentSecurityPolicy.ADDITION_SECURITY_POLICY',
-                            'Choose an additional Content Security Policy to apply on this page only.<br>Adding additional policies can only further restrict the capabilities of the protected resource.'
-                        )
+                            "Choose an additional Content Security Policy to apply on this page only."
+                            . "\n"
+                            . "Adding additional policies can only further restrict the capabilities of the protected resource."
+                        )))
                     )
             );
         }

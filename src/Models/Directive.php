@@ -196,12 +196,12 @@ class Directive extends DataObject implements PermissionProvider
             LiteralField::create(
                 'DirectiveHelper',
                 '<p class="message notice">'
-                 . _t(
+                 . htmlspecialchars(_t(
                      'ContentSecurityPolicy.DIRECTIVE_HELPER',
                      'Prior to adding a directive, you should consult the '
                         . 'Content Security Policy MDN documentation at '
                         . 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy'
-                 )
+                 ))
                 . '<p>'
             ),
             'Key'
@@ -231,7 +231,18 @@ class Directive extends DataObject implements PermissionProvider
         if ($policies > 1) {
             $fields->addFieldToTab(
                 'Root.Main',
-                LiteralField::create('MultiplePolicies', '<p class="message notice">' . sprintf(_t('ContentSecurityPolicy.USED_IN_MULTIPLE_POLICIES', 'This record is used in %d policies. Updating it will modify all linked policies'), $policies) . "</p>")
+                LiteralField::create(
+                    'MultiplePolicies',
+                    '<p class="message notice">'
+                    . htmlspecialchars(_t(
+                        'ContentSecurityPolicy.USED_IN_MULTIPLE_POLICIES',
+                        'This record is used in {count} policies. Updating it will modify all linked policies',
+                        [
+                            'count' => $policies
+                        ]
+                    ))
+                    . "</p>"
+                )
             );
         }
 

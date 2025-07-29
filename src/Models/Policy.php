@@ -280,9 +280,18 @@ class Policy extends DataObject implements PermissionProvider
             if ($keys !== []) {
                 $fields->addFieldToTab(
                     'Root.Directives',
-                    LiteralField::create('DuplicateDirectivesWarning', '<p class="message warning">This policy has the following duplicate directives: '
-                    . htmlspecialchars(implode(", ", $keys))
-                    . ". Redundant directives should be unlinked or merged.</p>"),
+                    LiteralField::create(
+                        'DuplicateDirectivesWarning',
+                        '<p class="message warning">'
+                        . htmlspecialchars(_t(
+                            'ContentSecurityPolicy.DUPLICATE_DIRECTIVES_WARNING',
+                            'This policy has the following duplicate directives: {duplicateDirectives}. Redundant directives should be unlinked or merged.',
+                            [
+                                'duplicateDirectives' => implode(", ", $keys)
+                            ]
+                        ))
+                        . "</p>",
+                    ),
                     'Directives'
                 );
             }
