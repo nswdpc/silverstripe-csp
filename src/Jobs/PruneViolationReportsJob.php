@@ -30,7 +30,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 
     public function getTitle()
     {
-        return sprintf(_t('ContentSecurityPolicy.PRUNE_REPORTS_JOBTITLE', 'Remove CSP violation reports older than %d hour'), $this->older_than_hours);
+        return _t('ContentSecurityPolicy.PRUNE_REPORTS_JOBTITLE', 'Remove CSP violation reports older than {count} hour(s)', ['count' => $this->older_than_hours]);
     }
 
     public function setup()
@@ -70,7 +70,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 
         $removed = $pre_count - $post_count;
         $removed_string = ($removed . '/' . $pre_count);
-        $message = sprintf(_t('ContentSecurityPolicy.REMOVED_COUNT_REPORTS', 'Removed %s reports(s)'), $removed_string);
+        $message = _t('ContentSecurityPolicy.REMOVED_COUNT_REPORTS', 'Removed {count} reports(s)', ['count' => $removed_string]);
         $this->addMessage($message);
         $this->currentStep = 1;
 
