@@ -3,14 +3,9 @@
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use SilverStripe\Core\Extension;
-use SilverStripe\Control\Director;
-use SilverStripe\Core\Config\Config;
-use SilverStripe\Admin\ModelAdmin;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Versioned\Versioned;
-use SilverStripe\Admin\LeftAndMain;
 use SilverStripe\CMS\Controllers\ContentController;
-use SilverStripe\CMS\Controllers\ModelAsController;
 use SilverStripe\CMS\Model\SiteTree;
 
 /**

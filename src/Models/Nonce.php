@@ -3,7 +3,6 @@
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use SilverStripe\Core\Config\Config;
-use SilverStripe\View\Requirements;
 
 /**
  * Model handling creation and retrieval of a nonce

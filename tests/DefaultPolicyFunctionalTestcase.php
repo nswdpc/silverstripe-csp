@@ -6,13 +6,11 @@ use NSWDPC\Utilities\ContentSecurityPolicy\Directive;
 use NSWDPC\Utilities\ContentSecurityPolicy\Nonce;
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 use NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension;
-use SilverStripe\Control\Controller;
 use SilverStripe\Dev\FunctionalTest;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\View\Requirements;
 use SilverStripe\Control\Director;
 use Exception;
 

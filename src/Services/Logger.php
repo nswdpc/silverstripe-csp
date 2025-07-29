@@ -4,7 +4,6 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use Psr\Log\LoggerInterface;
 use SilverStripe\Core\Injector\Injector;
-use SilverStripe\Security\Security;
 
 /**
  * Simple log handling

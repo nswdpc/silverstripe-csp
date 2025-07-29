@@ -8,7 +8,6 @@ use SilverStripe\Forms\LiteralField;
 use SilverStripe\Forms\CompositeField;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\TextField;
-use SilverStripe\Forms\TextareaField;
 use SilverStripe\Forms\DropdownField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
@@ -197,30 +196,29 @@ class Directive extends DataObject implements PermissionProvider
             LiteralField::create(
                 'DirectiveHelper',
                 '<p class="message notice">'
-                 . _t(
+                 . htmlspecialchars(_t(
                      'ContentSecurityPolicy.DIRECTIVE_HELPER',
                      'Prior to adding a directive, you should consult the '
                         . 'Content Security Policy MDN documentation at '
                         . 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy'
-                 )
+                 ))
                 . '<p>'
             ),
             'Key'
         );
 
-        $fields->dataFieldByName('IncludeSelf')->setDescription(_t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this directive"));
-        $fields->dataFieldByName('AllowDataUri')->setDescription(_t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this directive"));
-        $fields->dataFieldByName('UnsafeInline')->setDescription(_t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive."));
-        $fields->dataFieldByName('Enabled')->setDescription(_t('ContentSecurityPolicy.ENABLED_DIRECTIVE', "Enables this directive within linked policies"));
-        $fields->dataFieldByName('ReportSample')->setDescription(_t('ContentSecurityPolicy.REPORT_SAMPLE', "Adds the 'report-sample' value to this directive. Only applicable to script-src* and style-src* violations. Will send a snippet of code that caused the violation to the reporting URL."));
+        $fields->dataFieldByName('IncludeSelf')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this directive")));
+        $fields->dataFieldByName('AllowDataUri')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this directive")));
+        $fields->dataFieldByName('UnsafeInline')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive.")));
+        $fields->dataFieldByName('Enabled')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.ENABLED_DIRECTIVE', "Enables this directive within linked policies")));
+        $fields->dataFieldByName('ReportSample')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.REPORT_SAMPLE', "Adds the 'report-sample' value to this directive. Only applicable to script-src* and style-src* violations. Will send a snippet of code that caused the violation to the reporting URL.")));
         $fields->dataFieldByName('HasNone')
             ->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.NONE_VALUE_DESCRIPTION',
                     "When enabled, elements controlled by this directive will not be allowed to load any resources."
-                    . "<br>"
-                    . "This value will be ignored by web browsers if other source expressions such as 'self' or URLs are present in the directive."
-                )
+                    . " This value will be ignored by web browsers if other source expressions such as 'self' or URLs are present in the directive."
+                ))
             )->setTitle(
                 _t(
                     'ContentSecurityPolicy.NONE_VALUE_TITLE',
@@ -232,7 +230,18 @@ class Directive extends DataObject implements PermissionProvider
         if ($policies > 1) {
             $fields->addFieldToTab(
                 'Root.Main',
-                LiteralField::create('MultiplePolicies', '<p class="message notice">' . sprintf(_t('ContentSecurityPolicy.USED_IN_MULTIPLE_POLICIES', 'This record is used in %d policies. Updating it will modify all linked policies'), $policies) . "</p>")
+                LiteralField::create(
+                    'MultiplePolicies',
+                    '<p class="message notice">'
+                    . htmlspecialchars(_t(
+                        'ContentSecurityPolicy.USED_IN_MULTIPLE_POLICIES',
+                        'This record is used in {count} policies. Updating it will modify all linked policies',
+                        [
+                            'count' => $policies
+                        ]
+                    ))
+                    . "</p>"
+                )
             );
         }
 
@@ -250,7 +259,7 @@ class Directive extends DataObject implements PermissionProvider
             CompositeField::create(
                 TextField::create(
                     'Key',
-                    'Enter a directive'
+                    _t('ContentSecurityPolicy.ENTER_A_DIRECTIVE_NAME', 'Enter a directive name')
                 ),
                 DropdownField::create(
                     'KeySelection',
@@ -267,7 +276,7 @@ class Directive extends DataObject implements PermissionProvider
             'Root.Main',
             HTMLReadonlyField::create(
                 'LiteralRules',
-                'Current directive value',
+                _t('ContentSecurityPolicy.CURRENT_DIRECTIVE_VALUE', 'Current directive value'),
                 htmlspecialchars($this->getDirectiveValue(true))
             ),
             'Rules'
@@ -275,10 +284,13 @@ class Directive extends DataObject implements PermissionProvider
 
 
         $fields->dataFieldByName('UseNonce')
-                ->setDescription(
+            ->setDescription(
+                htmlspecialchars(_t(
+                    'ContentSecurityPolicy.USE_NONCE',
                     'Add the system generated per-request number-once value to this directive.'
                     . ' Only applicable to certain directives.'
-                );
+                ))
+            );
 
         // Rules field
         $fields->removeByName('Rules');
@@ -287,25 +299,19 @@ class Directive extends DataObject implements PermissionProvider
             CompositeField::create(
                 KeyValueField::create(
                     'Rules',
-                    'Add the rule on the left and a reason for adding the rule on the right'
+                    _t(
+                        'ContentSecurityPolicy.DIRECTIVE_RULE_TITLE',
+                        'Add the rule on the left and a reason for adding the rule on the right'
+                    )
                 )->setDescription(
-                    'Some keywords, such as hashes, must be single-quoted.'
-                    . '<br>'
-                    . '<code>;</code> and <code>,</code> characters will be removed.'
+                    htmlspecialchars(_t(
+                        'ContentSecurityPolicy.RULE_KEYWORD_RULES',
+                        'Some keywords, such as hashes, must be single-quoted.'
+                        . ' The characters ; and , will be removed.'
+                    ))
                 ),
-                HTMLReadonlyField::create(
-                    'RulesExample',
-                    'Examples',
-                    '<div class="container"><table class="table table-striped table-bordered">'
-                    . '<tr><td>https://example.com</td><td>My reason for adding example.com</td></tr>'
-                    . "<tr><td>'report-sample'</td><td>Send a portion of the violating code to the report endpoint</td></tr>"
-                    . "<tr><td>'sha256-xxxxxx'</td><td>We need to allow this specific hash to enable an inline style</td></tr>"
-                    . '</table></div>'
-                )->setDescription(
-                    'A good resource for available values and format is https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/Sources'
-                )
             )->setTitle(
-                'Extra values'
+                _t('ContentSecurityPolicy.DIRECTIVE_EXTRA_VALUES', 'Extra values')
             )
         );
         return $fields;
@@ -381,7 +387,7 @@ class Directive extends DataObject implements PermissionProvider
         if ($this->UseNonce == 1) {
             if ($useFakeNonce) {
                 // for display in CMS or similar
-                $nonce = _t(self::class . ".SAMPLE_NONCE_ONLY", "sampleonly");
+                $nonce = _t("ContentSecurityPolicy.SAMPLE_NONCE_ONLY", "sampleonly");
             } else {
                 // use the nonce init'd in the controller
                 $nonce = Nonce::getNonce();
@@ -452,15 +458,15 @@ class Directive extends DataObject implements PermissionProvider
     {
         return [
             'CSP_DIRECTIVE_VIEW' => [
-                'name' => 'View directives',
+                'name' => _t('ContentSecurityPolicy.CSP_DIRECTIVE_VIEW', 'View directives'),
                 'category' => 'CSP',
             ],
             'CSP_DIRECTIVE_EDIT' => [
-                'name' => 'Edit & Create directives',
+                'name' => _t('ContentSecurityPolicy.CSP_DIRECTIVE_EDIT', 'Edit & Create directives'),
                 'category' => 'CSP',
             ],
             'CSPE_DIRECTIVE_DELETE' => [
-                'name' => 'Delete directives',
+                'name' => _t('ContentSecurityPolicy.CSPE_DIRECTIVE_DELETE', 'Delete directives'),
                 'category' => 'CSP',
             ]
         ];

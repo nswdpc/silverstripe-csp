@@ -52,7 +52,7 @@ class ReportingEndpoint extends Controller
 
     public static function getCurrentReportingUrl($include_host = true): string
     {
-        return ($include_host ? Director::absoluteBaseURL() : '/') . 'csp/v1/report';
+        return ($include_host ? rtrim(Director::absoluteBaseURL(), '/') : '') . '/csp/v1/report';
     }
 
     /**

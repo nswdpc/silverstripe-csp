@@ -2,14 +2,12 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use Symbiote\QueuedJobs\Services\QueuedJob;
 use Symbiote\QueuedJobs\Services\QueuedJobService;
 use Symbiote\QueuedJobs\Services\AbstractQueuedJob;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Core\Config\Configurable;
 use SilverStripe\ORM\DB;
 use DateTime;
-use Exception;
 
 /**
  *	Remove violation reports older than a set time
@@ -32,7 +30,14 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 
     public function getTitle()
     {
-        return sprintf(_t('ContentSecurityPolicy.PRUNE_REPORTS_JOBTITLE', 'Remove CSP violation reports older than %d hour'), $this->older_than);
+        return _t('ContentSecurityPolicy.PRUNE_REPORTS_JOBTITLE', 'Remove CSP violation reports older than {count} hour(s)', ['count' => $this->older_than_hours]);
+    }
+
+    #[\Override]
+    public function setup()
+    {
+        parent::setup();
+        $this->totalSteps = 1;
     }
 
     public function getRecordCount()
@@ -53,7 +58,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
             $older_than = 1;
         }
 
-        $this->older_than = $older_than;
+        $this->older_than_hours = $older_than;
         $pre_count = $this->getRecordCount();
 
         $dt = new DateTime();
@@ -66,10 +71,9 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 
         $removed = $pre_count - $post_count;
         $removed_string = ($removed . '/' . $pre_count);
-        $message = sprintf(_t('ContentSecurityPolicy.REMOVED_COUNT_REPORTS', 'Removed %s reports(s)'), $removed_string);
+        $message = _t('ContentSecurityPolicy.REMOVED_COUNT_REPORTS', 'Removed {count} reports(s)', ['count' => $removed_string]);
         $this->addMessage($message);
-        $this->totalSteps = $post_count - $pre_count;
-        $this->currentStep = $post_count - $pre_count;
+        $this->currentStep = 1;
 
         $this->isComplete = true;
     }
@@ -79,7 +83,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
      */
     public function afterComplete()
     {
-        $job = new PruneViolationReportsJob($this->older_than);
+        $job = new PruneViolationReportsJob($this->older_than_hours);
         $dt = new DateTime();
         $dt->modify('+' . $this->older_than . ' hour');
 
