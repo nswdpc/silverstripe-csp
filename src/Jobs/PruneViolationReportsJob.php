@@ -33,6 +33,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
         return _t('ContentSecurityPolicy.PRUNE_REPORTS_JOBTITLE', 'Remove CSP violation reports older than {count} hour(s)', ['count' => $this->older_than_hours]);
     }
 
+    #[\Override]
     public function setup()
     {
         parent::setup();
