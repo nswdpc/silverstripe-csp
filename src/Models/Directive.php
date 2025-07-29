@@ -462,11 +462,11 @@ class Directive extends DataObject implements PermissionProvider
                 'category' => 'CSP',
             ],
             'CSP_DIRECTIVE_EDIT' => [
-                'name' => _t('ContentSecurityPolicy.CSP_DIRECTIVE_EDIT','Edit & Create directives'),
+                'name' => _t('ContentSecurityPolicy.CSP_DIRECTIVE_EDIT', 'Edit & Create directives'),
                 'category' => 'CSP',
             ],
             'CSPE_DIRECTIVE_DELETE' => [
-                'name' => _t('ContentSecurityPolicy.CSPE_DIRECTIVE_DELETE','Delete directives'),
+                'name' => _t('ContentSecurityPolicy.CSPE_DIRECTIVE_DELETE', 'Delete directives'),
                 'category' => 'CSP',
             ]
         ];

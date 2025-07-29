@@ -2,7 +2,6 @@
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use SilverStripe\Dev\Deprecation;
 use SilverStripe\View\Requirements_Backend;
 use SilverStripe\View\HTML;
 
