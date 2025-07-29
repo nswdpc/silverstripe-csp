@@ -310,10 +310,10 @@ class Policy extends DataObject implements PermissionProvider
                     self::POLICY_DELIVERY_METHOD_METATAG => 'As a meta tag'
                 ]
             )->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.REPORT_VIA_META_TAG',
                     'Reporting violations is not supported when using the meta tag delivery method'
-                )
+                ))
             )
         );
 
@@ -322,18 +322,18 @@ class Policy extends DataObject implements PermissionProvider
             ->setTitle(
                 'Use on published website'
             )->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.USE_ON_PUBLISHED_SITE',
                     'When unchecked, this policy will be used on the draft site only'
-                )
+                ))
             );
         $isBasePolicyField = $fields->dataFieldByName('IsBasePolicy')
             ->setTitle('Is Base Policy')
             ->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.IS_BASE_POLICY_NOTE',
                     'When checked, this policy will be come the base/default policy for the entire site'
-                )
+                ))
             );
         $minCspLevelField = $fields->dataFieldByName('MinimumCspLevel')
             ->setTitle(
@@ -342,10 +342,10 @@ class Policy extends DataObject implements PermissionProvider
                     'Minimum CSP Level'
                 )
             )->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.MINIMUM_CSP_LEVEL_DESCRIPTION',
                     "Setting a higher level will remove from features deprecated in previous versions, such as the 'report-uri' directive"
-                )
+                ))
             );
         $enabledField = $fields->dataFieldByName('Enabled');
 
@@ -370,18 +370,18 @@ class Policy extends DataObject implements PermissionProvider
         // Reporting fields
         $sendViolationReportsField = $fields->dataFieldByName('SendViolationReports')
             ->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.SEND_VIOLATION_REPORTS',
                     'Send violation reports to a reporting system'
-                )
+                ))
             );
 
         $reportOnlyField = $fields->dataFieldByName('ReportOnly')
             ->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.REPORT_ONLY',
                     'Allows experimenting with the policy by monitoring (but not enforcing) its effects.'
-                )
+                ))
             );
 
         if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_METATAG && $this->ReportOnly == 1) {
@@ -401,15 +401,15 @@ class Policy extends DataObject implements PermissionProvider
                     'Endpoint for report-uri violation reports'
                 )
             )->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.ALTERNATE_REPORT_URI_DESCRIPTION',
                     'If not set and the sending of violation reports is enabled,'
-                    . ' reports will be directed to <code>{internal_reporting_url}</code> and will appear in the CSP/Reports screen.'
-                    . ' <br>Sending reports back to your own website may cause performance degradation.',
+                    . ' reports will be directed to {internal_reporting_url} and will appear in the CSP/Reports screen.'
+                    . ' Sending reports back to your own website may cause performance degradation.',
                     [
-                        'internal_reporting_url' => htmlspecialchars($internal_reporting_url)
+                        'internal_reporting_url' => $internal_reporting_url
                     ]
-                )
+                ))
             );
 
         $reportToField = $fields->dataFieldByName('AlternateReportToURI')
@@ -419,16 +419,16 @@ class Policy extends DataObject implements PermissionProvider
                     'Endpoint for Reporting API (report-to) violation reports'
                 )
             )->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.ALTERNATE_REPORT_TO_URI_DESCRIPTION',
-                    'For services that have a separate Reporting API endpoint.<br>'
-                    . 'If not set and the sending of violation reports is enabled,'
-                    . ' reports will be directed to <code>{internal_reporting_url}</code> and will appear in the CSP/Reports screen.'
-                    . ' <br>Sending reports back to your own website may cause performance degradation.',
+                    'For services that have a separate Reporting API endpoint.'
+                    . ' If not set and the sending of violation reports is enabled,'
+                    . ' reports will be directed to {internal_reporting_url} and will appear in the CSP/Reports screen.'
+                    . ' Sending reports back to your own website may cause performance degradation.',
                     [
-                        'internal_reporting_url' => htmlspecialchars($internal_reporting_url)
+                        'internal_reporting_url' => $internal_reporting_url
                     ]
-                )
+                ))
             );
         $fields->removeByName(['ReportOnly','SendViolationReports','AlternateReportURI','AlternateReportToURI']);
         $fields->insertBefore(
@@ -455,10 +455,10 @@ class Policy extends DataObject implements PermissionProvider
                 )
             )
             ->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.ALTERNATE_NEL_REPORT_URI_EXTERNAL',
                     'You must use an external reporting service.'
-                )
+                ))
             );
         $enableNelField = $fields->dataFieldByName('EnableNEL')
                 ->setTitle(

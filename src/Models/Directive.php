@@ -207,19 +207,18 @@ class Directive extends DataObject implements PermissionProvider
             'Key'
         );
 
-        $fields->dataFieldByName('IncludeSelf')->setDescription(_t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this directive"));
-        $fields->dataFieldByName('AllowDataUri')->setDescription(_t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this directive"));
-        $fields->dataFieldByName('UnsafeInline')->setDescription(_t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive."));
-        $fields->dataFieldByName('Enabled')->setDescription(_t('ContentSecurityPolicy.ENABLED_DIRECTIVE', "Enables this directive within linked policies"));
-        $fields->dataFieldByName('ReportSample')->setDescription(_t('ContentSecurityPolicy.REPORT_SAMPLE', "Adds the 'report-sample' value to this directive. Only applicable to script-src* and style-src* violations. Will send a snippet of code that caused the violation to the reporting URL."));
+        $fields->dataFieldByName('IncludeSelf')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.ADD_SELF_VALUE', "Adds the 'self' value to this directive")));
+        $fields->dataFieldByName('AllowDataUri')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.ADD_DATA_VALUE', "Adds the 'data:' value to this directive")));
+        $fields->dataFieldByName('UnsafeInline')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.ADD_UNSAFE_INLINE_VALUE', "Adds the 'unsafe-inline' value to this directive.")));
+        $fields->dataFieldByName('Enabled')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.ENABLED_DIRECTIVE', "Enables this directive within linked policies")));
+        $fields->dataFieldByName('ReportSample')->setDescription(htmlspecialchars(_t('ContentSecurityPolicy.REPORT_SAMPLE', "Adds the 'report-sample' value to this directive. Only applicable to script-src* and style-src* violations. Will send a snippet of code that caused the violation to the reporting URL.")));
         $fields->dataFieldByName('HasNone')
             ->setDescription(
-                _t(
+                htmlspecialchars(_t(
                     'ContentSecurityPolicy.NONE_VALUE_DESCRIPTION',
                     "When enabled, elements controlled by this directive will not be allowed to load any resources."
-                    . "<br>"
-                    . "This value will be ignored by web browsers if other source expressions such as 'self' or URLs are present in the directive."
-                )
+                    . " This value will be ignored by web browsers if other source expressions such as 'self' or URLs are present in the directive."
+                ))
             )->setTitle(
                 _t(
                     'ContentSecurityPolicy.NONE_VALUE_TITLE',
@@ -285,10 +284,13 @@ class Directive extends DataObject implements PermissionProvider
 
 
         $fields->dataFieldByName('UseNonce')
-                ->setDescription(
+            ->setDescription(
+                htmlspecialchars(_t(
+                    'ContentSecurityPolicy.USE_NONCE',
                     'Add the system generated per-request number-once value to this directive.'
                     . ' Only applicable to certain directives.'
-                );
+                ))
+            );
 
         // Rules field
         $fields->removeByName('Rules');
@@ -299,21 +301,12 @@ class Directive extends DataObject implements PermissionProvider
                     'Rules',
                     'Add the rule on the left and a reason for adding the rule on the right'
                 )->setDescription(
-                    'Some keywords, such as hashes, must be single-quoted.'
-                    . '<br>'
-                    . '<code>;</code> and <code>,</code> characters will be removed.'
+                    htmlspecialchars(_t(
+                        'ContentSecurityPolicy.RULE_KEYWORD_RULES',
+                        'Some keywords, such as hashes, must be single-quoted.'
+                        . ' The characters ; and , will be removed.'
+                    ))
                 ),
-                HTMLReadonlyField::create(
-                    'RulesExample',
-                    'Examples',
-                    '<div class="container"><table class="table table-striped table-bordered">'
-                    . '<tr><td>https://example.com</td><td>My reason for adding example.com</td></tr>'
-                    . "<tr><td>'report-sample'</td><td>Send a portion of the violating code to the report endpoint</td></tr>"
-                    . "<tr><td>'sha256-xxxxxx'</td><td>We need to allow this specific hash to enable an inline style</td></tr>"
-                    . '</table></div>'
-                )->setDescription(
-                    'A good resource for available values and format is https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/Sources'
-                )
             )->setTitle(
                 'Extra values'
             )
