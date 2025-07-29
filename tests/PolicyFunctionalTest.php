@@ -4,12 +4,12 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 
-require_once(__DIR__ . '/AbstractPolicyFunctionalTest.php');
+require_once(__DIR__ . '/DefaultPolicyFunctionalTestcase.php');
 
 /**
  * Functional test using Requirements_Backend as the nonce injection solution
  */
-class PolicyFunctionalTest extends AbstractPolicyFunctionalTest
+class PolicyFunctionalTest extends DefaultPolicyFunctionalTestcase
 {
     protected function getInjectionMethod(): string
     {
