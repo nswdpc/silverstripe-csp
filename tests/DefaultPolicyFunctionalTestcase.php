@@ -220,9 +220,9 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
         $this->assertNotNull($header_csp, "No " . Policy::HEADER_CSP . " header");
 
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
-        $result->getHeader(Policy::HEADER_REPORT_TO);
+        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
         $this->assertNull($header_nel, Policy::HEADER_NEL . " header found");
-        $this->assertNull($header_nel, Policy::HEADER_REPORT_TO . " header found");
+        $this->assertNull($header_report_to, Policy::HEADER_REPORT_TO . " header found");
 
         $header_reporting_endpoints = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
         $this->assertNotNull($header_reporting_endpoints, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " header");
@@ -272,9 +272,9 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
 
         // NEL should remain off
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
-        $result->getHeader(Policy::HEADER_REPORT_TO);
+        $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
         $this->assertNull($header_nel, Policy::HEADER_NEL . " header found");
-        $this->assertNull($header_nel, Policy::HEADER_REPORT_TO . " header found");
+        $this->assertNull($header_report_to, Policy::HEADER_REPORT_TO . " header found");
     }
 
     /**
@@ -459,30 +459,27 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
         $body = $result->getBody();
 
         $csp_meta_tags = [];
-        try {
-            $dom = new \DOMDocument();
-            $utf8_body = '<?xml encoding="UTF-8">' . $body;
-            $dom->loadHTML($body);
-            $tags = $dom->getElementsByTagName('meta');
-            foreach ($tags as $tag) {
-                $equiv = $tag->getAttribute('http-equiv');
-                switch ($equiv) {
-                    case Policy::HEADER_CSP_REPORT_ONLY:
-                    case Policy::HEADER_REPORT_TO:
-                    case Policy::HEADER_REPORTING_ENDPOINTS:
-                    case Policy::HEADER_NEL:
-                        // none of these headers are allowed
-                        throw new Exception("Header {$equiv} found");
-                    case Policy::HEADER_CSP:
-                        $csp_meta_tags[] = $tag;
-                        break;
-                    default:
-                        // some other meta
-                        break;
-                }
+
+        $dom = new \DOMDocument();
+        $dom->loadHTML($body);
+
+        $tags = $dom->getElementsByTagName('meta');
+        foreach ($tags as $tag) {
+            $equiv = $tag->getAttribute('http-equiv');
+            switch ($equiv) {
+                case Policy::HEADER_CSP_REPORT_ONLY:
+                case Policy::HEADER_REPORT_TO:
+                case Policy::HEADER_REPORTING_ENDPOINTS:
+                case Policy::HEADER_NEL:
+                    // none of these headers are allowed
+                    throw new Exception("Header {$equiv} found");
+                case Policy::HEADER_CSP:
+                    $csp_meta_tags[] = $tag;
+                    break;
+                default:
+                    // some other meta
+                    break;
             }
-        } catch (Exception $exception) {
-            $this->assertTrue(false, $exception->getMessage());
         }
 
         $this->assertEquals(count($csp_meta_tags), 2, "Header count is: " . count($csp_meta_tags));
@@ -517,7 +514,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
 
             $this->assertEquals($expected_found, 2, "Expected values not found in meta tags");
         } catch (Exception $exception) {
-            $this->assertTrue(false, $exception->getMessage());
+            $this->assertNotEmpty($exception->getMessage());
         }
     }
 
@@ -603,28 +600,24 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
 
         $body = $result->getBody();
 
-        try {
-            $dom = new \DOMDocument();
-            $utf8_body = '<?xml encoding="UTF-8">' . $body;
-            $dom->loadHTML($body);
-            $tags = $dom->getElementsByTagName('meta');
-            foreach ($tags as $tag) {
-                $equiv = $tag->getAttribute('http-equiv');
-                switch ($equiv) {
-                    case Policy::HEADER_CSP_REPORT_ONLY:
-                    case Policy::HEADER_REPORT_TO:
-                    case Policy::HEADER_REPORTING_ENDPOINTS:
-                    case Policy::HEADER_NEL:
-                        // causes the test to fail
-                        throw new Exception("Header {$equiv} found");
-                    case Policy::HEADER_CSP:
-                    default:
-                        // some other meta
-                        break;
-                }
+        $dom = new \DOMDocument();
+        $dom->loadHTML($body);
+
+        $tags = $dom->getElementsByTagName('meta');
+        foreach ($tags as $tag) {
+            $equiv = $tag->getAttribute('http-equiv');
+            switch ($equiv) {
+                case Policy::HEADER_CSP_REPORT_ONLY:
+                case Policy::HEADER_REPORT_TO:
+                case Policy::HEADER_REPORTING_ENDPOINTS:
+                case Policy::HEADER_NEL:
+                    // causes the test to fail
+                    throw new Exception("Header {$equiv} found");
+                case Policy::HEADER_CSP:
+                default:
+                    // some other meta
+                    break;
             }
-        } catch (Exception $exception) {
-            $this->assertTrue(false, $exception->getMessage());
         }
 
         // none of the blocked metatags have appeared
@@ -753,28 +746,24 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             $test->assertTrue(str_contains((string) $parts['script-src'], "'nonce-{$nonceValue}'"), "Unmatched nonce {$nonceValue} in script-src {$parts['script-src']}");
             $test->assertTrue(str_contains((string) $parts['style-src'], "'nonce-{$nonceValue}'"), "Unmatched nonce {$nonceValue} in style-src {$parts['style-src']}");
 
-            try {
 
-                $expected_nonces = 0;
-                $found_nonces = 0;
-                libxml_use_internal_errors(true);
-                $body = $result->getBody();
 
-                $dom = new \DOMDocument();
-                $dom->loadHTML($body, LIBXML_HTML_NODEFDTD);
-                // gather scripts and styles, check nonces
-                $scripts = $dom->getElementsByTagName('script');
-                $styles = $dom->getElementsByTagName('style');
+            $expected_nonces = 0;
+            $found_nonces = 0;
+            libxml_use_internal_errors(true);
+            $body = $result->getBody();
 
-                $expected_nonces += $scripts->length;
-                $found_nonces += $this->verifyElements($scripts);
+            $dom = new \DOMDocument();
+            $dom->loadHTML($body, LIBXML_HTML_NODEFDTD);
+            // gather scripts and styles, check nonces
+            $scripts = $dom->getElementsByTagName('script');
+            $styles = $dom->getElementsByTagName('style');
 
-                $expected_nonces += $styles->length;
-                $found_nonces += $this->verifyElements($styles);
+            $expected_nonces += $scripts->length;
+            $found_nonces += $this->verifyElements($scripts);
 
-            } catch (Exception $exception) {
-                $test->assertTrue(false, "Exception:" . $exception->getMessage());
-            }
+            $expected_nonces += $styles->length;
+            $found_nonces += $this->verifyElements($styles);
 
         });
 
