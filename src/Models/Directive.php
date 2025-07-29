@@ -259,7 +259,7 @@ class Directive extends DataObject implements PermissionProvider
             CompositeField::create(
                 TextField::create(
                     'Key',
-                    'Enter a directive'
+                    _t('ContentSecurityPolicy.ENTER_A_DIRECTIVE_NAME', 'Enter a directive name')
                 ),
                 DropdownField::create(
                     'KeySelection',
@@ -276,7 +276,7 @@ class Directive extends DataObject implements PermissionProvider
             'Root.Main',
             HTMLReadonlyField::create(
                 'LiteralRules',
-                'Current directive value',
+                _t('ContentSecurityPolicy.CURRENT_DIRECTIVE_VALUE', 'Current directive value'),
                 htmlspecialchars($this->getDirectiveValue(true))
             ),
             'Rules'
@@ -299,7 +299,10 @@ class Directive extends DataObject implements PermissionProvider
             CompositeField::create(
                 KeyValueField::create(
                     'Rules',
-                    'Add the rule on the left and a reason for adding the rule on the right'
+                    _t(
+                        'ContentSecurityPolicy.DIRECTIVE_RULE_TITLE',
+                        'Add the rule on the left and a reason for adding the rule on the right'
+                    )
                 )->setDescription(
                     htmlspecialchars(_t(
                         'ContentSecurityPolicy.RULE_KEYWORD_RULES',
@@ -308,7 +311,7 @@ class Directive extends DataObject implements PermissionProvider
                     ))
                 ),
             )->setTitle(
-                'Extra values'
+                _t('ContentSecurityPolicy.DIRECTIVE_EXTRA_VALUES', 'Extra values')
             )
         );
         return $fields;
@@ -455,15 +458,15 @@ class Directive extends DataObject implements PermissionProvider
     {
         return [
             'CSP_DIRECTIVE_VIEW' => [
-                'name' => 'View directives',
+                'name' => _t('ContentSecurityPolicy.CSP_DIRECTIVE_VIEW', 'View directives'),
                 'category' => 'CSP',
             ],
             'CSP_DIRECTIVE_EDIT' => [
-                'name' => 'Edit & Create directives',
+                'name' => _t('ContentSecurityPolicy.CSP_DIRECTIVE_EDIT','Edit & Create directives'),
                 'category' => 'CSP',
             ],
             'CSPE_DIRECTIVE_DELETE' => [
-                'name' => 'Delete directives',
+                'name' => _t('ContentSecurityPolicy.CSPE_DIRECTIVE_DELETE','Delete directives'),
                 'category' => 'CSP',
             ]
         ];

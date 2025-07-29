@@ -55,7 +55,10 @@ class SiteTreeExtension extends Extension
                 'Root.CSP',
                 DropdownField::create(
                     'CspPolicyID',
-                    'Content Security Policy',
+                    _t(
+                        'ContentSecurityPolicy.CONTENT_SECURITY_POLICY_CHOOSE',
+                        'Content Security Policy',
+                    ),
                     $available_policies->map('ID', 'Title')
                 )->setEmptyString('')
                     ->setDescription(

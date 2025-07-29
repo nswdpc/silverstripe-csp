@@ -320,16 +320,23 @@ class Policy extends DataObject implements PermissionProvider
         // Policy options
         $useOnPublishedSiteField = $fields->dataFieldByName('IsLive')
             ->setTitle(
-                'Use on published website'
+                _t(
+                    'ContentSecurityPolicy.USE_ON_PUBLISHED_SITE',
+                    'Use on published website'
+                )
             )->setDescription(
                 htmlspecialchars(_t(
-                    'ContentSecurityPolicy.USE_ON_PUBLISHED_SITE',
+                    'ContentSecurityPolicy.USE_ON_PUBLISHED_SITE_DESCRIPTION',
                     'When unchecked, this policy will be used on the draft site only'
                 ))
             );
         $isBasePolicyField = $fields->dataFieldByName('IsBasePolicy')
-            ->setTitle('Is Base Policy')
-            ->setDescription(
+            ->setTitle(
+                _t(
+                    'ContentSecurityPolicy.IS_BASE_SITE_POLICY',
+                    'Is Base Policy'
+                )
+            )->setDescription(
                 htmlspecialchars(_t(
                     'ContentSecurityPolicy.IS_BASE_POLICY_NOTE',
                     'When checked, this policy will be come the base/default policy for the entire site'
@@ -990,15 +997,15 @@ class Policy extends DataObject implements PermissionProvider
     {
         return [
             'CSP_POLICY_VIEW' => [
-                'name' => 'View policies',
+                'name' => _t('ContentSecurityPolicy.CSP_POLICY_VIEW', 'View policies'),
                 'category' => 'CSP',
             ],
             'CSP_POLICY_EDIT' => [
-                'name' => 'Edit & Create policies',
+                'name' => _t('ContentSecurityPolicy.CSP_POLICY_EDIT', 'Edit & Create policies'),
                 'category' => 'CSP',
             ],
             'CSPE_POLICY_DELETE' => [
-                'name' => 'Delete policies',
+                'name' => _t('ContentSecurityPolicy.CSPE_POLICY_DELETE', 'Delete policies'),
                 'category' => 'CSP',
             ]
         ];

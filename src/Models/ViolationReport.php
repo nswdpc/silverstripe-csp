@@ -218,15 +218,15 @@ class ViolationReport extends DataObject implements PermissionProvider
     {
         return [
             'CSP_VIOLATION_REPORTS_VIEW' => [
-                'name' => 'View reports',
+                'name' => _t('ContentSecurityPolicy.CSP_VIOLATION_REPORTS_VIEW', 'View reports'),
                 'category' => 'CSP',
             ],
             'CSP_VIOLATION_REPORTS_EDIT' => [
-                'name' => 'Edit & Create reports',
+                'name' => _t('ContentSecurityPolicy.CSP_VIOLATION_REPORTS_EDIT', 'Edit & Create reports'),
                 'category' => 'CSP',
             ],
             'CSPE_VIOLATION_REPORTS_DELETE' => [
-                'name' => 'Delete reports',
+                'name' => _t('ContentSecurityPolicy.CSPE_VIOLATION_REPORTS_DELETE', 'Delete reports'),
                 'category' => 'CSP',
             ]
         ];
