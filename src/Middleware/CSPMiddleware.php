@@ -13,6 +13,7 @@ use DOMDocument;
  * This is only implemented if the Policy.nonce_injection_method == Policy::NONCE_INJECT_VIA_MIDDLEWARE
  * The default is to add nonce values via the Requirements API, which does not involve parsing response HTML via DOMDocument
  * which could fail on poorly-formed HTML
+ * @deprecated CSPMiddleware will be removed in a future major version
  * @author james
  */
 class CSPMiddleware implements HTTPMiddleware

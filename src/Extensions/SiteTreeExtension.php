@@ -92,6 +92,7 @@ class SiteTreeExtension extends Extension
 
     /**
      * Extension hook, see {@link SilverStripe\CMS\Model\SiteTree::MetaTags}
+     * @deprecated Delivery of CSP via metatags will be removed in a future major version
      * @returns void
      */
     public function MetaTags(&$tags)
@@ -104,6 +105,7 @@ class SiteTreeExtension extends Extension
      * Note that reporting is ignored/disallowed when using a meta tag. Only the header Content-Security-Policy is allowed.
      * In your template this can be called directly by adding $CspMetaTags if you don't use $MetaTags
      * See https://github.com/w3c/webappsec-csp/issues/348 for a good discussion on this and possible inclusion of CSPRO in metatags
+     * @deprecated Delivery of CSP via metatags will be removed in a future major version
      * @returns string
      */
     public function CspMetaTags()

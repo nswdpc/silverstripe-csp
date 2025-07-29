@@ -85,6 +85,7 @@ class Policy extends DataObject implements PermissionProvider
 
     public const POLICY_DELIVERY_METHOD_HEADER = 'Header';
 
+    // @deprecated Delivery of CSP via metatags will be removed in a future major version
     public const POLICY_DELIVERY_METHOD_METATAG = 'MetaTag';
 
     public const DEFAULT_REPORTING_GROUP = 'csp-endpoint';
