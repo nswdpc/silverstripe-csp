@@ -16,11 +16,12 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 {
     use Configurable;
 
-    private static int $older_than;//hour
+    //hour
+    private static int $older_than = 1;
 
     public function __construct($older_than = 0)
     {
-        if (!$older_than) {
+        if (!$older_than || $older_than <= 0) {
             $older_than = Config::inst()->get(self::class, 'older_than');
         }
 
