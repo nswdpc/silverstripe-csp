@@ -10,6 +10,9 @@ use DOMDocument;
 
 /**
  * Apply modifications to the document, e.g add a defined CSP nonce to relevant elements
+ * This is only implemented if the Policy.nonce_injection_method == Policy::NONCE_INJECT_VIA_MIDDLEWARE
+ * The default is to add nonce values via the Requirements API, which does not involve parsing response HTML via DOMDocument
+ * which could fail on poorly-formed HTML
  * @author james
  */
 class CSPMiddleware implements HTTPMiddleware
