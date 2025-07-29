@@ -387,7 +387,7 @@ class Directive extends DataObject implements PermissionProvider
         if ($this->UseNonce == 1) {
             if ($useFakeNonce) {
                 // for display in CMS or similar
-                $nonce = _t(self::class . ".SAMPLE_NONCE_ONLY", "sampleonly");
+                $nonce = _t("ContentSecurityPolicy.SAMPLE_NONCE_ONLY", "sampleonly");
             } else {
                 // use the nonce init'd in the controller
                 $nonce = Nonce::getNonce();
