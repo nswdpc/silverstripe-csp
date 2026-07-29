@@ -20,7 +20,7 @@ In the above:
 
 Application of the nonce occurs:
 + in the injected `NSWDPC\Utilities\ContentSecurityPolicy\NonceRequirements_Backend` OR
-+ in middleware regardless of the Requirements backend used (note: see #31 - this may be removed)
++ in middleware regardless of the Requirements backend used (note: see [#31](https://github.com/nswdpc/silverstripe-csp/issues/31) - this may be removed)
 
 The default method is the former, set via the `NSWDPC\Utilities\ContentSecurityPolicy\Policy.nonce_injection_method` config option. The supported values are `requirements` or `middleware`, respectively.
 
