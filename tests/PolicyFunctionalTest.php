@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
 
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;

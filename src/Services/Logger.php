@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use Psr\Log\LoggerInterface;
