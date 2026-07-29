@@ -69,7 +69,8 @@ class ViolationReport extends DataObject implements PermissionProvider
         'ColumnNumber' => 'Int',
         'Disposition' => 'Varchar(32)',
         'UserAgent' => 'Varchar(255)',
-        'ScriptSample' => 'Varchar(40)' // per w3c spec (https://www.w3.org/TR/CSP3/#violation-sample)
+        'ScriptSample' => 'Varchar(40)', // per w3c spec (https://www.w3.org/TR/CSP3/#violation-sample)
+        'ReportType' => 'Varchar(16)'
     ];
 
     /**
@@ -80,6 +81,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         'DocumentUri' => true,
         'LastEdited' => true,
         'Created' => true,
+        'ReportType' => true,
     ];
 
     /**
@@ -94,6 +96,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         'DocumentUri' => 'Document URI',
         'BlockedUri' => 'Blocked URI',
         'ViolatedDirective' => 'Directive',
+        'ReportType' => 'Report type'
     ];
 
     /**
@@ -136,6 +139,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         $report->SourceFile =  $data['source-file'] ?? '';
         $report->UserAgent = $user_agent;
         $report->ScriptSample =  $data['script-sample'] ?? '';
+        $report->ReportType = self::REPORT_TYPE_CSP_REPORT;
         $report->write();
         return $report;
     }
@@ -170,6 +174,7 @@ class ViolationReport extends DataObject implements PermissionProvider
                 $report->Disposition =  $data['disposition'] ?? '';
                 $report->SourceFile =  $data['sourceFile'] ?? '';
                 $report->UserAgent = $user_agent;
+                $report->ReportType = self::REPORT_TYPE_CSP_VIOLATION;
                 $report->write();
             }
         }
