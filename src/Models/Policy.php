@@ -576,7 +576,7 @@ class Policy extends DataObject implements PermissionProvider
      */
     public static function getReportingEndpointsHeader(array $reportingEndpoints): string
     {
-        if (count($reportingEndpoints) == 0) {
+        if ($reportingEndpoints === []) {
             // No reporting endpoints provided
             return "";
         } else {
@@ -601,7 +601,7 @@ class Policy extends DataObject implements PermissionProvider
      */
     public static function getReportToHeader(array $reportToGroups): string
     {
-        if (count($reportToGroups) == 0) {
+        if ($reportToGroups === []) {
             // Nothing provided
             return "";
         } else {
@@ -760,7 +760,7 @@ class Policy extends DataObject implements PermissionProvider
      */
     public function HeaderValues(int $enabled = 1, string $method = self::POLICY_DELIVERY_METHOD_HEADER, bool $pretty = false): ?array
     {
-        return $this->getPolicyData($enabled == 1);
+        return $this->getPolicyData($enabled === 1);
     }
 
     /**

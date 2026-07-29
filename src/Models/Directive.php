@@ -421,7 +421,7 @@ class Directive extends DataObject implements PermissionProvider
      */
     public function getDirectiveValueForPolicy(array $values): string
     {
-        if (count($values) == 0) {
+        if ($values === []) {
             return $this->Key . ";";
         } else {
             $values = array_unique($values);

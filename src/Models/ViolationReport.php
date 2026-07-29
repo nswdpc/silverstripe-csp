@@ -146,7 +146,7 @@ class ViolationReport extends DataObject implements PermissionProvider
      */
     protected static function create_csp_violation(array $reports): ?ViolationReport
     {
-        if (count($reports) == 0) {
+        if ($reports === []) {
             return null;
         }
 
