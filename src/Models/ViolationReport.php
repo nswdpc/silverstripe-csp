@@ -25,6 +25,7 @@ use SilverStripe\Security\PermissionProvider;
  * @property ?string $Disposition
  * @property ?string $UserAgent
  * @property ?string $ScriptSample
+ * @property ?string $ReportType
  */
 class ViolationReport extends DataObject implements PermissionProvider
 {
@@ -115,6 +116,7 @@ class ViolationReport extends DataObject implements PermissionProvider
      */
     private static string $default_sort = 'Created DESC';
 
+    #[\Override]
     public function scaffoldSearchFields($params = null)
     {
         $fields = parent::scaffoldSearchFields($params);
