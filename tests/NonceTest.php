@@ -8,51 +8,57 @@ use SilverStripe\Control\Controller;
 use SilverStripe\Core\Config\Config;
 use SilverStripe\Dev\SapphireTest;
 
-class NonceTest extends SapphireTest {
-
-    protected function setUp() : void {
+class NonceTest extends SapphireTest
+{
+    #[\Override]
+    protected function setUp(): void
+    {
         parent::setUp();
         // clear nonce for each test
         Nonce::clear();
     }
 
-    public function testNonceStaysTheSame() {
-        Config::modify()->set( Policy::class, 'nonce_length', Nonce::MIN_LENGTH);
+    public function testNonceStaysTheSame(): void
+    {
+        Config::modify()->set(Policy::class, 'nonce_length', Nonce::MIN_LENGTH);
         $nonce = Nonce::getNonce();
         $this->assertNotEmpty($nonce, "Nonce is empty");
         $nonce2 = Nonce::getNonce();
         $this->assertEquals($nonce, $nonce2, "Nonce should remain the same");
     }
 
-    public function testShortNonce() {
+    public function testShortNonce(): void
+    {
         $min_length = Nonce::MIN_LENGTH;
         // set an 8 chr nonce length
         $length = round($min_length / 2);
-        Config::modify()->set( Policy::class, 'nonce_length', $length);
+        Config::modify()->set(Policy::class, 'nonce_length', $length);
         $nonce = Nonce::getNonce();
         $this->assertNotEmpty($nonce, "Nonce is empty");
         // nonce should be a minimum of 32 chrs
         $this->assertNotEquals(strlen($nonce), $length, "Nonce should not be {$length} chrs, {$min_length} chr minimum");
     }
 
-    public function testExactLengthNonce() {
+    public function testExactLengthNonce(): void
+    {
         $min_length = Nonce::MIN_LENGTH;
 
         // set a $min_length chr nonce length
         $length = $min_length;
-        Config::modify()->set( Policy::class, 'nonce_length', $length);
+        Config::modify()->set(Policy::class, 'nonce_length', $length);
         $nonce = Nonce::getNonce();
         $this->assertNotEmpty($nonce, "Nonce is empty");
         $this->assertEquals(strlen($nonce), $length, "Nonce should be {$length} chrs");
 
     }
 
-    public function testLongLengthNonce() {
+    public function testLongLengthNonce(): void
+    {
         $min_length = Nonce::MIN_LENGTH;
 
         // set a $min_length chr nonce length
         $length = ($min_length * 2);
-        Config::modify()->set( Policy::class, 'nonce_length', $length);
+        Config::modify()->set(Policy::class, 'nonce_length', $length);
         $nonce = Nonce::getNonce();
         $this->assertNotEmpty($nonce, "Nonce is empty");
         $this->assertEquals(strlen($nonce), $length, "Nonce should not be {$length} chrs");
@@ -62,17 +68,18 @@ class NonceTest extends SapphireTest {
     /**
      * Test application of attributes
      */
-    public function testApplyAttributes() {
+    public function testApplyAttributes(): void
+    {
 
         $controller = Controller::curr();
 
-        Config::modify()->set( Policy::class, 'override_apply', false);
+        Config::modify()->set(Policy::class, 'override_apply', false);
 
-        $this->assertFalse( Policy::checkCanApply($controller), 'Policy should NOT be applicable' );
+        $this->assertFalse(Policy::checkCanApply($controller), 'Policy should NOT be applicable');
 
-        Config::modify()->set( Policy::class, 'override_apply', true);
+        Config::modify()->set(Policy::class, 'override_apply', true);
 
-        $this->assertTrue( Policy::checkCanApply($controller), 'Policy should be applicable' );
+        $this->assertTrue(Policy::checkCanApply($controller), 'Policy should be applicable');
 
         $attributes = [
             'type' => 'text/css',
@@ -82,7 +89,7 @@ class NonceTest extends SapphireTest {
         $nonce = Nonce::getNonce();
         Nonce::addToAttributes('style', $attributes);
 
-        $this->assertTrue( array_key_exists('nonce', $attributes) );
-        $this->assertEquals( $nonce, $attributes['nonce'] );
+        $this->assertTrue(array_key_exists('nonce', $attributes));
+        $this->assertEquals($nonce, $attributes['nonce']);
     }
 }

@@ -16,37 +16,37 @@ use SilverStripe\ORM\FieldType\DBField;
 
 /**
  * Provides an extension method so that the SiteTree can gather the CSP meta tag if that is set
+ * @property int $CspPolicyID
+ * @method \NSWDPC\Utilities\ContentSecurityPolicy\Policy CspPolicy()
+ * @extends \SilverStripe\Core\Extension<(\SilverStripe\CMS\Model\SiteTree & static)>
  */
 class SiteTreeExtension extends Extension
 {
-
     /**
      * Has_one relationship
-     * @var array
      * @config
      */
-    private static $has_one = [
+    private static array $has_one = [
         'CspPolicy' => Policy::class, // a page can have a CSP
     ];
 
     /**
      * Update Fields
-     * @return FieldList
      */
-    public function updateSettingsFields(FieldList $fields)
+    public function updateSettingsFields(FieldList $fields): FieldList
     {
         $available_policies = Policy::get()->sort('Title ASC')->filter('Enabled', 1)->exclude('IsBasePolicy', 1);
-        if($available_policies->count() == 0) {
+        if ($available_policies->count() == 0) {
             $fields->removeByName('CspPolicyID');
             $fields->addFieldToTab(
                 'Root.CSP',
                 LiteralField::create(
                     'CspPolicyNoneFound',
                     '<p class="message info">' .
-                        _t(
+                        htmlspecialchars(_t(
                             'ContentSecurityPolicy.NO_AVAILABLE_EXTRA_POLICIES',
                             'There are no extra Content Security Polices. To fix this, define a new policy in the CSP administration area or ask an administrator to do this and it will appear here'
-                        )
+                        ))
                     . "</p>"
                 )
             );
@@ -55,17 +55,23 @@ class SiteTreeExtension extends Extension
                 'Root.CSP',
                 DropdownField::create(
                     'CspPolicyID',
-                    'Content Security Policy',
+                    _t(
+                        'ContentSecurityPolicy.CONTENT_SECURITY_POLICY_CHOOSE',
+                        'Content Security Policy',
+                    ),
                     $available_policies->map('ID', 'Title')
                 )->setEmptyString('')
                     ->setDescription(
-                        _t(
+                        nl2br(htmlspecialchars(_t(
                             'ContentSecurityPolicy.ADDITION_SECURITY_POLICY',
-                            'Choose an additional Content Security Policy to apply on this page only.<br>Adding additional policies can only further restrict the capabilities of the protected resource.'
-                        )
-                )
+                            "Choose an additional Content Security Policy to apply on this page only."
+                            . "\n"
+                            . "Adding additional policies can only further restrict the capabilities of the protected resource."
+                        )))
+                    )
             );
         }
+
         return $fields;
     }
 
@@ -81,15 +87,12 @@ class SiteTreeExtension extends Extension
         }
 
         // Configured controllers with no CSP
-        if(Policy::controllerWithoutCsp($controller)) {
-            return false;
-        }
-
-        return true;
+        return !Policy::controllerWithoutCsp($controller);
     }
 
     /**
      * Extension hook, see {@link SilverStripe\CMS\Model\SiteTree::MetaTags}
+     * @deprecated Delivery of CSP via metatags will be removed in a future major version
      * @returns void
      */
     public function MetaTags(&$tags)
@@ -102,6 +105,7 @@ class SiteTreeExtension extends Extension
      * Note that reporting is ignored/disallowed when using a meta tag. Only the header Content-Security-Policy is allowed.
      * In your template this can be called directly by adding $CspMetaTags if you don't use $MetaTags
      * See https://github.com/w3c/webappsec-csp/issues/348 for a good discussion on this and possible inclusion of CSPRO in metatags
+     * @deprecated Delivery of CSP via metatags will be removed in a future major version
      * @returns string
      */
     public function CspMetaTags()
@@ -126,8 +130,8 @@ class SiteTreeExtension extends Extension
         }
 
         // check for a specific page based policy
-        if ($this->owner instanceof SiteTree) {
-            $page_policy = Policy::getPagePolicy($this->owner, $is_live, Policy::POLICY_DELIVERY_METHOD_METATAG);
+        if ($this->getOwner() instanceof SiteTree) {
+            $page_policy = Policy::getPagePolicy($this->getOwner(), $is_live, Policy::POLICY_DELIVERY_METHOD_METATAG);
             if (!empty($page_policy->ID) && ($data = $page_policy->getPolicyData(true))) {
                 $tags[] = HTML::createTag('meta', [
                     'http-equiv' => $data['header'],

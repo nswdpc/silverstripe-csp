@@ -6,19 +6,16 @@ use NSWDPC\Utilities\ContentSecurityPolicy\Directive;
 use NSWDPC\Utilities\ContentSecurityPolicy\Nonce;
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 use NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension;
-use SilverStripe\Control\Controller;
 use SilverStripe\Dev\FunctionalTest;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Config\Config;
-use SilverStripe\View\Requirements;
 use SilverStripe\Control\Director;
 use Exception;
 
-abstract class AbstractPolicyFunctionalTest extends FunctionalTest
+abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
 {
-
     protected $injectionMethod = '';
 
     protected static $disable_themes = true;
@@ -39,9 +36,10 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     abstract protected function getInjectionMethod();
 
-    protected function setUp() : void
+    #[\Override]
+    protected function setUp(): void
     {
-        Config::modify()->set( Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
+        Config::modify()->set(Policy::class, 'nonce_injection_method', $this->getInjectionMethod());
         parent::setUp();
         // Ensure protocol is https, to ensure reporting URL is validated
         Config::modify()->set(
@@ -51,19 +49,20 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         );
     }
 
-    protected function tearDown() : void
+    #[\Override]
+    protected function tearDown(): void
     {
         parent::tearDown();
     }
 
-    private function createPolicy($data)
+    private function createPolicy(array $data)
     {
         $policy = Policy::create($data);
         $policy->write();
         return $policy;
     }
 
-    private function createDirective($data)
+    private function createDirective(array $data)
     {
         $directive = Directive::create($data);
         $directive->write();
@@ -85,54 +84,56 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
     /**
      * Given an {@link DOMNodeList} list of nodes, verify that each one has the current nonce
-     * @param \DOMNodeList $nodelist
-     * @return int
      */
-    protected function verifyElements(\DOMNodeList $nodelist) : int {
+    protected function verifyElements(\DOMNodeList $nodelist): int
+    {
         $found_nonces = 0;
         $nonce_value = Nonce::getNonce();// the current nonce
-        foreach($nodelist as $element) {
-            if(!($element instanceof \DOMElement)) {
+        foreach ($nodelist as $element) {
+            if (!($element instanceof \DOMElement)) {
                 continue;
             }
+
             /**
              * verify that every element having a nonce attribute,
              * that its value matches the nonce value
              */
-            if($element->hasAttribute('nonce')) {
+            if ($element->hasAttribute('nonce')) {
                 $nonce_found_value = $element->getAttribute('nonce');
                 $this->assertEquals(
-                        $nonce_found_value,
-                        $nonce_value,
-                        "<{$element->nodeName}> nonce found value={$nonce_found_value} != {$nonce_value}"
+                    $nonce_found_value,
+                    $nonce_value,
+                    "<{$element->nodeName}> nonce found value={$nonce_found_value} != {$nonce_value}"
                 );
-            } else if($element->hasAttribute('data-should-nonce')) {
+            } elseif ($element->hasAttribute('data-should-nonce')) {
                 // no nonce attribute found.. but maybe it should have a nonce ?
                 $should = $element->getAttribute('data-should-nonce');
                 // to pass, the value should be zero
                 $this->assertEquals(
-                        $should, // 1 will mean it should have gotten a nonce, which is a failure
-                        0,
-                        "Found <{$element->nodeName}> with value {$element->nodeValue} which has a data-should-nonce={$should}"
+                    $should, // 1 will mean it should have gotten a nonce, which is a failure
+                    0,
+                    "Found <{$element->nodeName}> with value {$element->nodeValue} which has a data-should-nonce={$should}"
                 );
             }
 
         }
+
         return $found_nonces;
     }
 
     /**
      * Test nonce injection method
      */
-    public function testInjectionMethod() {
-        $this->assertEquals( $this->getInjectionMethod(), Config::inst()->get( Policy::class, 'nonce_injection_method') );
+    public function testInjectionMethod(): void
+    {
+        $this->assertEquals($this->getInjectionMethod(), Config::inst()->get(Policy::class, 'nonce_injection_method'));
     }
 
 
     /**
      * Test HTTP headers in policy
      */
-    public function testHttpHeaders()
+    public function testHttpHeaders(): void
     {
         $this->clearAllPolicies();
 
@@ -221,7 +222,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
         $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
         $this->assertNull($header_nel, Policy::HEADER_NEL . " header found");
-        $this->assertNull($header_nel, Policy::HEADER_REPORT_TO . " header found");
+        $this->assertNull($header_report_to, Policy::HEADER_REPORT_TO . " header found");
 
         $header_reporting_endpoints = $result->getHeader(Policy::HEADER_REPORTING_ENDPOINTS);
         $this->assertNotNull($header_reporting_endpoints, "No " . Policy::HEADER_REPORTING_ENDPOINTS . " header");
@@ -273,13 +274,13 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
         $header_report_to = $result->getHeader(Policy::HEADER_REPORT_TO);
         $this->assertNull($header_nel, Policy::HEADER_NEL . " header found");
-        $this->assertNull($header_nel, Policy::HEADER_REPORT_TO . " header found");
+        $this->assertNull($header_report_to, Policy::HEADER_REPORT_TO . " header found");
     }
 
     /**
      * Test HTTP headers
      */
-    public function testPageHttpHeaders()
+    public function testPageHttpHeaders(): void
     {
         $this->clearAllPolicies();
 
@@ -362,12 +363,12 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $this->assertTrue(!empty($formatted_values['font-src']), 'No font-src in headers response');
 
         $this->assertTrue(
-            strpos($formatted_values['font-src'], "'self'") !== false
-            && strpos($formatted_values['font-src'], "data:") !== false
-            && strpos($formatted_values['font-src'], "https://base.font.example.com") !== false
-            && strpos($formatted_values['font-src'], "https://base.font.example.net") !== false
-            && strpos($formatted_values['font-src'], "https://*.base.font.example.org") !== false
-            && strpos($formatted_values['font-src'], "https://pagetestfont.example.com") !== false
+            str_contains((string) $formatted_values['font-src'], "'self'")
+            && str_contains((string) $formatted_values['font-src'], "data:")
+            && str_contains((string) $formatted_values['font-src'], "https://base.font.example.com")
+            && str_contains((string) $formatted_values['font-src'], "https://base.font.example.net")
+            && str_contains((string) $formatted_values['font-src'], "https://*.base.font.example.org")
+            && str_contains((string) $formatted_values['font-src'], "https://pagetestfont.example.com")
         );
 
         $header_nel = $result->getHeader(Policy::HEADER_NEL);
@@ -380,7 +381,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
     /**
      * Test headers delivered via Meta Tags
      */
-    public function testPageMetaTag()
+    public function testPageMetaTag(): void
     {
         $this->clearAllPolicies();
 
@@ -458,31 +459,27 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
         $body = $result->getBody();
 
         $csp_meta_tags = [];
-        try {
-            $dom = new \DOMDocument();
-            $utf8_body = '<?xml encoding="UTF-8">' . $body;
-            $dom->loadHTML($body);
-            $tags = $dom->getElementsByTagName('meta');
-            foreach ($tags as $tag) {
-                $equiv = $tag->getAttribute('http-equiv');
-                switch ($equiv) {
-                    case Policy::HEADER_CSP_REPORT_ONLY:
-                    case Policy::HEADER_REPORT_TO:
-                    case Policy::HEADER_REPORTING_ENDPOINTS:
-                    case Policy::HEADER_NEL:
-                        // none of these headers are allowed
-                        throw new Exception("Header {$equiv} found");
-                        break;
-                    case Policy::HEADER_CSP:
-                        $csp_meta_tags[] = $tag;
-                        break;
-                    default:
-                        // some other meta
-                        break;
-                }
+
+        $dom = new \DOMDocument();
+        $dom->loadHTML($body);
+
+        $tags = $dom->getElementsByTagName('meta');
+        foreach ($tags as $tag) {
+            $equiv = $tag->getAttribute('http-equiv');
+            switch ($equiv) {
+                case Policy::HEADER_CSP_REPORT_ONLY:
+                case Policy::HEADER_REPORT_TO:
+                case Policy::HEADER_REPORTING_ENDPOINTS:
+                case Policy::HEADER_NEL:
+                    // none of these headers are allowed
+                    throw new Exception("Header {$equiv} found");
+                case Policy::HEADER_CSP:
+                    $csp_meta_tags[] = $tag;
+                    break;
+                default:
+                    // some other meta
+                    break;
             }
-        } catch (Exception $e) {
-            $this->assertTrue(false, $e->getMessage());
         }
 
         $this->assertEquals(count($csp_meta_tags), 2, "Header count is: " . count($csp_meta_tags));
@@ -500,29 +497,24 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
                 if (strpos($content, 'report-uri ')) {
                     throw new Exception("report-uri directive found in '{$content}'");
                 }
+
                 if (strpos($content, 'report-to ')) {
                     throw new Exception("report-to directive found in '{$content}'");
                 }
 
-                if (strpos($content, "https://pagetestfont.example.com") !== false) {
-                    if (strpos($content, "'unsafe-inline'") !== false) {
-                        $expected_found++;
-                    }
+                if (str_contains($content, "https://pagetestfont.example.com") && str_contains($content, "'unsafe-inline'")) {
+                    $expected_found++;
                 }
 
 
-                if (strpos($content, "https://base.font.example.com") !== false
-                    && strpos($content, "https://base.font.example.net")
-                    && strpos($content, "https://*.base.font.example.org")) {
-                    if (strpos($content, "data:") !== false) {
-                        $expected_found++;
-                    }
+                if (str_contains($content, "https://base.font.example.com") && strpos($content, "https://base.font.example.net") && strpos($content, "https://*.base.font.example.org") && str_contains($content, "data:")) {
+                    $expected_found++;
                 }
             }
 
             $this->assertEquals($expected_found, 2, "Expected values not found in meta tags");
-        } catch (Exception $e) {
-            $this->assertTrue(false, $e->getMessage());
+        } catch (Exception $exception) {
+            $this->assertNotEmpty($exception->getMessage());
         }
     }
 
@@ -531,7 +523,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
     /**
      * Test headers delivered via Meta Tags with reporting, no tags should appear
      */
-    public function testPageMetaTagWithReporting()
+    public function testPageMetaTagWithReporting(): void
     {
         $this->clearAllPolicies();
 
@@ -608,29 +600,24 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
         $body = $result->getBody();
 
-        try {
-            $dom = new \DOMDocument();
-            $utf8_body = '<?xml encoding="UTF-8">' . $body;
-            $dom->loadHTML($body);
-            $tags = $dom->getElementsByTagName('meta');
-            foreach ($tags as $tag) {
-                $equiv = $tag->getAttribute('http-equiv');
-                switch ($equiv) {
-                        case Policy::HEADER_CSP_REPORT_ONLY:
-                        case Policy::HEADER_REPORT_TO:
-                        case Policy::HEADER_REPORTING_ENDPOINTS:
-                        case Policy::HEADER_NEL:
-                            // causes the test to fail
-                            throw new Exception("Header {$equiv} found");
-                            break;
-                        case Policy::HEADER_CSP:
-                        default:
-                            // some other meta
-                            break;
-                    }
+        $dom = new \DOMDocument();
+        $dom->loadHTML($body);
+
+        $tags = $dom->getElementsByTagName('meta');
+        foreach ($tags as $tag) {
+            $equiv = $tag->getAttribute('http-equiv');
+            switch ($equiv) {
+                case Policy::HEADER_CSP_REPORT_ONLY:
+                case Policy::HEADER_REPORT_TO:
+                case Policy::HEADER_REPORTING_ENDPOINTS:
+                case Policy::HEADER_NEL:
+                    // causes the test to fail
+                    throw new Exception("Header {$equiv} found");
+                case Policy::HEADER_CSP:
+                default:
+                    // some other meta
+                    break;
             }
-        } catch (Exception $e) {
-            $this->assertTrue(false, $e->getMessage());
         }
 
         // none of the blocked metatags have appeared
@@ -639,12 +626,12 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
     /**
      * Test nonce existence in policy
      */
-    public function testPolicyNonce()
+    public function testPolicyNonce(): void
     {
         $test = $this;
 
         $theme_base_dir = '/vendor/nswdpc/silverstripe-csp/tests';// TODO another way?
-        $this->useTestTheme($theme_base_dir, 'noncetest', function () use ($test) {
+        $this->useTestTheme($theme_base_dir, 'noncetest', function () use ($test): void {
 
             $test->clearAllPolicies();
 
@@ -732,7 +719,7 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
             $test->assertEquals($policy->Directives()->count(), count($directives));
 
-            $home = SiteTree::get()->filter('URLSegment','home')->first();
+            $home = SiteTree::get()->filter('URLSegment', 'home')->first();
             $home->copyVersionToStage(Versioned::DRAFT, Versioned::LIVE);
 
             $result = $test->get('home/');// nonce created here
@@ -743,44 +730,40 @@ abstract class AbstractPolicyFunctionalTest extends FunctionalTest
 
             $test->assertTrue($result instanceof HttpResponse);
 
-            $policy = $result->getHeader( Policy::HEADER_CSP );
+            $policy = $result->getHeader(Policy::HEADER_CSP);
 
             $test->assertNotEmpty($policy);
 
             $parts = Policy::parsePolicy($policy);
             $enabled_directives = Policy::getNonceEnabledDirectives($policy);
 
-            $test->assertTrue( array_key_exists('script-src', $parts), 'script-src is not in the policy' );
-            $test->assertTrue( array_key_exists('style-src', $parts), 'style-src is not in the policy' );
+            $test->assertTrue(array_key_exists('script-src', $parts), 'script-src is not in the policy');
+            $test->assertTrue(array_key_exists('style-src', $parts), 'style-src is not in the policy');
 
-            $test->assertTrue( array_key_exists('script-src', $enabled_directives), 'script-src does not have a nonce' );
-            $test->assertTrue( array_key_exists('style-src', $enabled_directives), 'style-src does not have a nonce' );
+            $test->assertTrue(array_key_exists('script-src', $enabled_directives), 'script-src does not have a nonce');
+            $test->assertTrue(array_key_exists('style-src', $enabled_directives), 'style-src does not have a nonce');
 
-            $test->assertTrue( strpos($parts['script-src'], "'nonce-{$nonceValue}'") !== false, "Unmatched nonce {$nonceValue} in script-src {$parts['script-src']}" );
-            $test->assertTrue( strpos($parts['style-src'], "'nonce-{$nonceValue}'") !== false, "Unmatched nonce {$nonceValue} in style-src {$parts['style-src']}" );
+            $test->assertTrue(str_contains((string) $parts['script-src'], "'nonce-{$nonceValue}'"), "Unmatched nonce {$nonceValue} in script-src {$parts['script-src']}");
+            $test->assertTrue(str_contains((string) $parts['style-src'], "'nonce-{$nonceValue}'"), "Unmatched nonce {$nonceValue} in style-src {$parts['style-src']}");
 
-            try {
 
-                $expected_nonces = 0;
-                $found_nonces = 0;
-                libxml_use_internal_errors(true);
-                $body = $result->getBody();
 
-                $dom = new \DOMDocument();
-                $dom->loadHTML( $body , LIBXML_HTML_NODEFDTD );
-                // gather scripts and styles, check nonces
-                $scripts = $dom->getElementsByTagName('script');
-                $styles = $dom->getElementsByTagName('style');
+            $expected_nonces = 0;
+            $found_nonces = 0;
+            libxml_use_internal_errors(true);
+            $body = $result->getBody();
 
-                $expected_nonces += $scripts->length;
-                $found_nonces += $this->verifyElements($scripts);
+            $dom = new \DOMDocument();
+            $dom->loadHTML($body, LIBXML_HTML_NODEFDTD);
+            // gather scripts and styles, check nonces
+            $scripts = $dom->getElementsByTagName('script');
+            $styles = $dom->getElementsByTagName('style');
 
-                $expected_nonces += $styles->length;
-                $found_nonces += $this->verifyElements($styles);
+            $expected_nonces += $scripts->length;
+            $found_nonces += $this->verifyElements($scripts);
 
-            } catch (Exception $e) {
-                $test->assertTrue(false, "Exception:" . $e->getMessage());
-            }
+            $expected_nonces += $styles->length;
+            $found_nonces += $this->verifyElements($styles);
 
         });
 

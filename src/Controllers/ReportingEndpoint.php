@@ -16,31 +16,27 @@ use SilverStripe\Control\HTTPRequest;
  */
 class ReportingEndpoint extends Controller
 {
-
     /**
      * Whether reports are accepted by this endpoint
-     * @var bool
      * @config
      */
-    private static $accept_reports = false;
+    private static bool $accept_reports = false;
 
     /**
-     * @var array
      * @config
      */
-    private static $allowed_actions = [
+    private static array $allowed_actions = [
         'report'
     ];
 
     /**
-     * @var array
      * @config
      */
-    private static $url_handlers = [
+    private static array $url_handlers = [
         'v1/report' => 'report'
     ];
 
-    public function index(HTTPRequest $request)
+    public function index(HTTPRequest $request): never
     {
         $this->returnHeader();
     }
@@ -48,15 +44,15 @@ class ReportingEndpoint extends Controller
     /**
      * Return appropriate response header, only
      */
-    private function returnHeader()
+    private function returnHeader(): never
     {
         header("HTTP/1.1 204 No Content");
         exit;
     }
 
-    public static function getCurrentReportingUrl($include_host = true) : string
+    public static function getCurrentReportingUrl($include_host = true): string
     {
-        return ($include_host ? Director::absoluteBaseURL() : '/') . 'csp/v1/report';
+        return ($include_host ? rtrim(Director::absoluteBaseURL(), '/') : '') . '/csp/v1/report';
     }
 
     /**
@@ -68,7 +64,7 @@ class ReportingEndpoint extends Controller
         // collect the body
         try {
 
-            if(!self::config()->get('accept_reports')) {
+            if (!self::config()->get('accept_reports')) {
                 throw new \Exception("This endpoint does not accept reports");
             }
 
@@ -78,27 +74,27 @@ class ReportingEndpoint extends Controller
 
             $contentType = $request->getHeader('Content-Type');
             $acceptedContentTypes = [ 'application/csp-report', 'application/reports+json' ];
-            if(!in_array($contentType, $acceptedContentTypes)) {
+            if (!in_array($contentType, $acceptedContentTypes)) {
                 throw new \Exception("The request does not have an accepted content type");
             }
 
             $body = $request->getBody();
-            if(!$body) {
+            if (!$body) {
                 throw new \Exception("The body of the request is empty");
             }
 
             $report = json_decode($body, true);
-            if(json_last_error() !== JSON_ERROR_NONE) {
+            if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception("CSP report JSON decode error: " . json_last_error_msg());
             }
 
-            $violationReport = ViolationReport::create_report($report , $contentType);
+            $violationReport = ViolationReport::create_report($report, $contentType);
 
-        } catch (\Exception $e) {
-            Logger::log("ReportingEndpoint: " . $e->getMessage(), "NOTICE");
-        } finally {
-            $this->returnHeader();
+        } catch (\Exception $exception) {
+            Logger::log("ReportingEndpoint: " . $exception->getMessage(), "NOTICE");
         }
+
+        $this->returnHeader();
 
     }
 }
