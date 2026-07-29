@@ -779,17 +779,12 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
      */
     public function testRequirementsInTestPage(): void
     {
-        $test = $this;
-
         $theme_base_dir = '/vendor/nswdpc/silverstripe-csp/tests';// TODO another way?
-        $this->useTestTheme($theme_base_dir, 'noncetest', function () use ($test): void {
-
+        $this->useTestTheme($theme_base_dir, 'noncetest', function (): void {
             $backend = Injector::inst()->get(Requirements_Backend::class);
             $this->assertInstanceOf(NonceRequirements_Backend::class, $backend);
-
             // ensure there is a policy
             $this->clearAllPolicies();
-
             $policy = $this->createPolicy([
                 'Title' => 'Test HTTP Header Policy',
                 'Enabled' => 1,
@@ -802,7 +797,6 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                 'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
                 'MinimumCspLevel' => '1',
             ]);
-
             $directives = [];
             $directives[] = $this->createDirective([
                 'Key' => 'font-src',
@@ -813,21 +807,15 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                 'AllowDataUri' => 1,
                 'Enabled' => 1,
             ]);
-
             foreach($directives as $directive) {
                 $policy->Directives()->add($directive);
             }
-
-
             $nonce = Nonce::getNonce();
-
             $page = TestPage::create();
             $page->Title = "testRequirementsInTestPage";
             $page->publishSingle();
-
             $response = $this->get($page->Link());
             $body = $response->getBody();
-
             // no nonce value for linked style via  link href
             $test3 =  '<link rel="stylesheet" type="text/css" href="https://example.com/example.css" media="screen" data-example-3="test3" integrity="some-style-hash" crossorigin="anonymous">';
             $this->assertStringContainsString(
@@ -835,7 +823,6 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                $body,
                "Body contains expected example.css"
             );
-
             // This should have a nonce value
             $testCustomStyle1 = <<<CSS
             <style type="text/css" nonce="{$nonce}">
@@ -847,7 +834,6 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                 $body,
                 "Body contains expected style for test custom style 1"
             );
-
             // no nonce value for script with src attribute
             $test1 = '<script async defer data-example-1="test1" integrity="some-script-hash" crossorigin="anonymous" src="https://example.com/example.js"></script>';
             $this->assertStringContainsString(
@@ -855,7 +841,6 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                $body,
                "Body contains expected script for example.js"
             );
-
             // This should just have a nonce
             $testCustomScript1 = <<<JS
             <script nonce="{$nonce}">//<![CDATA[
@@ -867,7 +852,6 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                $body,
                "Body contains expected custom script for testCustomScript1"
             );
-
             // This should have nonce and the custom attributes
             $testCustomScriptWithAttributes = <<<JS
             <script data-example-2="test2" defer async nonce="{$nonce}">//<![CDATA[
@@ -879,7 +863,6 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                 $body,
                 "Body contains expectcustom script with attributes for for testCustomScriptWithAttributes"
             );
-
         });
 
     }
