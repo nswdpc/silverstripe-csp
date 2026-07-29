@@ -3,15 +3,16 @@
 declare(strict_types=1);
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy\Tests;
+
 use SilverStripe\CMS\Controllers\ContentController;
 use SilverStripe\Dev\TestOnly;
 use SilverStripe\View\Requirements;
 
 class TestPageController extends ContentController implements TestOnly
 {
-
     #[\Override]
-    public function doInit() {
+    public function doInit()
+    {
         parent::doInit();
         $this->addRequirements();
     }

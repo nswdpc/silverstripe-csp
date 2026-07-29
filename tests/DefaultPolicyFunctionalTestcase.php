@@ -807,7 +807,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
                 'AllowDataUri' => 1,
                 'Enabled' => 1,
             ]);
-            foreach($directives as $directive) {
+            foreach ($directives as $directive) {
                 $policy->Directives()->add($directive);
             }
             $nonce = Nonce::getNonce();
@@ -819,9 +819,9 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             // no nonce value for linked style via  link href
             $test3 =  '<link rel="stylesheet" type="text/css" href="https://example.com/example.css" media="screen" data-example-3="test3" integrity="some-style-hash" crossorigin="anonymous">';
             $this->assertStringContainsString(
-               $test3,
-               $body,
-               "Body contains expected example.css"
+                $test3,
+                $body,
+                "Body contains expected example.css"
             );
             // This should have a nonce value
             $testCustomStyle1 = <<<CSS
@@ -837,9 +837,9 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             // no nonce value for script with src attribute
             $test1 = '<script async defer data-example-1="test1" integrity="some-script-hash" crossorigin="anonymous" src="https://example.com/example.js"></script>';
             $this->assertStringContainsString(
-               $test1,
-               $body,
-               "Body contains expected script for example.js"
+                $test1,
+                $body,
+                "Body contains expected script for example.js"
             );
             // This should just have a nonce
             $testCustomScript1 = <<<JS
@@ -848,9 +848,9 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             //]]></script>
             JS;
             $this->assertStringContainsString(
-               $testCustomScript1,
-               $body,
-               "Body contains expected custom script for testCustomScript1"
+                $testCustomScript1,
+                $body,
+                "Body contains expected custom script for testCustomScript1"
             );
             // This should have nonce and the custom attributes
             $testCustomScriptWithAttributes = <<<JS

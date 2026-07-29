@@ -13,7 +13,6 @@ use SilverStripe\View\HTML;
  */
 class NonceRequirements_Backend extends Requirements_Backend
 {
-
     /**
      * @inheritdoc
      * Divert to customScriptWithAttributes to ensure the nonce attribute is set
@@ -21,7 +20,7 @@ class NonceRequirements_Backend extends Requirements_Backend
     #[\Override]
     public function customScript($script, $uniquenessID = null)
     {
-        if(Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
+        if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
             $attributes = [];
             self::customScriptWithAttributes($script, $attributes, $uniquenessID);
         } else {
@@ -36,7 +35,7 @@ class NonceRequirements_Backend extends Requirements_Backend
     #[\Override]
     public function customScriptWithAttributes(string $script, array $attributes = [], string|int|null $uniquenessID = null)
     {
-        if(Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
+        if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
             $attributes['nonce'] = Nonce::getNonce();
         }
 
@@ -50,7 +49,7 @@ class NonceRequirements_Backend extends Requirements_Backend
     #[\Override]
     public function getCustomCSS()
     {
-        if(Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
+        if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
             // See getCustomHeadTags + getCustomCSSWithNonce
             return [];
         } else {
@@ -65,7 +64,7 @@ class NonceRequirements_Backend extends Requirements_Backend
     {
         $customCSS = array_diff_key($this->customCSS ?? [], $this->blocked);
         $tags = [];
-        foreach($customCSS as $css) {
+        foreach ($customCSS as $css) {
             $tags[] = HTML::createTag(
                 'style',
                 [
@@ -87,7 +86,7 @@ class NonceRequirements_Backend extends Requirements_Backend
     public function getCustomHeadTags()
     {
         $styleTags = [];
-        if(Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
+        if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
             $styleTags = $this->getCustomCSSWithNonce();
         }
 
