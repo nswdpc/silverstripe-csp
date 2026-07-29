@@ -204,6 +204,7 @@ class ViolationReport extends DataObject implements PermissionProvider
                 $report->ColumnNumber =  $data['columnNumber'] ?? '';
                 $report->Disposition =  $data['disposition'] ?? '';
                 $report->SourceFile =  $data['sourceFile'] ?? '';
+                $report->ScriptSample =  $data['sample'] ?? '';
                 $report->UserAgent = $user_agent;
                 $report->ReportType = self::REPORT_TYPE_CSP_VIOLATION;
                 $report->write();
