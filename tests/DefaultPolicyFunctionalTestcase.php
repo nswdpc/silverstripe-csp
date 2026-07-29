@@ -810,10 +810,12 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
             foreach ($directives as $directive) {
                 $policy->Directives()->add($directive);
             }
+
             $nonce = Nonce::getNonce();
             $page = TestPage::create();
             $page->Title = "testRequirementsInTestPage";
             $page->publishSingle();
+
             $response = $this->get($page->Link());
             $body = $response->getBody();
             // no nonce value for linked style via  link href
