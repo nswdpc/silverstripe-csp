@@ -9,6 +9,8 @@ use SilverStripe\Dev\TestOnly;
 
 class TestPage extends SiteTree implements TestOnly
 {
+    private static string $table_name = "CSPTestPage";
+
     #[\Override]
     public function getControllerName()
     {

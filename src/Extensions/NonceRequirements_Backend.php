@@ -62,7 +62,7 @@ class NonceRequirements_Backend extends Requirements_Backend
      */
     public function getCustomCSSWithNonce(): array
     {
-        $customCSS = array_diff_key($this->customCSS ?? [], $this->blocked);
+        $customCSS = array_diff_key($this->customCSS, $this->blocked);
         $tags = [];
         foreach ($customCSS as $css) {
             $tags[] = HTML::createTag(
@@ -90,7 +90,7 @@ class NonceRequirements_Backend extends Requirements_Backend
             $styleTags = $this->getCustomCSSWithNonce();
         }
 
-        $customHeadTags = array_diff_key($this->customHeadTags ?? [], $this->blocked);
+        $customHeadTags = array_diff_key($this->customHeadTags, $this->blocked);
         return array_merge($styleTags, $customHeadTags);
     }
 
