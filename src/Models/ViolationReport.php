@@ -3,8 +3,11 @@
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\Filters\PartialMatchFilter;
+use SilverStripe\ORM\Filters\ExactMatchFilter;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\ReadonlyTransformation;
+use SilverStripe\Forms\DropdownField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 
@@ -22,6 +25,7 @@ use SilverStripe\Security\PermissionProvider;
  * @property ?string $Disposition
  * @property ?string $UserAgent
  * @property ?string $ScriptSample
+ * @property ?string $ReportType
  */
 class ViolationReport extends DataObject implements PermissionProvider
 {
@@ -69,7 +73,8 @@ class ViolationReport extends DataObject implements PermissionProvider
         'ColumnNumber' => 'Int',
         'Disposition' => 'Varchar(32)',
         'UserAgent' => 'Varchar(255)',
-        'ScriptSample' => 'Varchar(40)' // per w3c spec (https://www.w3.org/TR/CSP3/#violation-sample)
+        'ScriptSample' => 'Varchar(40)', // per w3c spec (https://www.w3.org/TR/CSP3/#violation-sample)
+        'ReportType' => 'Varchar(16)'
     ];
 
     /**
@@ -80,6 +85,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         'DocumentUri' => true,
         'LastEdited' => true,
         'Created' => true,
+        'ReportType' => true
     ];
 
     /**
@@ -94,12 +100,42 @@ class ViolationReport extends DataObject implements PermissionProvider
         'DocumentUri' => 'Document URI',
         'BlockedUri' => 'Blocked URI',
         'ViolatedDirective' => 'Directive',
+        'ReportType' => 'Report type'
+    ];
+
+    private static array $searchable_fields = [
+        'UserAgent' => PartialMatchFilter::class,
+        'DocumentUri' => PartialMatchFilter::class,
+        'BlockedUri' => PartialMatchFilter::class,
+        'ViolatedDirective' => PartialMatchFilter::class,
+        'ReportType' => ExactMatchFilter::class
     ];
 
     /**
      * @config
      */
     private static string $default_sort = 'Created DESC';
+
+    #[\Override]
+    public function scaffoldSearchFields($params = null)
+    {
+        $fields = parent::scaffoldSearchFields($params);
+
+        $options = [
+            self::REPORT_TYPE_CSP_VIOLATION => _t('ContentSecurityPolicy.REPORT_TYPE_CSP_VIOLATION_LABEL', 'CSP violation'),
+            self::REPORT_TYPE_CSP_REPORT => _t('ContentSecurityPolicy.REPORT_TYPE_CSP_REPORT_LABEL', 'CSP report (legacy format)'),
+        ];
+        $fields->replaceField(
+            'ReportType',
+            DropdownField::create(
+                'ReportType',
+                _t('ContentSecurityPolicy.CSP_REPORT_TYPE', 'Report type'),
+                $options
+            )->setEmptyString('')
+        );
+
+        return $fields;
+    }
 
     /**
      * Create a new Violation Report per data spec
@@ -136,6 +172,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         $report->SourceFile =  $data['source-file'] ?? '';
         $report->UserAgent = $user_agent;
         $report->ScriptSample =  $data['script-sample'] ?? '';
+        $report->ReportType = self::REPORT_TYPE_CSP_REPORT;
         $report->write();
         return $report;
     }
@@ -151,7 +188,6 @@ class ViolationReport extends DataObject implements PermissionProvider
         }
 
         $report = null;
-        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
         foreach ($reports as $reportBody) {
             if (empty($reportBody['body'])) {
                 continue;
@@ -169,7 +205,9 @@ class ViolationReport extends DataObject implements PermissionProvider
                 $report->ColumnNumber =  $data['columnNumber'] ?? '';
                 $report->Disposition =  $data['disposition'] ?? '';
                 $report->SourceFile =  $data['sourceFile'] ?? '';
-                $report->UserAgent = $user_agent;
+                $report->ScriptSample =  $data['sample'] ?? '';
+                $report->UserAgent = $reportBody['user_agent'] ?? '';
+                $report->ReportType = self::REPORT_TYPE_CSP_VIOLATION;
                 $report->write();
             }
         }
