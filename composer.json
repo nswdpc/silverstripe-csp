@@ -34,6 +34,7 @@
     },
     "require": {
         "ext-xml": "*",
+        "silverstripe/framework": "^6.2",
         "silverstripe/cms": "^6",
         "symbiote/silverstripe-queuedjobs": "^6",
         "symbiote/silverstripe-multivaluefield": "^7"
