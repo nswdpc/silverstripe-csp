@@ -6,12 +6,15 @@ use NSWDPC\Utilities\ContentSecurityPolicy\Directive;
 use NSWDPC\Utilities\ContentSecurityPolicy\Nonce;
 use NSWDPC\Utilities\ContentSecurityPolicy\Policy;
 use NSWDPC\Utilities\ContentSecurityPolicy\SiteTreeExtension;
+use NSWDPC\Utilities\ContentSecurityPolicy\NonceRequirements_Backend;
 use SilverStripe\Dev\FunctionalTest;
 use SilverStripe\CMS\Model\SiteTree;
 use SilverStripe\Versioned\Versioned;
 use SilverStripe\Control\HTTPResponse;
 use SilverStripe\Core\Config\Config;
+use SilverStripe\Core\Injector\Injector;
 use SilverStripe\Control\Director;
+use SilverStripe\View\Requirements_Backend;
 use Exception;
 
 abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
@@ -26,6 +29,7 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
 
     protected static $extra_dataobjects = [
         SiteTree::class,
+        TestPage::class
     ];
 
     protected static $required_extensions = [
@@ -768,4 +772,116 @@ abstract class DefaultPolicyFunctionalTestcase extends FunctionalTest
         });
 
     }
+
+    /**
+     * Test that requirements added via Requirements API in TestPage
+     * are correctly formatted
+     */
+    public function testRequirementsInTestPage(): void
+    {
+        $test = $this;
+
+        $theme_base_dir = '/vendor/nswdpc/silverstripe-csp/tests';// TODO another way?
+        $this->useTestTheme($theme_base_dir, 'noncetest', function () use ($test): void {
+
+            $backend = Injector::inst()->get(Requirements_Backend::class);
+            $this->assertInstanceOf(NonceRequirements_Backend::class, $backend);
+
+            // ensure there is a policy
+            $this->clearAllPolicies();
+
+            $policy = $this->createPolicy([
+                'Title' => 'Test HTTP Header Policy',
+                'Enabled' => 1,
+                'IsLive' => 1,
+                'IsBasePolicy' => 1,
+                'ReportOnly' => 0,
+                'SendViolationReports' => 1,
+                'EnableNEL' => 0,
+                'AlternateReportURI' => 'https://reporting.example.com/csp/report',
+                'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
+                'MinimumCspLevel' => '1',
+            ]);
+
+            $directives = [];
+            $directives[] = $this->createDirective([
+                'Key' => 'font-src',
+                'Value' => '',
+                'RulesValue' => json_encode(['https://font.example.com' => '', 'https://font.example.net' => '', 'https://*.font.example.org' => '']),
+                'IncludeSelf' => 0,
+                'UnsafeInline' => 0,
+                'AllowDataUri' => 1,
+                'Enabled' => 1,
+            ]);
+
+            foreach($directives as $directive) {
+                $policy->Directives()->add($directive);
+            }
+
+
+            $nonce = Nonce::getNonce();
+
+            $page = TestPage::create();
+            $page->Title = "testRequirementsInTestPage";
+            $page->publishSingle();
+
+            $response = $this->get($page->Link());
+            $body = $response->getBody();
+
+            // no nonce value for linked style via  link href
+            $test3 =  '<link rel="stylesheet" type="text/css" href="https://example.com/example.css" media="screen" data-example-3="test3" integrity="some-style-hash" crossorigin="anonymous">';
+            $this->assertStringContainsString(
+               $test3,
+               $body,
+               "Body contains expected example.css"
+            );
+
+            // This should have a nonce value
+            $testCustomStyle1 = <<<CSS
+            <style type="text/css" nonce="{$nonce}">
+            div { outline: red; }
+            </style>
+            CSS;
+            $this->assertStringContainsString(
+                $testCustomStyle1,
+                $body,
+                "Body contains expected style for test custom style 1"
+            );
+
+            // no nonce value for script with src attribute
+            $test1 = '<script async defer data-example-1="test1" integrity="some-script-hash" crossorigin="anonymous" src="https://example.com/example.js"></script>';
+            $this->assertStringContainsString(
+               $test1,
+               $body,
+               "Body contains expected script for example.js"
+            );
+
+            // This should just have a nonce
+            $testCustomScript1 = <<<JS
+            <script nonce="{$nonce}">//<![CDATA[
+            console.log('testCustomScript1');
+            //]]></script>
+            JS;
+            $this->assertStringContainsString(
+               $testCustomScript1,
+               $body,
+               "Body contains expected custom script for testCustomScript1"
+            );
+
+            // This should have nonce and the custom attributes
+            $testCustomScriptWithAttributes = <<<JS
+            <script data-example-2="test2" defer async nonce="{$nonce}">//<![CDATA[
+            console.log('testCustomScriptWithAttributes');
+            //]]></script>
+            JS;
+            $this->assertStringContainsString(
+                $testCustomScriptWithAttributes,
+                $body,
+                "Body contains expectcustom script with attributes for for testCustomScriptWithAttributes"
+            );
+
+        });
+
+    }
+
 }
