@@ -3,8 +3,11 @@
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use SilverStripe\ORM\DataObject;
+use SilverStripe\ORM\Filters\PartialMatchFilter;
+use SilverStripe\ORM\Filters\ExactMatchFilter;
 use SilverStripe\Forms\FieldList;
 use SilverStripe\Forms\ReadonlyTransformation;
+use SilverStripe\Forms\DropdownField;
 use SilverStripe\Security\Permission;
 use SilverStripe\Security\PermissionProvider;
 
@@ -81,7 +84,7 @@ class ViolationReport extends DataObject implements PermissionProvider
         'DocumentUri' => true,
         'LastEdited' => true,
         'Created' => true,
-        'ReportType' => true,
+        'ReportType' => true
     ];
 
     /**
@@ -99,10 +102,38 @@ class ViolationReport extends DataObject implements PermissionProvider
         'ReportType' => 'Report type'
     ];
 
+    private static array $searchable_fields = [
+        'UserAgent' => PartialMatchFilter::class,
+        'DocumentUri' => PartialMatchFilter::class,
+        'BlockedUri' => PartialMatchFilter::class,
+        'ViolatedDirective' => PartialMatchFilter::class,
+        'ReportType' => ExactMatchFilter::class
+    ];
+
     /**
      * @config
      */
     private static string $default_sort = 'Created DESC';
+
+    public function scaffoldSearchFields($params = null)
+    {
+        $fields = parent::scaffoldSearchFields($params);
+
+        $options = [
+            self::REPORT_TYPE_CSP_VIOLATION => _t('ContentSecurityPolicy.REPORT_TYPE_CSP_VIOLATION_LABEL', 'CSP violation'),
+            self::REPORT_TYPE_CSP_REPORT => _t('ContentSecurityPolicy.REPORT_TYPE_CSP_REPORT_LABEL', 'CSP report (legacy format)'),
+        ];
+        $fields->replaceField(
+            'ReportType',
+            DropdownField::create(
+                'ReportType',
+                _t('ContentSecurityPolicy.CSP_REPORT_TYPE', 'Report type'),
+                $options
+            )->setEmptyString('')
+        );
+
+        return $fields;
+    }
 
     /**
      * Create a new Violation Report per data spec
