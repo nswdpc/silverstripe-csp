@@ -186,7 +186,6 @@ class ViolationReport extends DataObject implements PermissionProvider
         }
 
         $report = null;
-        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
         foreach ($reports as $reportBody) {
             if (empty($reportBody['body'])) {
                 continue;
@@ -205,7 +204,7 @@ class ViolationReport extends DataObject implements PermissionProvider
                 $report->Disposition =  $data['disposition'] ?? '';
                 $report->SourceFile =  $data['sourceFile'] ?? '';
                 $report->ScriptSample =  $data['sample'] ?? '';
-                $report->UserAgent = $user_agent;
+                $report->UserAgent = $reportBody['user_agent'] ?? '';
                 $report->ReportType = self::REPORT_TYPE_CSP_VIOLATION;
                 $report->write();
             }
