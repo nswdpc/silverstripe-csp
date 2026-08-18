@@ -52,9 +52,8 @@ class NonceRequirements_Backend extends Requirements_Backend
         if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
             // See getCustomHeadTags + getCustomCSSWithNonce
             return [];
-        } else {
-            return parent::getCustomCSS();
         }
+        return parent::getCustomCSS();
     }
 
     /**

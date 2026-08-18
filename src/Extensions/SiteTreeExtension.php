@@ -90,10 +90,9 @@ class SiteTreeExtension extends Extension
         if (!($controller instanceof Controller)) {
             // no current controller
             return false;
-        } else {
-            // Configured controllers with no CSP
-            return !Policy::controllerWithoutCsp($controller);
         }
+        // Configured controllers with no CSP
+        return !Policy::controllerWithoutCsp($controller);
     }
 
     /**

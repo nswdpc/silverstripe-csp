@@ -42,7 +42,7 @@ class CSPMiddleware implements HTTPMiddleware
         $policy = $response->getHeader(Policy::HEADER_CSP);
         if (!$policy) {
             // check for a CSPRO header
-            $policy = $response->getHeader(Policy::HEADER_CSP_REPORT_ONLY);
+            return $response->getHeader(Policy::HEADER_CSP_REPORT_ONLY);
         }
 
         return $policy;

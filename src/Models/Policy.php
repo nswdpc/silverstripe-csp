@@ -579,9 +579,8 @@ class Policy extends DataObject implements PermissionProvider
         if ($reportingEndpoints === []) {
             // No reporting endpoints provided
             return "";
-        } else {
-            return implode(",", $reportingEndpoints);
         }
+        return implode(",", $reportingEndpoints);
     }
 
     /**
@@ -591,9 +590,8 @@ class Policy extends DataObject implements PermissionProvider
     {
         if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
             return $endpointName . '="' . $endpointUrl . '"';
-        } else {
-            return "";
         }
+        return "";
     }
 
     /**
@@ -604,50 +602,47 @@ class Policy extends DataObject implements PermissionProvider
         if ($reportToGroups === []) {
             // Nothing provided
             return "";
-        } else {
-            $headerValue = "";
-            $reportTo = [];
-            foreach ($reportToGroups as $reportToGroup) {
-                $entry = [];
-                if (!isset($reportToGroup['group']) || !is_string($reportToGroup['group'])) {
-                    continue;
-                }
+        }
+        $headerValue = "";
+        $reportTo = [];
+        foreach ($reportToGroups as $reportToGroup) {
+            $entry = [];
+            if (!isset($reportToGroup['group']) || !is_string($reportToGroup['group'])) {
+                continue;
+            }
 
-                $entry['group'] = $reportToGroup['group'];
-                if (isset($reportToGroup['max_age']) && is_int($reportToGroup['max_age'])) {
-                    $entry['max_age'] = $reportToGroup['max_age'];
-                }
+            $entry['group'] = $reportToGroup['group'];
+            if (isset($reportToGroup['max_age']) && is_int($reportToGroup['max_age'])) {
+                $entry['max_age'] = $reportToGroup['max_age'];
+            }
 
-                if (isset($reportToGroup['endpoints']) && is_array($reportToGroup['endpoints'])) {
-                    $entry['endpoints'] = [];
-                    foreach ($reportToGroup['endpoints'] as $endpointUrl) {
-                        if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
-                            $entry['endpoints'][] = [
-                                'url' => $endpointUrl
-                            ];
-                        }
+            if (isset($reportToGroup['endpoints']) && is_array($reportToGroup['endpoints'])) {
+                $entry['endpoints'] = [];
+                foreach ($reportToGroup['endpoints'] as $endpointUrl) {
+                    if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
+                        $entry['endpoints'][] = [
+                            'url' => $endpointUrl
+                        ];
                     }
                 }
-
-                if (isset($reportToGroup['include_subdomains'])) {
-                    $entry['include_subdomains'] = (bool) $reportToGroup['include_subdomains'];
-                }
-
-                $reportTo[] = $entry;
             }
 
-            if ($reportTo !== []) {
-                $headerValue = json_encode($reportTo);
-                /**
-                 * W3C spec:
-                 * The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ],
-                 * as described in Section 4 of [HTTP-JFV].
-                 */
-                $headerValue = trim($headerValue, "[]");
+            if (isset($reportToGroup['include_subdomains'])) {
+                $entry['include_subdomains'] = (bool) $reportToGroup['include_subdomains'];
             }
 
-            return $headerValue;
+            $reportTo[] = $entry;
         }
+        if ($reportTo !== []) {
+            $headerValue = json_encode($reportTo);
+            /**
+             * W3C spec:
+             * The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ],
+             * as described in Section 4 of [HTTP-JFV].
+             */
+            $headerValue = trim($headerValue, "[]");
+        }
+        return $headerValue;
     }
 
     /**
@@ -662,9 +657,8 @@ class Policy extends DataObject implements PermissionProvider
 
         if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER && $this->EnableNEL == 1 && $nelReportUrl) {
             return $nelReportUrl;
-        } else {
-            return "";
         }
+        return "";
     }
 
     /**
@@ -676,9 +670,8 @@ class Policy extends DataObject implements PermissionProvider
         $reporting_url = $this->getReportingUrl();
         if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER && $this->SendViolationReports && $reporting_url) {
             return $reporting_url;
-        } else {
-            return "";
         }
+        return "";
     }
 
     /**
@@ -781,7 +774,8 @@ class Policy extends DataObject implements PermissionProvider
             if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_METATAG) {
                 // MetaTag delivery does not support CSPRO, go no further (delivers NO CSP headers)
                 return null;
-            } elseif ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER) {
+            }
+            if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER) {
                 // only HTTP Header can use CSPRO currently
                 $header = self::HEADER_CSP_REPORT_ONLY;
             }
