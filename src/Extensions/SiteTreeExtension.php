@@ -53,7 +53,7 @@ class SiteTreeExtension extends Extension
                     '<p class="message info">' .
                         htmlspecialchars(_t(
                             'ContentSecurityPolicy.NO_AVAILABLE_EXTRA_POLICIES',
-                            'There are no extra Content Security Polices. To fix this, define a new policy in the CSP administration area or ask an administrator to do this and it will appear here'
+                            'There are no extra Content Security Polices. To fix this, define a new non-base policy in the CSP administration area or ask an administrator to do this and it will appear here'
                         ))
                     . "</p>"
                 )
