@@ -31,13 +31,21 @@ class SiteTreeExtension extends Extension
     ];
 
     /**
-     * Update Fields
+     * Update CMS Fields
      */
-    public function updateSettingsFields(FieldList $fields): FieldList
+    public function updateCmsFields(FieldList $fields)
+    {
+        $fields->removeByName(['CspPolicyID']);
+    }
+
+    /**
+     * Update Settings Fields
+     */
+    public function updateSettingsFields(FieldList $fields)
     {
         $available_policies = Policy::get()->sort('Title ASC')->filter('Enabled', 1)->exclude('IsBasePolicy', 1);
+        $fields->removeByName(['CspPolicyID']);
         if ($available_policies->count() == 0) {
-            $fields->removeByName('CspPolicyID');
             $fields->addFieldToTab(
                 'Root.CSP',
                 LiteralField::create(
@@ -71,8 +79,6 @@ class SiteTreeExtension extends Extension
                     )
             );
         }
-
-        return $fields;
     }
 
     /**
