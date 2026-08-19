@@ -5,6 +5,7 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\Director;
 use SilverStripe\Control\HTTPRequest;
+use SilverStripe\Control\HTTPResponse;
 
 /*
  * Reporting endpoint used to collect violations
@@ -36,18 +37,17 @@ class ReportingEndpoint extends Controller
         'v1/report' => 'report'
     ];
 
-    public function index(HTTPRequest $request): never
+    public function index(HTTPRequest $request): HTTPResponse
     {
-        $this->returnHeader();
+        return $this->returnHeader();
     }
 
     /**
      * Return appropriate response header, only
      */
-    private function returnHeader(): never
+    protected function returnHeader(): HTTPResponse
     {
-        header("HTTP/1.1 204 No Content");
-        exit;
+        return HTTPResponse::create(null, "204", "No Content");
     }
 
     public static function getCurrentReportingUrl($include_host = true): string
@@ -57,9 +57,8 @@ class ReportingEndpoint extends Controller
 
     /**
      * Handle reports by POST, the incoming content-type is application/csp-report, which may not be supported in the environment
-     * We use php://input to get the raw input here
      */
-    public function report(HTTPRequest $request)
+    public function report(HTTPRequest $request): HTTPResponse
     {
         // collect the body
         try {
@@ -94,6 +93,6 @@ class ReportingEndpoint extends Controller
             Logger::log("ReportingEndpoint: " . $exception->getMessage(), "NOTICE");
         }
 
-        $this->returnHeader();
+        return $this->returnHeader();
     }
 }
