@@ -127,9 +127,11 @@ class ViolationReportTest extends SapphireTest
         $reports = $this->getCspViolationReport();
         $controller = ReportingEndpoint::create();
         $controller->doInit();
+
         $body = json_encode($reports);
         $request = new HTTPRequest('POST', '/csp/v1/report', [], [], $body);
         $request->addHeader('Content-Type', "application/reports+json");
+
         $response = $controller->report($request);
         $this->assertEquals(204, $response->getStatusCode());
         $this->assertNull($response->getBody());
@@ -141,8 +143,9 @@ class ViolationReportTest extends SapphireTest
         $controller = ReportingEndpoint::create();
         $controller->doInit();
         // empty body
-        $request = new HTTPRequest('POST', '/csp/v1/report', [], [], null);
+        $request = new HTTPRequest('POST', '/csp/v1/report', [], []);
         $request->addHeader('Content-Type', "application/reports+json");
+
         $response = $controller->report($request);
         $this->assertEquals(204, $response->getStatusCode());
         $this->assertNull($response->getBody());
@@ -161,8 +164,9 @@ class ViolationReportTest extends SapphireTest
         $controller = ReportingEndpoint::create();
         $controller->doInit();
         // empty body
-        $request = new HTTPRequest('POST', '/csp/v1/report', [], [], null);
+        $request = new HTTPRequest('POST', '/csp/v1/report', [], []);
         $request->addHeader('Content-Type', "application/reports+json");
+
         $response = $controller->report($request);
         $this->assertEquals(204, $response->getStatusCode());
         $this->assertNull($response->getBody());
@@ -178,6 +182,7 @@ class ViolationReportTest extends SapphireTest
         // empty body
         $request = new HTTPRequest('POST', '/csp/v1/report', [], [], 'some {invalid} json');
         $request->addHeader('Content-Type', "application/reports+json");
+
         $response = $controller->report($request);
         $this->assertEquals(204, $response->getStatusCode());
         $this->assertNull($response->getBody());
@@ -199,9 +204,11 @@ class ViolationReportTest extends SapphireTest
         $reports = $this->getCspReport();
         $controller = ReportingEndpoint::create();
         $controller->doInit();
+
         $body = json_encode($reports);
         $request = new HTTPRequest('POST', '/csp/v1/report', [], [], $body);
         $request->addHeader('Content-Type', "application/csp-report");
+
         $response = $controller->report($request);
         $this->assertEquals(204, $response->getStatusCode());
         $this->assertNull($response->getBody());
@@ -213,10 +220,12 @@ class ViolationReportTest extends SapphireTest
         $reports = $this->getCspViolationReport();
         $controller = ReportingEndpoint::create();
         $controller->doInit();
+
         $body = json_encode($reports);
         $request = new HTTPRequest('POST', '/csp/v1/report', [], [], $body);
         // invalid content type
         $request->addHeader('Content-Type', "application/csp-report");
+
         $response = $controller->report($request);
         $this->assertEquals(204, $response->getStatusCode());
         $this->assertNull($response->getBody());
@@ -228,10 +237,12 @@ class ViolationReportTest extends SapphireTest
         $reports = $this->getCspReport();
         $controller = ReportingEndpoint::create();
         $controller->doInit();
+
         $body = json_encode($reports);
         // GET not POST
         $request = new HTTPRequest('GET', '/csp/v1/report', [], [], $body);
         $request->addHeader('Content-Type', "application/csp-report");
+
         $response = $controller->report($request);
         $this->assertEquals(204, $response->getStatusCode());
         $this->assertNull($response->getBody());
