@@ -424,6 +424,7 @@ class Directive extends DataObject implements PermissionProvider
         if ($values === []) {
             return $this->Key . ";";
         }
+
         $values = array_unique($values);
         return $this->Key . " " . implode(" ", $values) . ";";
 

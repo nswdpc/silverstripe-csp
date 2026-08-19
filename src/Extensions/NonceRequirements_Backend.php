@@ -53,6 +53,7 @@ class NonceRequirements_Backend extends Requirements_Backend
             // See getCustomHeadTags + getCustomCSSWithNonce
             return [];
         }
+
         return parent::getCustomCSS();
     }
 

@@ -146,10 +146,12 @@ class ViolationReport extends DataObject implements PermissionProvider
             // report-uri report (application/csp-report)
             return self::create_csp_report($data[ self::REPORT_TYPE_CSP_REPORT ]);
         }
+
         if ($contentType === "application/reports+json") {
             // Reporting-Endpoints report (multiple reports - application/reports+json)
             return self::create_csp_violation($data);
         }
+
         return null;
     }
 

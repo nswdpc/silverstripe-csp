@@ -47,6 +47,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
             $row = $result->record();
             return $row['RecordCount'] ?? 0;
         }
+
         return 0;
     }
 

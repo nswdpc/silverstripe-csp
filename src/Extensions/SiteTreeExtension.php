@@ -91,6 +91,7 @@ class SiteTreeExtension extends Extension
             // no current controller
             return false;
         }
+
         // Configured controllers with no CSP
         return !Policy::controllerWithoutCsp($controller);
     }

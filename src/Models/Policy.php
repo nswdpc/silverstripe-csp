@@ -580,6 +580,7 @@ class Policy extends DataObject implements PermissionProvider
             // No reporting endpoints provided
             return "";
         }
+
         return implode(",", $reportingEndpoints);
     }
 
@@ -591,6 +592,7 @@ class Policy extends DataObject implements PermissionProvider
         if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
             return $endpointName . '="' . $endpointUrl . '"';
         }
+
         return "";
     }
 
@@ -603,6 +605,7 @@ class Policy extends DataObject implements PermissionProvider
             // Nothing provided
             return "";
         }
+
         $headerValue = "";
         $reportTo = [];
         foreach ($reportToGroups as $reportToGroup) {
@@ -633,6 +636,7 @@ class Policy extends DataObject implements PermissionProvider
 
             $reportTo[] = $entry;
         }
+
         if ($reportTo !== []) {
             $headerValue = json_encode($reportTo);
             /**
@@ -642,6 +646,7 @@ class Policy extends DataObject implements PermissionProvider
              */
             $headerValue = trim($headerValue, "[]");
         }
+
         return $headerValue;
     }
 
@@ -658,6 +663,7 @@ class Policy extends DataObject implements PermissionProvider
         if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER && $this->EnableNEL == 1 && $nelReportUrl) {
             return $nelReportUrl;
         }
+
         return "";
     }
 
@@ -671,6 +677,7 @@ class Policy extends DataObject implements PermissionProvider
         if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER && $this->SendViolationReports && $reporting_url) {
             return $reporting_url;
         }
+
         return "";
     }
 
@@ -775,6 +782,7 @@ class Policy extends DataObject implements PermissionProvider
                 // MetaTag delivery does not support CSPRO, go no further (delivers NO CSP headers)
                 return null;
             }
+
             if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER) {
                 // only HTTP Header can use CSPRO currently
                 $header = self::HEADER_CSP_REPORT_ONLY;
