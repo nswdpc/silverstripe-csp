@@ -1,13 +1,14 @@
-<phpunit bootstrap="vendor/silverstripe/framework/tests/bootstrap.php" colors="true">
-    <testsuite name="nswdpc/silverstripe-csp">
-        <directory>tests/</directory>
-    </testsuite>
-    <filter>
-        <whitelist addUncoveredFilesFromWhitelist="true">
-            <directory suffix=".php">src/</directory>
-            <exclude>
-                <directory suffix=".php">tests/</directory>
-            </exclude>
-        </whitelist>
-    </filter>
+<?xml version="1.0"?>
+<phpunit bootstrap="vendor/silverstripe/framework/tests/bootstrap.php" colors="true" cacheDirectory=".phpunit.cache">
+  <testsuite name="nswdpc/silverstripe-csp">
+    <directory>tests/</directory>
+  </testsuite>
+  <source>
+    <include>
+      <directory suffix=".php">src/</directory>
+    </include>
+    <exclude>
+      <directory suffix=".php">tests/</directory>
+    </exclude>
+  </source>
 </phpunit>

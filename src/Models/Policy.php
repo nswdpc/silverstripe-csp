@@ -132,7 +132,7 @@ class Policy extends DataObject implements PermissionProvider
     private static array $defaults = [
         'Enabled' => 0,
         'IsLive' => 0,
-        'MinimumCspLevel' => 2,// CSP Level 1 by default
+        'MinimumCspLevel' => '2',// CSP Level 2 by default
         'DeliveryMethod' => self::POLICY_DELIVERY_METHOD_HEADER,
         'ReportOnly' => 1,
         'SendViolationReports' => 0,
@@ -195,7 +195,7 @@ class Policy extends DataObject implements PermissionProvider
      * @param bool $is_live
      * @param string $delivery_method
      */
-    public static function getDefaultBasePolicy($is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER)
+    public static function getDefaultBasePolicy($is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER): ?Policy
     {
         $filter = [ 'Enabled' => 1, 'IsBasePolicy' => 1, 'DeliveryMethod' => $delivery_method ];
         $list = Policy::get()->filter($filter);
@@ -211,7 +211,7 @@ class Policy extends DataObject implements PermissionProvider
      * @param bool $is_live
      * @param string $delivery_method
      */
-    public static function getPagePolicy(SiteTree $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER)
+    public static function getPagePolicy(SiteTree $page, $is_live = false, $delivery_method = self::POLICY_DELIVERY_METHOD_HEADER): ?Policy
     {
         if (empty($page->CspPolicyID)) {
             // early return if none linked
@@ -579,9 +579,9 @@ class Policy extends DataObject implements PermissionProvider
         if ($reportingEndpoints === []) {
             // No reporting endpoints provided
             return "";
-        } else {
-            return implode(",", $reportingEndpoints);
         }
+
+        return implode(",", $reportingEndpoints);
     }
 
     /**
@@ -591,9 +591,9 @@ class Policy extends DataObject implements PermissionProvider
     {
         if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
             return $endpointName . '="' . $endpointUrl . '"';
-        } else {
-            return "";
         }
+
+        return "";
     }
 
     /**
@@ -604,50 +604,50 @@ class Policy extends DataObject implements PermissionProvider
         if ($reportToGroups === []) {
             // Nothing provided
             return "";
-        } else {
-            $headerValue = "";
-            $reportTo = [];
-            foreach ($reportToGroups as $reportToGroup) {
-                $entry = [];
-                if (!isset($reportToGroup['group']) || !is_string($reportToGroup['group'])) {
-                    continue;
-                }
+        }
 
-                $entry['group'] = $reportToGroup['group'];
-                if (isset($reportToGroup['max_age']) && is_int($reportToGroup['max_age'])) {
-                    $entry['max_age'] = $reportToGroup['max_age'];
-                }
+        $headerValue = "";
+        $reportTo = [];
+        foreach ($reportToGroups as $reportToGroup) {
+            $entry = [];
+            if (!isset($reportToGroup['group']) || !is_string($reportToGroup['group'])) {
+                continue;
+            }
 
-                if (isset($reportToGroup['endpoints']) && is_array($reportToGroup['endpoints'])) {
-                    $entry['endpoints'] = [];
-                    foreach ($reportToGroup['endpoints'] as $endpointUrl) {
-                        if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
-                            $entry['endpoints'][] = [
-                                'url' => $endpointUrl
-                            ];
-                        }
+            $entry['group'] = $reportToGroup['group'];
+            if (isset($reportToGroup['max_age']) && is_int($reportToGroup['max_age'])) {
+                $entry['max_age'] = $reportToGroup['max_age'];
+            }
+
+            if (isset($reportToGroup['endpoints']) && is_array($reportToGroup['endpoints'])) {
+                $entry['endpoints'] = [];
+                foreach ($reportToGroup['endpoints'] as $endpointUrl) {
+                    if (($endpointUrl = self::validateUrl($endpointUrl)) !== '') {
+                        $entry['endpoints'][] = [
+                            'url' => $endpointUrl
+                        ];
                     }
                 }
-
-                if (isset($reportToGroup['include_subdomains'])) {
-                    $entry['include_subdomains'] = (bool) $reportToGroup['include_subdomains'];
-                }
-
-                $reportTo[] = $entry;
             }
 
-            if ($reportTo !== []) {
-                $headerValue = json_encode($reportTo);
-                /**
-                 * W3C spec:
-                 * The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ],
-                 * as described in Section 4 of [HTTP-JFV].
-                 */
-                $headerValue = trim($headerValue, "[]");
+            if (isset($reportToGroup['include_subdomains'])) {
+                $entry['include_subdomains'] = (bool) $reportToGroup['include_subdomains'];
             }
 
-            return $headerValue;
+            $reportTo[] = $entry;
         }
+
+        if ($reportTo !== []) {
+            $headerValue = json_encode($reportTo);
+            /**
+             * W3C spec:
+             * The header’s value is interpreted as a JSON-formatted array of objects without the outer [ and ],
+             * as described in Section 4 of [HTTP-JFV].
+             */
+            $headerValue = trim($headerValue, "[]");
+        }
+
+        return $headerValue;
     }
 
     /**
@@ -662,9 +662,9 @@ class Policy extends DataObject implements PermissionProvider
 
         if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER && $this->EnableNEL == 1 && $nelReportUrl) {
             return $nelReportUrl;
-        } else {
-            return "";
         }
+
+        return "";
     }
 
     /**
@@ -676,9 +676,9 @@ class Policy extends DataObject implements PermissionProvider
         $reporting_url = $this->getReportingUrl();
         if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER && $this->SendViolationReports && $reporting_url) {
             return $reporting_url;
-        } else {
-            return "";
         }
+
+        return "";
     }
 
     /**
@@ -781,7 +781,9 @@ class Policy extends DataObject implements PermissionProvider
             if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_METATAG) {
                 // MetaTag delivery does not support CSPRO, go no further (delivers NO CSP headers)
                 return null;
-            } elseif ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER) {
+            }
+
+            if ($this->DeliveryMethod == self::POLICY_DELIVERY_METHOD_HEADER) {
                 // only HTTP Header can use CSPRO currently
                 $header = self::HEADER_CSP_REPORT_ONLY;
             }
@@ -808,7 +810,7 @@ class Policy extends DataObject implements PermissionProvider
             $report_to_directive = "";
             $report_uri_directive = "";
             $reporting_group = self::DEFAULT_REPORTING_GROUP;
-            if ($this->MinimumCspLevel < 3) {
+            if ((int)$this->MinimumCspLevel < 3) {
                 // Only 1,2 will add a report-uri, when selecting '3' this is ignored
                 $report_uri_directive = "report-uri {$reporting_url};";
             }
@@ -940,7 +942,7 @@ class Policy extends DataObject implements PermissionProvider
      * @inheritdoc
      */
     #[\Override]
-    public function validate()
+    public function validate(): \SilverStripe\Core\Validation\ValidationResult
     {
         $result = parent::validate();
         if ($this->AlternateReportURI) {

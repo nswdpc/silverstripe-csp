@@ -34,24 +34,25 @@
     },
     "require": {
         "ext-xml": "*",
-        "silverstripe/cms": "^5",
-        "symbiote/silverstripe-queuedjobs": "^5",
-        "symbiote/silverstripe-multivaluefield": "^6"
+        "silverstripe/framework": "^6.2",
+        "silverstripe/cms": "^6",
+        "symbiote/silverstripe-queuedjobs": "^6",
+        "symbiote/silverstripe-multivaluefield": "^7"
     },
     "require-dev": {
         "cambis/silverstripe-rector": "^2",
-        "phpunit/phpunit": "^9.5",
         "cambis/silverstan": "^2",
+        "friendsofphp/php-cs-fixer": "^3",
         "nswdpc/ci-files": "dev-v-4",
+        "phpunit/phpunit": "^11.5",
         "phpstan/phpstan": "^2",
-        "rector/rector": "^2",
         "phpstan/phpstan-phpunit": "^2",
-        "friendsofphp/php-cs-fixer": "^3"
+        "rector/rector": "^2"
     },
     "scripts": {
         "phpstan-analyse": "./vendor/bin/phpstan analyse --ansi --no-progress --no-interaction --configuration vendor/nswdpc/ci-files/phpstan/.phpstan.silverstripe.neon src/ tests/",
-        "rector-dryrun": "./vendor/bin/rector process --dry-run --ansi --config vendor/nswdpc/ci-files/rector/.rector.silverstripe_53_83.php src/ tests/",
-        "rector-process": "./vendor/bin/rector process --no-diffs --ansi --config vendor/nswdpc/ci-files/rector/.rector.silverstripe_53_83.php src/ tests/",
+        "rector-dryrun": "./vendor/bin/rector process --dry-run --ansi --config vendor/nswdpc/ci-files/rector/.rector.silverstripe_6_83.php src/ tests/",
+        "rector-process": "./vendor/bin/rector process --no-diffs --ansi --config vendor/nswdpc/ci-files/rector/.rector.silverstripe_6_83.php src/ tests/",
         "phpcsfixer-fix": "./vendor/bin/php-cs-fixer fix --ansi --no-interaction --config vendor/nswdpc/ci-files/php-cs-fixer/.php-cs-fixer.php src/ tests/"
     },
     "config": {

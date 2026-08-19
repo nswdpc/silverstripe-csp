@@ -72,7 +72,7 @@ class PolicyTest extends SapphireTest
             'EnableNEL' => 1, // NEL not enabled as not NEL reporting URL
             'AlternateReportURI' => 'https://localhost/csp/reporting',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $base_policy = Policy::getDefaultBasePolicy();
@@ -169,7 +169,7 @@ class PolicyTest extends SapphireTest
             'AlternateReportURI' => 'https://example.net/csp/report-uri',// for report-uri reports
             'AlternateReportToURI' => 'https://example.net/csp/report-to',// for Reporting API reports
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 2,
+            'MinimumCspLevel' => '2',
         ]);
 
         $directive = $this->createDirective([
@@ -222,7 +222,7 @@ class PolicyTest extends SapphireTest
             'EnableNEL' => 0, // NEL not enabled as not NEL reporting URL
             'AlternateReportURI' => 'https://localhost/csp/reporting',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $base_policy = Policy::getDefaultBasePolicy();
@@ -240,7 +240,7 @@ class PolicyTest extends SapphireTest
             'EnableNEL' => 0,
             'AlternateReportURI' => 'https://localhost/csp/reporting',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
         $new_policy->write();
 
@@ -263,7 +263,7 @@ class PolicyTest extends SapphireTest
             'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 1,
+            'MinimumCspLevel' => '1',
         ]);
 
         $directives = [];
@@ -416,7 +416,7 @@ class PolicyTest extends SapphireTest
             'EnableNEL' => 0,
             'AlternateReportURI' => '',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 3,
+            'MinimumCspLevel' => '3',
         ]);
 
         $directive = $this->createDirective([
@@ -471,7 +471,7 @@ class PolicyTest extends SapphireTest
             'AlternateReportURI' => 'https://csp.example.com/report',
             'AlternateNELReportURI' => 'https://nel.example.com/report',
             'DeliveryMethod' => Policy::POLICY_DELIVERY_METHOD_HEADER,
-            'MinimumCspLevel' => 3,
+            'MinimumCspLevel' => '3',
         ]);
 
         $directive = $this->createDirective([

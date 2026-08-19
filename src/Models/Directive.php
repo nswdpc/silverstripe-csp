@@ -399,7 +399,7 @@ class Directive extends DataObject implements PermissionProvider
         $rulesValues = $this->getValuesFromRulesAsArray();
         if ($rulesValues !== []) {
             // Values have preference over rules values
-            $values = array_merge($rulesValues, $values);
+            return array_merge($rulesValues, $values);
         }
 
         return $values;
@@ -423,10 +423,10 @@ class Directive extends DataObject implements PermissionProvider
     {
         if ($values === []) {
             return $this->Key . ";";
-        } else {
-            $values = array_unique($values);
-            return $this->Key . " " . implode(" ", $values) . ";";
         }
+
+        $values = array_unique($values);
+        return $this->Key . " " . implode(" ", $values) . ";";
 
     }
 

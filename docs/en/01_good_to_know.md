@@ -15,7 +15,7 @@ You can whitelist certain controllers in module config. This will block the poli
 
 ## Using meta tags
 
-> This option will be removed in v1.0
+> This option will be removed in a future release (see [#32](https://github.com/nswdpc/silverstripe-csp/issues/32)).
 
 You can choose to deliver the CSP via meta tags.
 

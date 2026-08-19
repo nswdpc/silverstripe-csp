@@ -89,7 +89,7 @@ See [browser support](./docs/en/02_browser_support.md)
 
 ## Maintainers
 
-+ [dpcdigital@NSWDPC:~$](https://dpc.nsw.gov.au)
++ PD Web Team
 
 
 ## Bugtracker

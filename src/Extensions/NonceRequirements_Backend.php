@@ -5,129 +5,93 @@ namespace NSWDPC\Utilities\ContentSecurityPolicy;
 use SilverStripe\View\Requirements_Backend;
 use SilverStripe\View\HTML;
 
+/**
+ * This is a custom requirements backend that injects the global nonce value
+ * into a) custom scripts and b) custom CSS
+ * As the core requirements backend does not allow custom attributes for custom CSS
+ * the custom CSS with nonce added is added via getCustomHeadTags
+ */
 class NonceRequirements_Backend extends Requirements_Backend
 {
     /**
      * @inheritdoc
+     * Divert to customScriptWithAttributes to ensure the nonce attribute is set
      */
     #[\Override]
-    public function includeInHTML($content)
+    public function customScript($script, $uniquenessID = null)
     {
+        if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
+            $attributes = [];
+            self::customScriptWithAttributes($script, $attributes, $uniquenessID);
+        } else {
+            parent::customScript($script, $uniquenessID);
+        }
+    }
 
-        // Skip if content isn't injectable, or there is nothing to inject
-        $tagsAvailable = preg_match('#</head\b#', $content ?? '');
-        $hasFiles = $this->css || $this->javascript || $this->customCSS || $this->customScript || $this->customHeadTags;
-        if ($tagsAvailable === 0 || $tagsAvailable === false || !$hasFiles) {
-            return $content;
+    /**
+     * @inheritdoc
+     * Set the global nonce attribute value
+     */
+    #[\Override]
+    public function customScriptWithAttributes(string $script, array $attributes = [], string|int|null $uniquenessID = null)
+    {
+        if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
+            $attributes['nonce'] = Nonce::getNonce();
         }
 
-        $requirements = '';
-        $jsRequirements = '';
+        parent::customScriptWithAttributes($script, $attributes, $uniquenessID);
+    }
 
-        // Combine files - updates $this->javascript and $this->css
-        $this->processCombinedFiles();
-
-        // Script tags for js links
-        foreach ($this->getJavascript() as $file => $attributes) {
-            // Build html attributes
-            $htmlAttributes = [
-                'type' => $attributes['type'] ?? "application/javascript",
-                'src' => $this->pathForFile($file),
-            ];
-            if (!empty($attributes['async'])) {
-                $htmlAttributes['async'] = 'async';
-            }
-
-            if (!empty($attributes['defer'])) {
-                $htmlAttributes['defer'] = 'defer';
-            }
-
-            if (!empty($attributes['integrity'])) {
-                $htmlAttributes['integrity'] = $attributes['integrity'];
-            }
-
-            if (!empty($attributes['crossorigin'])) {
-                $htmlAttributes['crossorigin'] = $attributes['crossorigin'];
-            }
-
-            $tag = 'script';
-            Nonce::addToAttributes($tag, $htmlAttributes);
-            $jsRequirements .= HTML::createTag($tag, $htmlAttributes);
-            $jsRequirements .= "\n";
+    /**
+     * Return no custom CSS here, as the core requirements doesn't
+     * allow custom attributes for style tags
+     */
+    #[\Override]
+    public function getCustomCSS()
+    {
+        if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
+            // See getCustomHeadTags + getCustomCSSWithNonce
+            return [];
         }
 
-        // Add all inline JavaScript *after* including external files they might rely on
-        foreach ($this->getCustomScripts() as $script) {
-            $attributes = [
-                'type' => 'application/javascript'
-            ];
-            $tag = 'script';
-            Nonce::addToAttributes($tag, $attributes);
-            $jsRequirements .= HTML::createTag(
-                $tag,
-                $attributes,
-                "//<![CDATA[\n{$script}\n//]]>"
-            );
-            $jsRequirements .= "\n";
-        }
+        return parent::getCustomCSS();
+    }
 
-        // CSS file links
-        foreach ($this->getCSS() as $file => $params) {
-            $htmlAttributes = [
-                'rel' => 'stylesheet',
-                'type' => 'text/css',
-                'href' => $this->pathForFile($file),
-            ];
-            if (!empty($params['media'])) {
-                $htmlAttributes['media'] = $params['media'];
-            }
-
-            if (!empty($params['integrity'])) {
-                $htmlAttributes['integrity'] = $params['integrity'];
-            }
-
-            if (!empty($params['crossorigin'])) {
-                $htmlAttributes['crossorigin'] = $params['crossorigin'];
-            }
-
-            $tag = 'link';
-            Nonce::addToAttributes($tag, $htmlAttributes);
-            $requirements .= HTML::createTag($tag, $htmlAttributes);
-            $requirements .= "\n";
-        }
-
-        // Literal custom CSS content
-        foreach ($this->getCustomCSS() as $css) {
-            $attributes = [
-                'type' => 'text/css'
-            ];
-            $tag = 'style';
-            Nonce::addToAttributes($tag, $attributes);
-            $requirements .= HTML::createTag(
-                $tag,
-                $attributes,
+    /**
+     * Return custom CSS with nonce attribute added
+     */
+    public function getCustomCSSWithNonce(): array
+    {
+        $customCSS = array_diff_key($this->customCSS, $this->blocked);
+        $tags = [];
+        foreach ($customCSS as $css) {
+            $tags[] = HTML::createTag(
+                'style',
+                [
+                    'type' => 'text/css',
+                    'nonce' => Nonce::getNonce()
+                ],
                 "\n{$css}\n"
             );
-            $requirements .= "\n";
         }
 
-        foreach ($this->getCustomHeadTags() as $customHeadTag) {
-            $requirements .= "{$customHeadTag}\n";
+        return $tags;
+    }
+
+    /**
+     * @inheritdoc
+     * Returns custom head tags, with custom CSS included
+     */
+    #[\Override]
+    public function getCustomHeadTags()
+    {
+        $styleTags = [];
+        if (Policy::config()->get('nonce_injection_method') == Policy::NONCE_INJECT_VIA_REQUIREMENTS) {
+            $styleTags = $this->getCustomCSSWithNonce();
         }
 
-        // Inject CSS  into body
-        $content = $this->insertTagsIntoHead($requirements, $content);
-
-        // Inject scripts
-        if ($this->getForceJSToBottom()) {
-            $content = $this->insertScriptsAtBottom($jsRequirements, $content);
-        } elseif ($this->getWriteJavascriptToBody()) {
-            $content = $this->insertScriptsIntoBody($jsRequirements, $content);
-        } else {
-            $content = $this->insertTagsIntoHead($jsRequirements, $content);
-        }
-
-        return $content;
+        $customHeadTags = array_diff_key($this->customHeadTags, $this->blocked);
+        return array_merge($styleTags, $customHeadTags);
     }
 
 }

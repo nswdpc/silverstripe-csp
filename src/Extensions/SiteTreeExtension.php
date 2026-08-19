@@ -31,13 +31,21 @@ class SiteTreeExtension extends Extension
     ];
 
     /**
-     * Update Fields
+     * Update CMS Fields
      */
-    public function updateSettingsFields(FieldList $fields): FieldList
+    public function updateCmsFields(FieldList $fields)
+    {
+        $fields->removeByName(['CspPolicyID']);
+    }
+
+    /**
+     * Update Settings Fields
+     */
+    public function updateSettingsFields(FieldList $fields)
     {
         $available_policies = Policy::get()->sort('Title ASC')->filter('Enabled', 1)->exclude('IsBasePolicy', 1);
+        $fields->removeByName(['CspPolicyID']);
         if ($available_policies->count() == 0) {
-            $fields->removeByName('CspPolicyID');
             $fields->addFieldToTab(
                 'Root.CSP',
                 LiteralField::create(
@@ -45,7 +53,7 @@ class SiteTreeExtension extends Extension
                     '<p class="message info">' .
                         htmlspecialchars(_t(
                             'ContentSecurityPolicy.NO_AVAILABLE_EXTRA_POLICIES',
-                            'There are no extra Content Security Polices. To fix this, define a new policy in the CSP administration area or ask an administrator to do this and it will appear here'
+                            'There are no extra Content Security Polices. To fix this, define a new non-base policy in the CSP administration area or ask an administrator to do this and it will appear here'
                         ))
                     . "</p>"
                 )
@@ -71,17 +79,15 @@ class SiteTreeExtension extends Extension
                     )
             );
         }
-
-        return $fields;
     }
 
     /**
      * Check to see if a meta tag can be returned
      */
-    private function checkCanRun()
+    private function checkCanRun(): bool
     {
-        $controller = Controller::has_curr() ? Controller::curr() : false;
-        if (!$controller) {
+        $controller = Controller::curr();
+        if (!($controller instanceof Controller)) {
             // no current controller
             return false;
         }
@@ -95,7 +101,7 @@ class SiteTreeExtension extends Extension
      * @deprecated Delivery of CSP via metatags will be removed in a future major version
      * @returns void
      */
-    public function MetaTags(&$tags)
+    public function updateMetaTags(&$tags)
     {
         $csp_tags = $this->CspMetaTags();
         $tags = $tags . "\n" . $csp_tags;
@@ -108,7 +114,7 @@ class SiteTreeExtension extends Extension
      * @deprecated Delivery of CSP via metatags will be removed in a future major version
      * @returns string
      */
-    public function CspMetaTags()
+    public function CspMetaTags(): string|\SilverStripe\ORM\FieldType\DBField
     {
         $tags = [];
 

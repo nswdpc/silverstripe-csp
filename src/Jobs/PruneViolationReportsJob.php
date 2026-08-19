@@ -16,16 +16,16 @@ class PruneViolationReportsJob extends AbstractQueuedJob
 {
     use Configurable;
 
-    //hour
-    private static int $older_than = 1;
+    // hour
+    private static int $age = 1;
 
     public function __construct($older_than = 0)
     {
         if (!$older_than || $older_than <= 0) {
-            $older_than = Config::inst()->get(self::class, 'older_than');
+            $older_than = Config::inst()->get(self::class, 'age');
         }
 
-        $this->older_than_hours = (int)abs($older_than);
+        $this->older_than = (int)abs($older_than);
     }
 
     public function getTitle()
@@ -46,15 +46,15 @@ class PruneViolationReportsJob extends AbstractQueuedJob
         if ($result = DB::query($query)) {
             $row = $result->record();
             return $row['RecordCount'] ?? 0;
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     public function process()
     {
-        $older_than = abs($this->older_than_hours);
-        if ($older_than === 0) {
+        $older_than = abs($this->older_than);
+        if ($older_than <= 0) {
             $older_than = 1;
         }
 
@@ -65,7 +65,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
         $now = $dt->format('Y-m-d H:i:s');
 
         $query = 'DELETE FROM "CspViolationReport" WHERE "Created" < ? - INTERVAL ? HOUR';
-        DB::prepared_query($query, [$now, $this->older_than_hours]);
+        DB::prepared_query($query, [$now, $this->older_than]);
 
         $post_count = $this->getRecordCount();
 
@@ -85,7 +85,7 @@ class PruneViolationReportsJob extends AbstractQueuedJob
     {
         $job = new PruneViolationReportsJob($this->older_than_hours);
         $dt = new DateTime();
-        $dt->modify('+' . $this->older_than_hours . ' hour');
+        $dt->modify('+' . $this->older_than . ' hour');
 
         singleton(QueuedJobService::class)->queueJob($job, $dt->format('Y-m-d H:i:s'));
     }

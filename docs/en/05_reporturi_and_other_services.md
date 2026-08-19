@@ -2,11 +2,9 @@
 
 You can choose to receive violation reports when they occur at a reporting service that can handle CSP reports.
 
-> NSWDPC does not make any service recommendations, this information is provided as a guide only and you are free to use whichever service you find suitable.
-
 ### Using a reporting service
 
-Most services have both a report-uri reporting endpoint and a report-to reporting endpoint.
+Most services have both a report-uri reporting endpoint (for legacy reporting) and a report-to reporting endpoint (the Reporting API).
 
 In the policy screen:
 
@@ -18,6 +16,8 @@ In the policy screen:
 Reports will show up in your report-uri.com within a few minutes.
 
 ### Other services for reporting
+
+> This information is provided as a guide only and you are free to use whichever service you find suitable.
 
 + [report-uri](https://report-uri.com)
 + [Sentry Security Policy Reporting](https://docs.sentry.io/error-reporting/security-policy-reporting/)

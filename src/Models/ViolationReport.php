@@ -145,12 +145,14 @@ class ViolationReport extends DataObject implements PermissionProvider
         if (isset($data[ self::REPORT_TYPE_CSP_REPORT ]) && $contentType === "application/csp-report") {
             // report-uri report (application/csp-report)
             return self::create_csp_report($data[ self::REPORT_TYPE_CSP_REPORT ]);
-        } elseif ($contentType === "application/reports+json") {
+        }
+
+        if ($contentType === "application/reports+json") {
             // Reporting-Endpoints report (multiple reports - application/reports+json)
             return self::create_csp_violation($data);
-        } else {
-            return null;
         }
+
+        return null;
     }
 
     /**
@@ -166,8 +168,8 @@ class ViolationReport extends DataObject implements PermissionProvider
         $report->BlockedUri = $data['blocked-uri'] ?? '';
         $report->ViolatedDirective = $data['violated-directive'] ?? '';
         $report->OriginalPolicy = $data['original-policy'] ?? '';
-        $report->LineNumber =  $data['line-number'] ?? '';
-        $report->ColumnNumber =  $data['column-number'] ?? '';
+        $report->LineNumber = intval($data['line-number'] ?? 0);
+        $report->ColumnNumber =  intval($data['column-number'] ?? 0);
         $report->Disposition =  $data['disposition'] ?? '';
         $report->SourceFile =  $data['source-file'] ?? '';
         $report->UserAgent = $user_agent;
@@ -201,8 +203,8 @@ class ViolationReport extends DataObject implements PermissionProvider
                 $report->BlockedUri = $data['blockedURL'] ?? '';
                 $report->ViolatedDirective = $data['effectiveDirective'] ?? '';
                 $report->OriginalPolicy = $data['originalPolicy'] ?? '';
-                $report->LineNumber =  $data['lineNumber'] ?? '';
-                $report->ColumnNumber =  $data['columnNumber'] ?? '';
+                $report->LineNumber =  intval($data['lineNumber'] ?? 0);
+                $report->ColumnNumber =  intval($data['columnNumber'] ?? 0);
                 $report->Disposition =  $data['disposition'] ?? '';
                 $report->SourceFile =  $data['sourceFile'] ?? '';
                 $report->ScriptSample =  $data['sample'] ?? '';

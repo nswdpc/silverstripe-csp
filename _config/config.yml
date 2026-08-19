@@ -15,7 +15,7 @@ NSWDPC\Utilities\ContentSecurityPolicy\ReportingEndpoint:
   accept_reports: false
 # report removal job
 NSWDPC\Utilities\ContentSecurityPolicy\PruneViolationReportsJob:
-  older_than: 1
+  age: 1
 ---
 Name: csp_extensions
 ---
