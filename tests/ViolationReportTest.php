@@ -16,12 +16,6 @@ class ViolationReportTest extends SapphireTest
     protected function setUp(): void
     {
         parent::setUp();
-        // Ensure protocol is https, to ensure reporting URL is validated
-        Config::modify()->set(
-            Director::class,
-            'alternate_base_url',
-            'https://localhost/'
-        );
 
         Config::modify()->set(
             ReportingEndpoint::class,
