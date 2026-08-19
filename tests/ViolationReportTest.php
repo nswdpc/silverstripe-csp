@@ -39,17 +39,17 @@ class ViolationReportTest extends SapphireTest
                 'url' => 'https://example.com/page',
                 'user_agent' => 'Mozilla/5.0 SomeBrowser',
                 'body' => [
-                        'documentURL' => 'https://example.com/page',
-                        'blockedURL' => 'https://some.example.net/script.js',
-                        'referrer' => 'https://example.com/page',
-                        'effectiveDirective' => 'script-src-elem',
-                        'originalPolicy' => "default-src 'self'; script-src https://example.org 'self' 'report-sample' 'nonce-example'; style-src-attr 'unsafe-inline' 'report-sample'; style-src 'self' 'nonce-example'; frame-src 'self'; object-src 'none'; form-action 'self'; base-uri 'self'; report-uri 'https://reporting.example.com/v1/report; report-to csp-endpoint",
-                        'sourceFile' => '',
-                        'sample' => '',
-                        'disposition' => 'enforce',
-                        'statusCode' => 200,
-                        'lineNumber' => '',
-                        'columnNumber' => ''
+                    'documentURL' => 'https://example.com/page',
+                    'blockedURL' => 'https://some.example.net/script.js',
+                    'referrer' => 'https://example.com/page',
+                    'effectiveDirective' => 'script-src-elem',
+                    'originalPolicy' => "default-src 'self'; script-src https://example.org 'self' 'report-sample' 'nonce-example'; style-src-attr 'unsafe-inline' 'report-sample'; style-src 'self' 'nonce-example'; frame-src 'self'; object-src 'none'; form-action 'self'; base-uri 'self'; report-uri 'https://reporting.example.com/v1/report; report-to csp-endpoint",
+                    'sourceFile' => '',
+                    'sample' => '',
+                    'disposition' => 'enforce',
+                    'statusCode' => 200,
+                    'lineNumber' => '',
+                    'columnNumber' => ''
                 ]
             ],
             [
