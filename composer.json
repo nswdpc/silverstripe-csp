@@ -43,7 +43,7 @@
         "cambis/silverstripe-rector": "^2",
         "cambis/silverstan": "^2",
         "friendsofphp/php-cs-fixer": "^3",
-        "nswdpc/ci-files": "dev-v-4",
+        "nswdpc/ci-files": "dev-v-4-refactor",
         "phpunit/phpunit": "^11.5",
         "phpstan/phpstan": "^2",
         "phpstan/phpstan-phpunit": "^2",
