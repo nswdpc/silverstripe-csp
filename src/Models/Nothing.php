@@ -11,14 +11,6 @@ class Nothing
 {
     public const TEST = "test";
 
-    private static string $something = 'Nothing Really';
-
-
-    private static array $check = [
-        'Foo' => 'Bar'
-    ];
-
-
     public function doNothing(string $params = ''): array
     {
         return [
@@ -28,7 +20,7 @@ class Nothing
 
     protected static function doNothing2(array $data): bool
     {
-        return true === true;
+        return $data !== [];
     }
 
 }
