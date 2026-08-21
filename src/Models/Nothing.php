@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
-use SilverStripe\Forms\FieldList;
-
 /**
  * The Nothing class does nothing and exists only to test CI workflow
  */
-class Nothing {
-
-    const TEST = "test";
+class Nothing
+{
+    public const TEST = "test";
 
     private static string $something = 'Nothing Really';
 
@@ -21,7 +19,8 @@ class Nothing {
     ];
 
 
-    public function doNothing(string $params = ''): array {
+    public function doNothing(string $params = ''): array
+    {
         return [
             'foo' => 'bar'
         ];
