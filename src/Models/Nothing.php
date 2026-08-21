@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace NSWDPC\Utilities\ContentSecurityPolicy;
 
 use SilverStripe\Forms\FieldList;
@@ -11,32 +13,23 @@ class Nothing {
 
     const TEST = "test";
 
-    private static $something = 'Nothing Really';
+    private static string $something = 'Nothing Really';
 
 
-    private static $check = [
+    private static array $check = [
         'Foo' => 'Bar'
     ];
 
 
-    public function doNothing(string $params = '') {
-        $fields = [
+    public function doNothing(string $params = ''): array {
+        return [
             'foo' => 'bar'
         ];
-        $foo = 'bar';
-        return $fields;
     }
 
-    protected static function doNothing2(array $data): bool {
-        $fields = [
-            'foo' => 'bar',
-                'indent' => 'more'
-        ];
-        if(true == true) {
-            return true;
-        } else {
-            return false;
-        }
+    protected static function doNothing2(array $data): bool
+    {
+        return true === true;
     }
 
 }
